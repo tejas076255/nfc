@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nfc-business-card-saas",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nfc-saas-db",
+      "database_id": "c5c340f2-b9b4-42e1-9337-b30f5a13e782",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "queue": "nfc-saas-jobs",
+        "binding": "QUEUE"
+      }
+    ]
+  },
+  "vars": {
+    "APP_URL": "https://nfc-business-card-saas.panchalsmit.workers.dev",
+    "NEXT_PUBLIC_APP_URL": "https://nfc-business-card-saas.panchalsmit.workers.dev",
+    "JWT_SECRET": "nfc-saas-production-jwt-secret-key-32charsmin",
+    "ENVIRONMENT": "production"
+  }
+}
