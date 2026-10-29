@@ -5,6 +5,10 @@ import { INDUSTRY_TEMPLATES } from "./templates";
 import { fastCache, invalidateProfileCache } from "../cache";
 
 export async function getWorkspaceSubscriptionPlan(workspaceId: string) {
+  const cacheKey = `plan:${workspaceId}`;
+  const cached = fastCache.get<any>(cacheKey);
+  if (cached) return cached;
+
   const db = await getDb();
   const [sub] = await db
     .select({
@@ -16,22 +20,26 @@ export async function getWorkspaceSubscriptionPlan(workspaceId: string) {
     .where(eq(schema.subscriptions.workspaceId, workspaceId))
     .limit(1);
 
+  let result;
   if (!sub) {
     // Default to free
-    return {
+    result = {
       planCode: "free" as const,
       profileLimit: 1,
       status: "active",
       planName: "Free Digital Identity",
     };
+  } else {
+    result = {
+      planCode: sub.plan.code,
+      profileLimit: sub.plan.profileLimit,
+      status: sub.subscription.status,
+      planName: sub.plan.name,
+    };
   }
 
-  return {
-    planCode: sub.plan.code,
-    profileLimit: sub.plan.profileLimit,
-    status: sub.subscription.status,
-    planName: sub.plan.name,
-  };
+  fastCache.set(cacheKey, result, 120);
+  return result;
 }
 
 export async function getWorkspaceProfiles(workspaceId: string) {

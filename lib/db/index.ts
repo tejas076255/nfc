@@ -35,6 +35,7 @@ class D1RestClient implements D1Database {
   private async executeQuery(sql: string, params: unknown[] = []): Promise<any> {
     const res = await fetch(this.endpoint, {
       method: "POST",
+      keepalive: true,
       headers: {
         "X-Auth-Key": this.apiKey,
         "X-Auth-Email": this.email,

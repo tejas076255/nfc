@@ -20,7 +20,7 @@ export default async function DashboardAnalyticsPage() {
 
   const analytics = await getWorkspaceAnalyticsSummary(session.workspace.id, 30);
 
-  const maxDailyViews = Math.max(1, ...analytics.dailyTrend.map((d) => d.views));
+  const maxDailyViews = Math.max(1, ...analytics.dailyTrend.map((d: any) => d.views));
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
@@ -122,7 +122,7 @@ export default async function DashboardAnalyticsPage() {
           </div>
 
           <div className="h-56 flex items-end justify-between gap-3 pt-6 px-2 border-b border-white/10 pb-4">
-            {analytics.dailyTrend.map((d, i) => {
+            {analytics.dailyTrend.map((d: any, i: number) => {
               const heightPercent = Math.max(8, Math.round((d.views / maxDailyViews) * 100));
 
               return (

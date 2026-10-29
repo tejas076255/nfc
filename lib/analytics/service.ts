@@ -1,18 +1,19 @@
 import { getDb, schema } from "../db";
 import { eq, and, gte, count, sql } from "drizzle-orm";
+import { fastCache } from "../cache";
 
 export interface LogAnalyticsEventInput {
   workspaceId: string;
   profileId: string;
   eventType:
-    | "profile_view"
-    | "nfc_open"
-    | "qr_open"
-    | "save_contact_click"
-    | "whatsapp_click"
-    | "phone_click"
-    | "email_click"
-    | "lead_submitted";
+  | "profile_view"
+  | "nfc_open"
+  | "qr_open"
+  | "save_contact_click"
+  | "whatsapp_click"
+  | "phone_click"
+  | "email_click"
+  | "lead_submitted";
   sourceToken?: string;
   sourceType?: string;
   userAgent?: string;
@@ -25,11 +26,11 @@ export function logAnalyticsEvent(input: LogAnalyticsEventInput) {
     const ua = (input.userAgent || "").toLowerCase();
     const isBot =
       ua.includes("bot") ||
-      ua.includes("crawler") ||
-      ua.includes("spider") ||
-      ua.includes("googlebot") ||
-      ua.includes("bingbot") ||
-      ua.includes("headless")
+        ua.includes("crawler") ||
+        ua.includes("spider") ||
+        ua.includes("googlebot") ||
+        ua.includes("bingbot") ||
+        ua.includes("headless")
         ? 1
         : 0;
 
@@ -73,13 +74,17 @@ export function logAnalyticsEvent(input: LogAnalyticsEventInput) {
       if (ctx?.ctx?.waitUntil) {
         ctx.ctx.waitUntil(promise);
       }
-    }).catch(() => {});
-  } catch {}
+    }).catch(() => { });
+  } catch { }
 
   return promise;
 }
 
 export async function getWorkspaceAnalyticsSummary(workspaceId: string, days = 30) {
+  const cacheKey = `analytics:summary:${workspaceId}:${days}`;
+  const cached = fastCache.get<any>(cacheKey);
+  if (cached) return cached;
+
   const db = await getDb();
   const now = Math.floor(Date.now() / 1000);
   const sinceTimestamp = now - days * 24 * 60 * 60;
@@ -161,7 +166,7 @@ export async function getWorkspaceAnalyticsSummary(workspaceId: string, days = 3
   // PRD Line 545-546: conversion = successful leads / eligible profile views * 100
   const conversionRate = profileViews > 0 ? ((leadSubmissions / profileViews) * 100).toFixed(1) : "0.0";
 
-  return {
+  const result = {
     profileViews,
     nfcOpens,
     qrOpens,
@@ -172,4 +177,7 @@ export async function getWorkspaceAnalyticsSummary(workspaceId: string, days = 3
     sourceCounts,
     dailyTrend: Object.values(dailyBuckets),
   };
+
+  fastCache.set(cacheKey, result, 60);
+  return result;
 }

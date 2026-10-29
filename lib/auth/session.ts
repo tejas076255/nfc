@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { getDb, schema } from "../db";
 import { eq, and, gt } from "drizzle-orm";
 import { hashToken } from "./password";
+import { fastCache } from "../cache";
 
 const SESSION_COOKIE_NAME = "nfc_session";
 const SESSION_EXPIRY_DAYS = 30;
@@ -36,14 +38,18 @@ export async function createSession(userId: string, ipAddress?: string, userAgen
   return { sessionToken: rawToken, expiresAt };
 }
 
-export async function getCurrentSession() {
+export const getCurrentSession = cache(async function getCurrentSession() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return null;
 
-    const db = await getDb();
     const tokenHash = await hashToken(token);
+    const cacheKey = `session:${tokenHash}`;
+    const cached = fastCache.get<any>(cacheKey);
+    if (cached) return cached;
+
+    const db = await getDb();
     const now = Math.floor(Date.now() / 1000);
 
     const [sessionRecord] = await db
@@ -88,25 +94,31 @@ export async function getCurrentSession() {
       workspace = ws;
     }
 
-    return {
+    const sessionData = {
       user,
       session: sessionRecord,
       workspace,
       membershipRole: membership?.role || "owner",
     };
+
+    // Cache in fast memory for 60 seconds
+    fastCache.set(cacheKey, sessionData, 60);
+
+    return sessionData;
   } catch (error) {
     console.error("Error retrieving current session:", error);
     return null;
   }
-}
+});
 
 export async function destroySession() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (token) {
-      const db = await getDb();
       const tokenHash = await hashToken(token);
+      fastCache.delete(`session:${tokenHash}`);
+      const db = await getDb();
       await db.delete(schema.sessions).where(eq(schema.sessions.tokenHash, tokenHash));
     }
     cookieStore.delete(SESSION_COOKIE_NAME);
