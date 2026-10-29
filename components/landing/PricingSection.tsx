@@ -126,16 +126,16 @@ export function PricingSection() {
   return (
     <section id="pricing" className="relative py-28 px-4 sm:px-6 lg:px-8 border-t border-white/[0.06] bg-[#030508] overflow-hidden">
       {/* Background radial glow */}
-      <motion.div 
+      <motion.div
         className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none"
         animate={{ scale: [1, 1.15, 1], opacity: [0.05, 0.1, 0.05] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        
+
         {/* Section Header with Scroll Reveal */}
-        <motion.div 
+        <motion.div
           className="text-center max-w-3xl mx-auto mb-14"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -160,11 +160,10 @@ export function PricingSection() {
           <div className="inline-flex items-center p-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md relative max-w-full">
             <button
               onClick={() => setBillingCycle("monthly")}
-              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all relative z-10 ${
-                billingCycle === "monthly"
+              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all relative z-10 ${billingCycle === "monthly"
                   ? "text-black font-bold"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               Standard Hardware
               {billingCycle === "monthly" && (
@@ -177,11 +176,10 @@ export function PricingSection() {
             </button>
             <button
               onClick={() => setBillingCycle("annual")}
-              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1 sm:gap-1.5 relative z-10 ${
-                billingCycle === "annual"
+              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1 sm:gap-1.5 relative z-10 ${billingCycle === "annual"
                   ? "text-black font-bold"
                   : "text-slate-400 hover:text-white"
-              }`}
+                }`}
             >
               <span>Annual Enterprise</span>
               <span className="text-[9px] sm:text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold">Save 20%</span>
@@ -206,18 +204,16 @@ export function PricingSection() {
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.5, delay: idx * 0.1, ease: "easeOut" }}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
-              className={`relative rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 ${
-                tier.isPopular
+              className={`relative rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 ${tier.isPopular
                   ? "border-2 border-amber-500/50 bg-gradient-to-b from-amber-500/[0.08] via-white/[0.02] to-[#04060a] shadow-[0_0_40px_rgba(245,158,11,0.12)] scale-[1.02]"
                   : "border border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-[#04060a] hover:border-white/20"
-              }`}
+                }`}
             >
               {tier.badge && (
-                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md ${
-                  tier.isPopular 
+                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-md ${tier.isPopular
                     ? "bg-amber-400 text-black flex items-center gap-1 shadow-amber-500/30"
                     : "bg-white/10 text-white border border-white/20"
-                }`}>
+                  }`}>
                   {tier.isPopular && <Sparkles className="w-3 h-3 fill-black" />}
                   <span>{tier.badge}</span>
                 </div>
@@ -233,7 +229,7 @@ export function PricingSection() {
                 <div className="py-4 my-2 border-y border-white/[0.06]">
                   <div className="flex items-baseline gap-1">
                     <AnimatePresence mode="wait">
-                      <motion.span 
+                      <motion.span
                         key={billingCycle}
                         initial={{ opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -280,7 +276,7 @@ export function PricingSection() {
         </div>
 
         {/* Trust & Guarantee Banner */}
-        <motion.div 
+        <motion.div
           className="mt-16 p-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] flex flex-wrap items-center justify-center gap-8 text-xs text-slate-400 font-mono text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
