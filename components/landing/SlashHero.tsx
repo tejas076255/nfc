@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -8,17 +8,70 @@ import {
   ArrowRight,
   CheckCircle2,
   CreditCard,
-  ShieldCheck,
-  Zap,
+  Play,
+  Pause,
 } from "lucide-react";
 
 export function SlashHero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Fix for React DOM muted bug: explicitly enforce DOM properties
+    video.defaultMuted = true;
+    video.muted = true;
+    video.playsInline = true;
+
+    const attemptPlay = () => {
+      video
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((err) => {
+          console.warn("Autoplay deferred by browser policy:", err);
+          setIsPlaying(false);
+        });
+    };
+
+    attemptPlay();
+
+    // User gesture fallback for browsers requiring interaction
+    const handleInteraction = () => {
+      if (video.paused) {
+        attemptPlay();
+      }
+    };
+
+    window.addEventListener("scroll", handleInteraction, { once: true, passive: true });
+    window.addEventListener("touchstart", handleInteraction, { once: true, passive: true });
+    window.addEventListener("click", handleInteraction, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("click", handleInteraction);
+    };
+  }, []);
+
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().then(() => setIsPlaying(true));
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <section className="relative min-h-[85dvh] sm:min-h-[90dvh] flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-24">
       {/* 1. Background Video (GPU-accelerated, zero compositor blocking) */}
       <video
+        ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover pointer-events-none z-0 transform-gpu will-change-transform"
-        src="/product_advertisement.mp4"
         autoPlay
         muted
         loop
@@ -26,7 +79,9 @@ export function SlashHero() {
         preload="auto"
         disablePictureInPicture
         controls={false}
-      />
+      >
+        <source src="/product_advertisement.mp4" type="video/mp4" />
+      </video>
 
       {/* 2. Cinematic Overlays for Perfect Contrast & 60/120fps Smoothness */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#030508] via-[#030508]/80 to-[#030508]/55 pointer-events-none z-[1]" />
@@ -34,6 +89,29 @@ export function SlashHero() {
 
       {/* Ambient Gold Halo Glow matching the video's metallic sheen */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] xs:w-[500px] sm:w-[700px] lg:w-[900px] h-[300px] sm:h-[500px] bg-amber-500/10 rounded-full blur-[90px] sm:blur-[140px] pointer-events-none z-[1] transform-gpu" />
+
+      {/* Play / Pause indicator button */}
+      <button
+        type="button"
+        onClick={togglePlayback}
+        className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/70 hover:bg-slate-900 border border-white/15 text-slate-300 hover:text-white text-[11px] sm:text-xs backdrop-blur-md transition-all shadow-lg group cursor-pointer"
+        title={isPlaying ? "Pause background video" : "Play background video"}
+        aria-label={isPlaying ? "Pause video" : "Play video"}
+      >
+        {isPlaying ? (
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <Pause className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="font-medium text-slate-400 group-hover:text-slate-200">Video</span>
+          </>
+        ) : (
+          <>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <Play className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="font-medium text-amber-300">Play Video</span>
+          </>
+        )}
+      </button>
 
       {/* 3. Main Overlaid Content (Centered & Prominent) */}
       <div className="relative z-10 w-full max-w-4xl mx-auto text-center space-y-6 sm:space-y-8">
