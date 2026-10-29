@@ -153,7 +153,7 @@ export function TemplatesShowcase() {
         </motion.div>
 
         {/* Category Filters with layoutId animation */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-4 mb-12 scrollbar-none">
+        <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-8 sm:mb-12 scrollbar-none px-2 sm:px-0 max-w-full">
           {CATEGORIES.map((category) => (
             <button
               key={category}

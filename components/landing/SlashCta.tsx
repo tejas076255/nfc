@@ -26,7 +26,7 @@ export function SlashCta() {
         
         {/* Main Banner Box with Scroll Reveal */}
         <motion.div 
-          className="relative rounded-3xl border border-white/[0.12] bg-gradient-to-b from-white/[0.05] via-[#060a12]/90 to-[#020408] p-8 sm:p-14 lg:p-16 text-center overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)] group"
+          className="relative rounded-3xl border border-white/[0.12] bg-gradient-to-b from-white/[0.05] via-[#060a12]/90 to-[#020408] p-5 sm:p-12 lg:p-16 text-center overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.8)] group"
           initial={{ opacity: 0, y: 35, scale: 0.98 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true, amount: 0.25 }}
@@ -68,21 +68,21 @@ export function SlashCta() {
           </p>
 
           {/* CTA Button Group with Magnetic Spring Motion */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-12 w-full max-w-sm sm:max-w-none mx-auto">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
               <Link
                 href="/register?tier=luxe"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-[#030508] font-bold text-sm tracking-wider uppercase transition-all duration-300 shadow-[0_0_35px_rgba(245,158,11,0.45)]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-[#030508] font-bold text-xs sm:text-sm tracking-wider uppercase transition-all duration-300 shadow-[0_0_35px_rgba(245,158,11,0.45)]"
               >
                 <span>Order Velvet Matte (₹999)</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto">
               <Link
                 href="/register?plan=free"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-all duration-300 hover:border-white/40"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium text-xs sm:text-sm transition-all duration-300 hover:border-white/40"
               >
                 <span>Create Free Digital Profile</span>
                 <Wifi className="w-4 h-4 text-amber-400 rotate-90" />

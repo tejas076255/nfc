@@ -157,10 +157,10 @@ export function PricingSection() {
           </p>
 
           {/* Interactive Billing Toggle with spring pill */}
-          <div className="inline-flex items-center p-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md relative">
+          <div className="inline-flex items-center p-1 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md relative max-w-full">
             <button
               onClick={() => setBillingCycle("monthly")}
-              className={`px-5 py-1.5 rounded-full text-xs font-semibold transition-all relative z-10 ${
+              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all relative z-10 ${
                 billingCycle === "monthly"
                   ? "text-black font-bold"
                   : "text-slate-400 hover:text-white"
@@ -177,14 +177,14 @@ export function PricingSection() {
             </button>
             <button
               onClick={() => setBillingCycle("annual")}
-              className={`px-5 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 relative z-10 ${
+              className={`px-3.5 sm:px-5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1 sm:gap-1.5 relative z-10 ${
                 billingCycle === "annual"
                   ? "text-black font-bold"
                   : "text-slate-400 hover:text-white"
               }`}
             >
               <span>Annual Enterprise</span>
-              <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold">Save 20%</span>
+              <span className="text-[9px] sm:text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold">Save 20%</span>
               {billingCycle === "annual" && (
                 <motion.div
                   layoutId="billingTogglePill"

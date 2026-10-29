@@ -106,7 +106,7 @@ export function HardwareComparison() {
           
           {/* Card Option 1: Standard Gloss PVC */}
           <motion.div 
-            className="relative rounded-3xl border border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-white/[0.01] p-8 sm:p-10 flex flex-col justify-between hover:border-white/[0.18] transition-all duration-300 group"
+            className="relative rounded-3xl border border-white/[0.08] bg-gradient-to-b from-white/[0.03] to-white/[0.01] p-5 sm:p-8 lg:p-10 flex flex-col justify-between hover:border-white/[0.18] transition-all duration-300 group"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -117,26 +117,26 @@ export function HardwareComparison() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <span className="text-xs uppercase tracking-widest text-slate-400 font-semibold">Starter Physical</span>
-                  <h3 className="text-2xl font-bold text-white mt-1">Gloss Core PVC</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">Gloss Core PVC</h3>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-white">₹499</div>
-                  <span className="text-xs text-slate-400">One-time hardware</span>
+                  <div className="text-xl sm:text-3xl font-extrabold text-white">₹499</div>
+                  <span className="text-[11px] sm:text-xs text-slate-400">One-time hardware</span>
                 </div>
               </div>
 
               {/* Card Visual Preview */}
-              <div className="w-full aspect-[1.586/1] max-w-[380px] mx-auto my-8 rounded-2xl border border-white/20 bg-gradient-to-br from-slate-800 to-slate-950 p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden group-hover:scale-[1.03] transition-transform duration-300">
+              <div className="w-full aspect-[1.586/1] max-w-[340px] sm:max-w-[380px] mx-auto my-6 sm:my-8 rounded-2xl border border-white/20 bg-gradient-to-br from-slate-800 to-slate-950 p-4 sm:p-6 flex flex-col justify-between shadow-2xl relative overflow-hidden group-hover:scale-[1.03] transition-transform duration-300">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
                 <div className="flex items-center justify-between">
-                  <div className="w-10 h-7 rounded bg-gradient-to-tr from-amber-300 to-yellow-600 border border-yellow-200/50 flex items-center justify-center">
-                    <div className="w-6 h-4 border border-black/30 rounded-sm" />
+                  <div className="w-9 sm:w-10 h-6 sm:h-7 rounded bg-gradient-to-tr from-amber-300 to-yellow-600 border border-yellow-200/50 flex items-center justify-center">
+                    <div className="w-5 sm:w-6 h-3.5 sm:h-4 border border-black/30 rounded-sm" />
                   </div>
-                  <Wifi className="w-6 h-6 text-slate-300 rotate-90" />
+                  <Wifi className="w-5 sm:w-6 h-5 sm:h-6 text-slate-300 rotate-90" />
                 </div>
                 <div>
-                  <div className="text-xs text-slate-400 uppercase tracking-widest font-mono">TapSync Core</div>
-                  <div className="text-base font-semibold text-white tracking-wider mt-1 font-mono">YOUR NAME HERE</div>
+                  <div className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest font-mono">TapSync Core</div>
+                  <div className="text-sm sm:text-base font-semibold text-white tracking-wider mt-1 font-mono">YOUR NAME HERE</div>
                 </div>
               </div>
 
@@ -182,7 +182,7 @@ export function HardwareComparison() {
 
           {/* Card Option 2: Velvet Matte Luxe (Signature) */}
           <motion.div 
-            className="relative rounded-3xl border-2 border-amber-500/40 bg-gradient-to-b from-amber-500/[0.08] via-white/[0.03] to-black/60 p-8 sm:p-10 flex flex-col justify-between shadow-[0_0_50px_rgba(245,158,11,0.12)] group"
+            className="relative rounded-3xl border-2 border-amber-500/40 bg-gradient-to-b from-amber-500/[0.08] via-white/[0.03] to-black/60 p-5 sm:p-8 lg:p-10 flex flex-col justify-between shadow-[0_0_50px_rgba(245,158,11,0.12)] group mt-4 lg:mt-0"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.2 }}
@@ -191,7 +191,7 @@ export function HardwareComparison() {
           >
             {/* Best Seller Badge with Pulse */}
             <motion.div 
-              className="absolute -top-3.5 right-8 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-[#030508] font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5"
+              className="absolute -top-3.5 right-4 sm:right-8 px-3.5 sm:px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-[#030508] font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-lg flex items-center gap-1.5"
               animate={{ y: [-1, 1, -1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -203,25 +203,25 @@ export function HardwareComparison() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold">Executive Edition</span>
-                  <h3 className="text-2xl font-bold text-white mt-1">Velvet Matte PVC</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">Velvet Matte PVC</h3>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-extrabold text-amber-400">₹999</div>
-                  <span className="text-xs text-slate-400">One-time hardware</span>
+                  <div className="text-xl sm:text-3xl font-extrabold text-amber-400">₹999</div>
+                  <span className="text-[11px] sm:text-xs text-slate-400">One-time hardware</span>
                 </div>
               </div>
 
               {/* Finish Palette Switcher */}
-              <div className="flex items-center justify-between bg-black/40 border border-white/[0.08] rounded-xl p-2 mb-6">
-                <span className="text-xs text-slate-400 font-medium pl-2">Select Finish:</span>
-                <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-black/40 border border-white/[0.08] rounded-xl p-2 gap-2 mb-6">
+                <span className="text-xs text-slate-400 font-medium pl-1 sm:pl-2">Select Finish:</span>
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {FINISH_OPTIONS.map((finish) => (
                     <motion.button
                       key={finish.id}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setActiveFinish(finish)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                      className={`px-2 sm:px-2.5 py-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all ${
                         activeFinish.id === finish.id 
                           ? "bg-white/15 text-white shadow-sm ring-1 ring-white/30" 
                           : "text-slate-400 hover:text-slate-200"
