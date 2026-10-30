@@ -74,13 +74,66 @@ export async function getProfileById(profileId: string, workspaceId: string) {
     themeConfig = INDUSTRY_TEMPLATES[profile.industry as IndustryType]?.defaultTheme || {};
   }
 
-  const parsedBlocks = blocks.map((b) => ({
-    id: b.id,
-    type: b.type as any,
-    isEnabled: Boolean(b.isEnabled),
-    sortOrder: b.sortOrder,
-    blockData: JSON.parse(b.blockData || "{}"),
-  }));
+  const parsedBlocks = blocks.map((b) => {
+    let data = {};
+    try {
+      data = JSON.parse(b.blockData || "{}");
+    } catch {
+      data = {};
+    }
+    return {
+      id: b.id,
+      type: b.type as any,
+      isEnabled: Boolean(b.isEnabled),
+      sortOrder: b.sortOrder,
+      blockData: data,
+    };
+  });
+
+  // Auto-heal fallback: If profile has 0 blocks in DB, generate and persist default blocks from template
+  if (parsedBlocks.length === 0) {
+    const template = INDUSTRY_TEMPLATES[profile.industry as IndustryType] || INDUSTRY_TEMPLATES.professional;
+    const now = Math.floor(Date.now() / 1000);
+    const fallbackBlocks = template.defaultBlocks.map((b, i) => {
+      const blockData = { ...b.blockData };
+      if (b.type === "identity_header") {
+        blockData.name = profile.name;
+        if (profile.title) blockData.title = profile.title;
+      }
+      return {
+        id: crypto.randomUUID(),
+        profileId: profile.id,
+        type: b.type,
+        isEnabled: b.isEnabled ? 1 : 0,
+        sortOrder: i,
+        blockData: JSON.stringify(blockData),
+      };
+    });
+
+    try {
+      for (const fb of fallbackBlocks) {
+        await db.insert(schema.profileBlocks).values({
+          ...fb,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    } catch (healErr) {
+      console.error("Auto-heal insert failed:", healErr);
+    }
+
+    return {
+      ...profile,
+      themeConfig,
+      blocks: fallbackBlocks.map((fb) => ({
+        id: fb.id,
+        type: fb.type as any,
+        isEnabled: Boolean(fb.isEnabled),
+        sortOrder: fb.sortOrder,
+        blockData: JSON.parse(fb.blockData),
+      })),
+    };
+  }
 
   return {
     ...profile,
@@ -117,16 +170,20 @@ export async function createProfile(workspaceId: string, data: { name: string; i
     updatedAt: now,
   });
 
-  // Insert default blocks
+  // Insert default blocks customized with user's name
   for (let i = 0; i < template.defaultBlocks.length; i++) {
     const block = template.defaultBlocks[i];
+    const blockData = { ...block.blockData };
+    if (block.type === "identity_header") {
+      blockData.name = data.name; // Keep user's chosen name!
+    }
     await db.insert(schema.profileBlocks).values({
       id: crypto.randomUUID(),
       profileId,
       type: block.type,
       isEnabled: block.isEnabled ? 1 : 0,
       sortOrder: i,
-      blockData: JSON.stringify(block.blockData),
+      blockData: JSON.stringify(blockData),
       createdAt: now,
       updatedAt: now,
     });
@@ -197,33 +254,68 @@ export async function updateProfileDraft(
 
   // Update blocks if provided
   if (data.blocks && data.blocks.length > 0) {
-    // Delete existing blocks and recreate in atomic transaction order
-    await db.delete(schema.profileBlocks).where(eq(schema.profileBlocks.profileId, profileId));
-
-    for (let i = 0; i < data.blocks.length; i++) {
-      const b = data.blocks[i];
-      await db.insert(schema.profileBlocks).values({
-        id: b.id || crypto.randomUUID(),
+    // Prepare all rows first with clean UUIDs and safe JSON serialization
+    const rowsToInsert = data.blocks.map((b, i) => {
+      let serialized = "{}";
+      try {
+        serialized = typeof b.blockData === "string" ? b.blockData : JSON.stringify(b.blockData || {});
+      } catch {
+        serialized = "{}";
+      }
+      return {
+        id: crypto.randomUUID(),
         profileId,
         type: b.type,
         isEnabled: b.isEnabled ? 1 : 0,
         sortOrder: i,
-        blockData: JSON.stringify(b.blockData || {}),
+        blockData: serialized,
         createdAt: now,
         updatedAt: now,
-      });
+      };
+    });
+
+    if (rowsToInsert.length > 0) {
+      await db.delete(schema.profileBlocks).where(eq(schema.profileBlocks.profileId, profileId));
+      for (const row of rowsToInsert) {
+        await db.insert(schema.profileBlocks).values(row);
+      }
     }
   }
 
   return { success: true };
 }
 
-export async function publishProfile(profileId: string, workspaceId: string, userId: string) {
+export async function publishProfile(
+  profileId: string,
+  workspaceId: string,
+  userId: string,
+  options?: { unpublishOthers?: boolean }
+) {
   const db = await getDb();
   const profile = await getProfileById(profileId, workspaceId);
 
   if (!profile) {
     throw new Error("Profile not found");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+
+  // If user opted to unpublish others to make room for this profile
+  if (options?.unpublishOthers) {
+    const publishedProfiles = await db
+      .select({ id: schema.profiles.id, slug: schema.profiles.slug })
+      .from(schema.profiles)
+      .where(and(eq(schema.profiles.workspaceId, workspaceId), eq(schema.profiles.status, "published")));
+
+    for (const p of publishedProfiles) {
+      if (p.id !== profileId) {
+        await db
+          .update(schema.profiles)
+          .set({ status: "unpublished", updatedAt: now })
+          .where(eq(schema.profiles.id, p.id));
+        invalidateProfileCache(p.slug, p.id);
+      }
+    }
   }
 
   // Enforce plan published profile limits
@@ -236,7 +328,7 @@ export async function publishProfile(profileId: string, workspaceId: string, use
   // If this profile is not already published, check if we exceed the limit
   if (profile.status !== "published" && (publishedCount?.count || 0) >= planInfo.profileLimit) {
     throw new Error(
-      `Your ${planInfo.planName} allows up to ${planInfo.profileLimit} published profile(s). Please upgrade your plan or unpublish another profile.`
+      `PLAN_LIMIT_REACHED: Your ${planInfo.planName} allows up to ${planInfo.profileLimit} published profile(s). Please unpublish your existing profile first or upgrade your plan.`
     );
   }
 
@@ -248,7 +340,6 @@ export async function publishProfile(profileId: string, workspaceId: string, use
 
   const nextVersionNumber = (versionCount?.count || 0) + 1;
   const versionId = crypto.randomUUID();
-  const now = Math.floor(Date.now() / 1000);
 
   // Snapshot content
   const snapshot: FullProfileSnapshot = {

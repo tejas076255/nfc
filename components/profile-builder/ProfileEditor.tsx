@@ -83,6 +83,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [isPublishing, setIsPublishing] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [planLimitError, setPlanLimitError] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
 
   // Active blocks
@@ -229,14 +230,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     }
   };
 
-  const handlePublish = async () => {
+  const handlePublish = async (options?: { unpublishOthers?: boolean }) => {
     setIsPublishing(true);
     setErrorMessage(null);
     setSaveMessage(null);
+    setPlanLimitError(false);
 
     try {
       // First save current draft
-      await fetch(`/api/profiles/${profile.id}`, {
+      const draftRes = await fetch(`/api/profiles/${profile.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -252,15 +254,28 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         }),
       });
 
+      if (!draftRes.ok) {
+        const draftData = (await draftRes.json().catch(() => ({}))) as any;
+        throw new Error(draftData.error || "Failed to save draft before publishing");
+      }
+
       // Explicit publish trigger
       const res = await fetch(`/api/profiles/${profile.id}/publish`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unpublishOthers: Boolean(options?.unpublishOthers) }),
       });
 
       const data = (await res.json()) as any;
-      if (!res.ok) throw new Error(data.error || "Failed to publish profile");
+      if (!res.ok) {
+        if (data.error && data.error.includes("PLAN_LIMIT_REACHED")) {
+          setPlanLimitError(true);
+        }
+        throw new Error(data.error || "Failed to publish profile");
+      }
 
       setProfile({ ...profile, status: "published" });
+      setPlanLimitError(false);
       setSaveMessage(`Published successfully! Snapshot v${data.versionNumber} is live.`);
     } catch (err: any) {
       setErrorMessage(err.message);
@@ -474,7 +489,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </button>
 
           <button
-            onClick={handlePublish}
+            onClick={() => handlePublish()}
             disabled={isPublishing}
             className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-1.5 disabled:opacity-50"
           >
@@ -1416,52 +1431,120 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
 
           {/* STICKY STEP NAVIGATION FOOTER */}
-          <div className="shrink-0 flex items-center justify-between gap-2 p-3 sm:px-6 sm:py-3.5 border-t border-white/10 bg-slate-950/95 backdrop-blur-xl z-10">
-            <button
-              type="button"
-              onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-              disabled={currentStep === 1}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Previous Step</span>
-              <span className="sm:hidden">Back</span>
-            </button>
+          <div className="shrink-0 flex flex-col gap-2 p-3 sm:px-6 sm:py-3.5 border-t border-white/10 bg-slate-950/95 backdrop-blur-xl z-20">
+            {/* Inline Footer Alerts for immediate visibility */}
+            {planLimitError && (
+              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs text-amber-200 flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-white">Free Plan Quota (1 Live Profile):</span> Another profile in your workspace is currently published. You can keep this as a draft, or replace the live profile with one click:
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-1 pl-6">
+                  <button
+                    type="button"
+                    onClick={() => handlePublish({ unpublishOthers: true })}
+                    disabled={isPublishing}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>{isPublishing ? "Switching..." : "Unpublish Old Profile & Publish This One"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSaveDraft();
+                      setPlanLimitError(false);
+                    }}
+                    disabled={isSaving}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs transition-colors cursor-pointer"
+                  >
+                    Keep as Saved Draft
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            {errorMessage && !planLimitError && (
+              <div className="bg-red-500/15 border border-red-500/30 px-4 py-2 rounded-xl text-xs text-red-300 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                  <span>{errorMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setErrorMessage(null)}
+                  className="text-red-400 hover:text-white p-1 rounded cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {saveMessage && (
+              <div className="bg-emerald-500/15 border border-emerald-500/30 px-4 py-2 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{saveMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSaveMessage(null)}
+                  className="text-emerald-400 hover:text-white p-1 rounded cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
-                onClick={handleSaveDraft}
-                disabled={isSaving}
-                className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-white/10 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
+                disabled={currentStep === 1}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
               >
-                <Save className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save Draft"}</span>
-                <span className="sm:hidden">{isSaving ? "..." : "Save"}</span>
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Previous Step</span>
+                <span className="sm:hidden">Back</span>
               </button>
 
-              {currentStep < ONBOARDING_STEPS.length ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep((prev) => Math.min(ONBOARDING_STEPS.length, prev + 1))}
-                  className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-1.5"
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                  className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-white/10 transition-all flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  <span className="hidden sm:inline">Next: {ONBOARDING_STEPS[currentStep].shortTitle}</span>
-                  <span className="sm:hidden">Next</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <Save className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{isSaving ? "Saving..." : "Save Draft"}</span>
+                  <span className="sm:hidden">{isSaving ? "..." : "Save"}</span>
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handlePublish}
-                  disabled={isPublishing}
-                  className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 disabled:opacity-50"
-                >
-                  <Globe className="w-4 h-4" />
-                  <span className="hidden sm:inline">{isPublishing ? "Publishing..." : "Finish & Publish Profile"}</span>
-                  <span className="sm:hidden">{isPublishing ? "..." : "Publish"}</span>
-                </button>
-              )}
+
+                {currentStep < ONBOARDING_STEPS.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep((prev) => Math.min(ONBOARDING_STEPS.length, prev + 1))}
+                    className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-1.5"
+                  >
+                    <span className="hidden sm:inline">Next: {ONBOARDING_STEPS[currentStep].shortTitle}</span>
+                    <span className="sm:hidden">Next</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handlePublish()}
+                    disabled={isPublishing}
+                    className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span className="hidden sm:inline">{isPublishing ? "Publishing..." : "Finish & Publish Profile"}</span>
+                    <span className="sm:hidden">{isPublishing ? "..." : "Publish"}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
