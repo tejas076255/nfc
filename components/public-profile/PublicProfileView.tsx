@@ -228,60 +228,63 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl border border-white/10"
         }`}
       >
-        {/* Main Person Photo Hero (In place of cover photo) */}
-        <div className="h-64 sm:h-72 w-full relative overflow-hidden bg-slate-900">
-          {personPhoto ? (
-            <img
-              src={personPhoto}
-              alt={headerBlock.name || profile.name}
-              className="w-full h-full object-cover object-top filter brightness-95"
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center"
-              style={{
-                background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor} 100%)`,
-              }}
+        {/* Main Person Photo Hero Container with Centered Logo Badge */}
+        <div className="relative w-full">
+          {/* Main Person Photo Hero (In place of cover photo) */}
+          <div className="h-64 sm:h-72 w-full relative overflow-hidden bg-slate-900">
+            {personPhoto ? (
+              <img
+                src={personPhoto}
+                alt={headerBlock.name || profile.name}
+                className="w-full h-full object-cover object-top filter brightness-95"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center"
+                style={{
+                  background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor} 100%)`,
+                }}
+              >
+                <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-3xl font-bold text-white">
+                  {(headerBlock.name || profile.name || "U").charAt(0).toUpperCase()}
+                </div>
+              </div>
+            )}
+
+            {/* Smooth bottom vignette overlay for seamless blend into card */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/45 to-transparent pointer-events-none" />
+
+            {/* Quick Share Floating Button */}
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg active:scale-95 cursor-pointer"
+              aria-label="Share profile"
             >
-              <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-3xl font-bold text-white">
-                {(headerBlock.name || profile.name || "U").charAt(0).toUpperCase()}
+              <Share2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Company / Business Logo Badge (Centered both vertically and horizontally on dividing seam) */}
+          {companyLogo && (
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
+              <div className="px-5 py-2.5 rounded-2xl bg-white shadow-2xl border-2 border-white/90 backdrop-blur-xl flex items-center justify-center gap-3 max-w-[280px]">
+                <img
+                  src={companyLogo}
+                  alt={headerBlock.company || "Company Logo"}
+                  className="h-11 sm:h-12 w-auto max-w-[180px] max-h-12 object-contain"
+                />
+                {headerBlock.company && (
+                  <span className="text-sm font-bold text-slate-900 tracking-wide truncate max-w-[150px]">
+                    {headerBlock.company}
+                  </span>
+                )}
               </div>
             </div>
           )}
-
-          {/* Smooth bottom vignette overlay for seamless blend into card */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/45 to-transparent pointer-events-none" />
-
-          {/* Quick Share Floating Button */}
-          <button
-            onClick={() => setShareModalOpen(true)}
-            className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg active:scale-95 cursor-pointer"
-            aria-label="Share profile"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
         </div>
 
-        {/* Company / Business Logo (Centered prominently between hero photo & profile identity) */}
-        {companyLogo && (
-          <div className="-mt-7 sm:-mt-8 relative z-20 flex justify-center px-4">
-            <div className="px-4 py-2 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl flex items-center justify-center gap-2.5 max-w-[240px]">
-              <img
-                src={companyLogo}
-                alt={headerBlock.company || "Company Logo"}
-                className="h-8 sm:h-9 w-auto max-w-[150px] object-contain"
-              />
-              {headerBlock.company && (
-                <span className="text-xs font-bold text-slate-900 truncate">
-                  {headerBlock.company}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Identity Header & Details */}
-        <div className={`px-6 ${companyLogo ? "pt-3" : "pt-4"} relative z-10 flex flex-col items-center text-center`}>
+        <div className={`px-6 ${companyLogo ? "pt-10 sm:pt-11" : "pt-4"} relative z-10 flex flex-col items-center text-center`}>
           <div className="space-y-1 w-full">
             <div className="flex items-center justify-center gap-1.5">
               <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">
