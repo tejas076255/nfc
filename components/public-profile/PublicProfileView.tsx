@@ -55,6 +55,19 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const locationBlock = profile.blocks.find((b) => b.type === "location" && b.isEnabled)?.blockData || {};
   const leadFormBlock = profile.blocks.find((b) => b.type === "lead_form" && b.isEnabled)?.blockData || {};
 
+  // Resolve Person Photo & Company Logo intelligently
+  // User request: "Logo should be visible and the person photo should in place of th cover photo. no need of cover photo saperatly"
+  let personPhoto = headerBlock.avatarUrl || headerBlock.coverUrl;
+  let companyLogo = headerBlock.logoUrl;
+
+  // Handle case where user uploaded company logo into avatarUrl and person photo into coverUrl
+  if (headerBlock.coverUrl && headerBlock.avatarUrl && !headerBlock.logoUrl) {
+    personPhoto = headerBlock.coverUrl;
+    companyLogo = headerBlock.avatarUrl;
+  } else if (!personPhoto && headerBlock.coverUrl) {
+    personPhoto = headerBlock.coverUrl;
+  }
+
   // Theme Config
   const theme = profile.themeConfig || {
     primaryColor: "#0f172a",
@@ -215,59 +228,61 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl border border-white/10"
         }`}
       >
-        {/* Cover Photo */}
-        <div className="h-44 sm:h-48 w-full relative overflow-hidden bg-slate-900">
-          {headerBlock.coverUrl ? (
+        {/* Main Person Photo Hero (In place of cover photo) */}
+        <div className="h-64 sm:h-72 w-full relative overflow-hidden bg-slate-900">
+          {personPhoto ? (
             <img
-              src={headerBlock.coverUrl}
-              alt="Cover"
-              className="w-full h-full object-cover object-center filter brightness-90"
+              src={personPhoto}
+              alt={headerBlock.name || profile.name}
+              className="w-full h-full object-cover object-top filter brightness-95"
             />
           ) : (
             <div
-              className="w-full h-full"
+              className="w-full h-full flex items-center justify-center"
               style={{
                 background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor} 100%)`,
               }}
-            />
+            >
+              <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-3xl font-bold text-white">
+                {(headerBlock.name || profile.name || "U").charAt(0).toUpperCase()}
+              </div>
+            </div>
+          )}
+
+          {/* Smooth bottom vignette overlay for seamless blend into card */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/45 to-transparent pointer-events-none" />
+
+          {/* Company / Business Logo (Prominently visible at top-left) */}
+          {companyLogo && (
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/50 shadow-xl max-w-[220px]">
+              <img
+                src={companyLogo}
+                alt={headerBlock.company || "Company Logo"}
+                className="h-7 w-auto max-w-[120px] max-h-7 object-contain"
+              />
+              {headerBlock.company && (
+                <span className="text-xs font-bold text-slate-900 truncate">
+                  {headerBlock.company}
+                </span>
+              )}
+            </div>
           )}
 
           {/* Quick Share Floating Button */}
           <button
             onClick={() => setShareModalOpen(true)}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg active:scale-95"
+            className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white transition-all shadow-lg active:scale-95 cursor-pointer"
             aria-label="Share profile"
           >
             <Share2 className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Identity Header & Avatar */}
-        <div className="px-6 -mt-16 sm:-mt-20 relative z-10 flex flex-col items-center text-center">
-          <div
-            className={`w-28 h-28 sm:w-32 sm:h-32 p-1 bg-slate-950 shadow-2xl overflow-hidden border-2 border-white/20 ${
-              theme.avatarShape === "circle"
-                ? "rounded-full"
-                : theme.avatarShape === "squircle"
-                ? "rounded-3xl"
-                : "rounded-2xl"
-            }`}
-          >
-            <img
-              src={
-                headerBlock.avatarUrl ||
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
-              }
-              alt={headerBlock.name || profile.name}
-              className={`w-full h-full object-cover ${
-                theme.avatarShape === "circle" ? "rounded-full" : "rounded-xl"
-              }`}
-            />
-          </div>
-
-          <div className="mt-3 space-y-1">
+        {/* Identity Header & Details */}
+        <div className="px-6 pt-3 relative z-10 flex flex-col items-center text-center">
+          <div className="space-y-1 w-full">
             <div className="flex items-center justify-center gap-1.5">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">
                 {headerBlock.name || profile.name}
               </h1>
               {headerBlock.badge && (
@@ -281,24 +296,25 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               {headerBlock.title || profile.title || "Digital Identity"}
             </p>
 
-            {headerBlock.logoUrl ? (
-              <div className="flex items-center justify-center gap-2 mt-1.5">
-                <img
-                  src={headerBlock.logoUrl}
-                  alt={headerBlock.company || "Company Logo"}
-                  className="w-6 h-6 object-contain rounded-md border border-white/10 bg-white/5 p-0.5"
-                />
+            {/* Company / Organization & Brand Logo */}
+            {(companyLogo || headerBlock.company) && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                {companyLogo && (
+                  <div className="p-1 px-1.5 rounded-md bg-white/10 border border-white/10 flex items-center justify-center">
+                    <img
+                      src={companyLogo}
+                      alt={headerBlock.company || "Company Logo"}
+                      className="h-5 w-auto max-w-[90px] max-h-5 object-contain"
+                    />
+                  </div>
+                )}
                 {headerBlock.company && (
                   <p className="text-xs text-slate-300 font-medium">
                     {headerBlock.company}
                   </p>
                 )}
               </div>
-            ) : headerBlock.company ? (
-              <p className="text-xs text-slate-400 font-normal">
-                {headerBlock.company}
-              </p>
-            ) : null}
+            )}
           </div>
 
           {/* PRIMARY UNCONDITIONAL SAVE CONTACT CTA */}

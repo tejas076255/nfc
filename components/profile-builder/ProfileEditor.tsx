@@ -43,7 +43,7 @@ const ONBOARDING_STEPS = [
     title: "Identity & Visual Assets",
     shortTitle: "Identity",
     icon: User,
-    desc: "Your name, title, organization, avatar & cover photos",
+    desc: "Your name, title, organization, profile photo & business logo",
   },
   {
     id: 2,
@@ -140,12 +140,24 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     setUploadingField(field);
     setErrorMessage(null);
     try {
-      const maxWidth = field === "coverUrl" ? 1200 : 400;
-      const maxHeight = field === "coverUrl" ? 600 : 400;
-      const dataUrl = await compressImageFile(file, { maxWidth, maxHeight, quality: 0.82 });
-      updateBlockData("identity_header", { [field]: dataUrl });
+      const maxWidth = 800;
+      const maxHeight = 800;
+      const dataUrl = await compressImageFile(file, { maxWidth, maxHeight, quality: 0.85 });
+      if (isLegacyCoverLayout) {
+        if (field === "avatarUrl") {
+          updateBlockData("identity_header", { avatarUrl: dataUrl, logoUrl: headerBlock.avatarUrl, coverUrl: "" });
+        } else if (field === "logoUrl") {
+          updateBlockData("identity_header", { avatarUrl: headerBlock.coverUrl, logoUrl: dataUrl, coverUrl: "" });
+        }
+      } else {
+        if (field === "avatarUrl") {
+          updateBlockData("identity_header", { avatarUrl: dataUrl, coverUrl: "" });
+        } else {
+          updateBlockData("identity_header", { [field]: dataUrl });
+        }
+      }
       setSaveMessage(
-        `${field === "avatarUrl" ? "Avatar" : field === "logoUrl" ? "Company Logo" : "Cover Photo"} uploaded! Save Draft or Publish to apply.`
+        `${field === "avatarUrl" ? "Person Photo" : "Company Logo"} uploaded! Save Draft or Publish to apply.`
       );
       setTimeout(() => setSaveMessage(null), 3500);
     } catch (err: any) {
@@ -272,6 +284,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   };
 
   const headerBlock = blocks.find((b) => b.type === "identity_header")?.blockData || {};
+  const isLegacyCoverLayout = Boolean(headerBlock.coverUrl && headerBlock.avatarUrl && !headerBlock.logoUrl);
+  const effectivePhoto = isLegacyCoverLayout ? headerBlock.coverUrl : (headerBlock.avatarUrl || headerBlock.coverUrl || "");
+  const effectiveLogo = isLegacyCoverLayout ? headerBlock.avatarUrl : (headerBlock.logoUrl || "");
   const contactBlock = blocks.find((b) => b.type === "contact_actions")?.blockData || {};
   const aboutBlock = blocks.find((b) => b.type === "about")?.blockData || {};
   const locationBlock = blocks.find((b) => b.type === "location")?.blockData || {};
@@ -633,20 +648,63 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     </div>
                   </div>
 
-                  {/* VISUAL ASSETS: AVATAR, LOGO & COVER PHOTO UPLOAD */}
+                  {/* VISUAL ASSETS: PERSON PHOTO & COMPANY LOGO */}
                   <div className="pt-2 space-y-4 border-t border-white/10">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Profile Imagery & Branding
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                          Profile Imagery & Branding
+                        </h4>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Person photo appears as the top header of your card. Company logo is displayed as a clean brand badge.
+                        </p>
+                      </div>
+                      {(effectivePhoto || effectiveLogo) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateBlockData("identity_header", {
+                              avatarUrl: effectiveLogo,
+                              logoUrl: effectivePhoto,
+                              coverUrl: "",
+                            });
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-[11px] font-medium transition-colors cursor-pointer"
+                        >
+                          ⇄ Swap Photo & Logo
+                        </button>
+                      )}
+                    </div>
 
-                    {/* 1. Avatar Profile Photo */}
+                    {isLegacyCoverLayout && (
+                      <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="text-xs text-blue-200">
+                          <span className="font-semibold text-white">✨ Layout Updated:</span> Person photo is now card header and logo is brand badge. Click save to store these slots.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateBlockData("identity_header", {
+                              avatarUrl: headerBlock.coverUrl,
+                              logoUrl: headerBlock.avatarUrl,
+                              coverUrl: "",
+                            });
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shrink-0 transition-colors shadow-sm cursor-pointer"
+                        >
+                          Save New Slots
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 1. Person / Profile Photo (Top Header) */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 p-3.5 rounded-xl bg-slate-900/90 border border-white/10">
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-800 border-2 border-white/20 shrink-0 flex items-center justify-center self-center sm:self-auto">
-                        {headerBlock.avatarUrl ? (
+                      <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border-2 border-white/20 shrink-0 flex items-center justify-center self-center sm:self-auto">
+                        {effectivePhoto ? (
                           <img
-                            src={headerBlock.avatarUrl}
-                            alt="Avatar Preview"
-                            className="w-full h-full object-cover"
+                            src={effectivePhoto}
+                            alt="Person Photo Preview"
+                            className="w-full h-full object-cover object-top"
                           />
                         ) : (
                           <div className="text-[10px] text-slate-500 font-medium text-center">No Photo</div>
@@ -654,12 +712,21 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       </div>
                       <div className="flex-1 space-y-2 w-full">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-white">Avatar Profile Photo</span>
-                          {headerBlock.avatarUrl && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-white">Person Photo (Card Top Header)</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 font-mono">Main</span>
+                          </div>
+                          {effectivePhoto && (
                             <button
                               type="button"
-                              onClick={() => updateBlockData("identity_header", { avatarUrl: "" })}
-                              className="text-[11px] text-red-400 hover:text-red-300"
+                              onClick={() => {
+                                if (isLegacyCoverLayout) {
+                                  updateBlockData("identity_header", { avatarUrl: "", logoUrl: headerBlock.avatarUrl, coverUrl: "" });
+                                } else {
+                                  updateBlockData("identity_header", { avatarUrl: "", coverUrl: "" });
+                                }
+                              }}
+                              className="text-[11px] text-red-400 hover:text-red-300 cursor-pointer"
                             >
                               Remove
                             </button>
@@ -668,7 +735,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <label className="cursor-pointer px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0">
                             <Upload className="w-3.5 h-3.5" />
-                            <span>{uploadingField === "avatarUrl" ? "Processing..." : "Upload Avatar"}</span>
+                            <span>{uploadingField === "avatarUrl" ? "Processing..." : "Upload Person Photo"}</span>
                             <input
                               type="file"
                               accept="image/*"
@@ -680,8 +747,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                           <input
                             type="text"
                             placeholder="Or enter image URL"
-                            value={headerBlock.avatarUrl?.startsWith("data:") ? "(Uploaded local image)" : headerBlock.avatarUrl || ""}
-                            onChange={(e) => updateBlockData("identity_header", { avatarUrl: e.target.value })}
+                            value={effectivePhoto?.startsWith("data:") ? "(Uploaded local image)" : effectivePhoto}
+                            onChange={(e) => {
+                              if (isLegacyCoverLayout) {
+                                updateBlockData("identity_header", { avatarUrl: e.target.value, logoUrl: headerBlock.avatarUrl, coverUrl: "" });
+                              } else {
+                                updateBlockData("identity_header", { avatarUrl: e.target.value, coverUrl: "" });
+                              }
+                            }}
                             className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
                           />
                         </div>
@@ -690,10 +763,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
                     {/* 2. Company / Brand Logo */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 p-3.5 rounded-xl bg-slate-900/90 border border-white/10">
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border-2 border-white/20 shrink-0 flex items-center justify-center p-1.5 self-center sm:self-auto">
-                        {headerBlock.logoUrl ? (
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border-2 border-white/20 shrink-0 flex items-center justify-center p-1.5 self-center sm:self-auto bg-white/5">
+                        {effectiveLogo ? (
                           <img
-                            src={headerBlock.logoUrl}
+                            src={effectiveLogo}
                             alt="Logo Preview"
                             className="w-full h-full object-contain"
                           />
@@ -703,12 +776,21 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       </div>
                       <div className="flex-1 space-y-2 w-full">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-white">Company / Business Logo</span>
-                          {headerBlock.logoUrl && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-white">Company / Business Logo</span>
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">Brand Badge</span>
+                          </div>
+                          {effectiveLogo && (
                             <button
                               type="button"
-                              onClick={() => updateBlockData("identity_header", { logoUrl: "" })}
-                              className="text-[11px] text-red-400 hover:text-red-300"
+                              onClick={() => {
+                                if (isLegacyCoverLayout) {
+                                  updateBlockData("identity_header", { avatarUrl: headerBlock.coverUrl, logoUrl: "", coverUrl: "" });
+                                } else {
+                                  updateBlockData("identity_header", { logoUrl: "" });
+                                }
+                              }}
+                              className="text-[11px] text-red-400 hover:text-red-300 cursor-pointer"
                             >
                               Remove
                             </button>
@@ -729,58 +811,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                           <input
                             type="text"
                             placeholder="Or enter logo URL"
-                            value={headerBlock.logoUrl?.startsWith("data:") ? "(Uploaded local logo)" : headerBlock.logoUrl || ""}
-                            onChange={(e) => updateBlockData("identity_header", { logoUrl: e.target.value })}
+                            value={effectiveLogo?.startsWith("data:") ? "(Uploaded local logo)" : effectiveLogo}
+                            onChange={(e) => {
+                              if (isLegacyCoverLayout) {
+                                updateBlockData("identity_header", { avatarUrl: headerBlock.coverUrl, logoUrl: e.target.value, coverUrl: "" });
+                              } else {
+                                updateBlockData("identity_header", { logoUrl: e.target.value });
+                              }
+                            }}
                             className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
                           />
                         </div>
-                      </div>
-                    </div>
-
-                    {/* 3. Cover Photo Banner */}
-                    <div className="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-white">Cover Photo Banner</span>
-                        {headerBlock.coverUrl && (
-                          <button
-                            type="button"
-                            onClick={() => updateBlockData("identity_header", { coverUrl: "" })}
-                            className="text-[11px] text-red-400 hover:text-red-300"
-                          >
-                            Remove Banner
-                          </button>
-                        )}
-                      </div>
-                      <div className="h-24 sm:h-28 w-full rounded-xl overflow-hidden bg-slate-800 border border-white/10 relative flex items-center justify-center">
-                        {headerBlock.coverUrl ? (
-                          <img
-                            src={headerBlock.coverUrl}
-                            alt="Cover Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <p className="text-[11px] text-slate-500">Default Gradient Banner (No Image Uploaded)</p>
-                        )}
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
-                        <label className="cursor-pointer px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium border border-white/10 transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{uploadingField === "coverUrl" ? "Processing..." : "Upload Banner"}</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            disabled={uploadingField === "coverUrl"}
-                            className="hidden"
-                            onChange={(e) => handleImageUpload(e, "coverUrl")}
-                          />
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Or enter banner URL"
-                          value={headerBlock.coverUrl?.startsWith("data:") ? "(Uploaded local banner)" : headerBlock.coverUrl || ""}
-                          onChange={(e) => updateBlockData("identity_header", { coverUrl: e.target.value })}
-                          className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
-                        />
                       </div>
                     </div>
                   </div>
