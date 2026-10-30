@@ -211,6 +211,20 @@ function getEmbedVideoUrl(url: string): string {
   return url;
 }
 
+function getAvatarRadiusClass(shape?: string) {
+  switch (shape?.toLowerCase()) {
+    case "square":
+      return "rounded-none";
+    case "rounded":
+    case "rounded-xl":
+    case "squircle":
+      return "rounded-2xl";
+    case "circle":
+    default:
+      return "rounded-full";
+  }
+}
+
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken }: PublicProfileViewProps) {
   // Modal states
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -291,15 +305,30 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const locationBlock = blocks.find((b) => b.type === "location" && b.isEnabled)?.blockData || {};
   const leadFormBlock = blocks.find((b) => b.type === "lead_form" && b.isEnabled)?.blockData || {};
 
-  // 1. Resolve Cover Photo & Circular Company Logo intelligently
-  let personPhoto = headerBlock.coverUrl || headerBlock.avatarUrl;
-  let companyLogo = headerBlock.logoUrl;
+  // 1. Resolve Cover Photo, Centered Identity Badge & Company Logo intelligently
+  const rawCover = headerBlock.coverUrl;
+  const rawAvatar = headerBlock.avatarUrl || headerBlock.photoUrl;
+  const rawLogo = headerBlock.logoUrl;
 
-  if (headerBlock.coverUrl && headerBlock.avatarUrl && !headerBlock.logoUrl) {
-    personPhoto = headerBlock.coverUrl;
-    companyLogo = headerBlock.avatarUrl;
-  } else if (!companyLogo && headerBlock.avatarUrl && headerBlock.avatarUrl !== personPhoto) {
-    companyLogo = headerBlock.avatarUrl;
+  let effectiveCover: string | null = rawCover || null;
+  let effectiveBadge: string | null = rawAvatar || rawLogo || null;
+  let effectiveCompanyLogo: string | null = rawLogo || null;
+
+  // Legacy case: coverUrl has person photo, avatarUrl has company logo, logoUrl is empty
+  if (rawCover && rawAvatar && !rawLogo) {
+    effectiveCover = rawCover;
+    effectiveBadge = rawAvatar;
+    effectiveCompanyLogo = rawAvatar;
+  } else if (!rawCover && rawAvatar && rawLogo) {
+    // Both avatar and logo provided, but no cover banner
+    effectiveCover = null;
+    effectiveBadge = rawAvatar;
+    effectiveCompanyLogo = rawLogo;
+  } else if (!rawCover && rawAvatar && !rawLogo) {
+    // Only avatar provided
+    effectiveCover = null;
+    effectiveBadge = rawAvatar;
+    effectiveCompanyLogo = null;
   }
 
   // Identity Details
@@ -398,7 +427,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           sourceType,
         }),
       });
-    } catch {}
+    } catch { }
 
     const vCardData = generateVCardString({
       name: personName,
@@ -472,7 +501,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           sourceType,
         }),
       });
-    } catch {}
+    } catch { }
   };
 
   const handleSubmitLead = async (e: React.FormEvent) => {
@@ -687,9 +716,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
 
   return (
     <div
-      className={`text-slate-100 flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white ${
-        sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"
-      }`}
+      className={`text-slate-100 flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white ${sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"
+        }`}
       style={{ backgroundColor: theme.backgroundColor || "#07090e" }}
     >
       {/* Toast Notification Banner */}
@@ -709,39 +737,40 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
 
       {/* Main Mobile Card Container */}
       <div
-        className={`w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col bg-slate-950/80 backdrop-blur-xl ${
-          sourceType === "preview"
+        className={`w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col bg-slate-950/80 backdrop-blur-xl ${sourceType === "preview"
             ? "border-0 my-0 rounded-2xl"
             : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl border border-white/10"
-        }`}
+          }`}
       >
         {/* ============================================================== */}
         {/* 1. PROFILE HEADER & BRANDING                                   */}
         {/* ============================================================== */}
         <div className="relative w-full">
           {/* Cover Photo Banner */}
-          <div className="h-60 sm:h-64 w-full relative overflow-hidden bg-slate-900">
-            {personPhoto ? (
+          <div className="h-52 sm:h-60 w-full relative overflow-hidden bg-slate-900">
+            {effectiveCover ? (
               <img
-                src={personPhoto}
+                src={effectiveCover}
                 alt={personName}
                 className="w-full h-full object-cover object-top filter brightness-95"
               />
             ) : (
               <div
-                className="w-full h-full flex items-center justify-center"
+                className="w-full h-full relative flex items-center justify-center overflow-hidden"
                 style={{
                   background: `linear-gradient(135deg, ${theme.primaryColor || "#0f172a"} 0%, ${theme.accentColor || "#0d9488"} 100%)`,
                 }}
               >
-                <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-3xl font-bold text-white">
+                {/* Geometric ambient pattern */}
+                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[size:16px_16px]" />
+                <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-extrabold text-white shadow-xl">
                   {personName.charAt(0).toUpperCase()}
                 </div>
               </div>
             )}
 
             {/* Bottom vignette overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/50 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/40 to-transparent pointer-events-none" />
 
             {/* Quick Share Floating Button */}
             <button
@@ -754,14 +783,25 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </button>
           </div>
 
-          {/* Circular Company Logo Overlapping Cover Image */}
-          {companyLogo && (
+          {/* Centered Identity Badge (Avatar / Logo) Overlapping Cover Banner */}
+          {effectiveBadge && (
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white shadow-2xl border-4 border-slate-900 overflow-hidden flex items-center justify-center p-2.5">
+              <div
+                className={`w-24 h-24 sm:w-28 sm:h-28 ${getAvatarRadiusClass(
+                  theme.avatarShape
+                )} bg-white shadow-2xl border-4 border-slate-950 overflow-hidden flex items-center justify-center p-1 relative`}
+                style={{
+                  boxShadow: `0 16px 36px -8px ${theme.accentColor || "#0d9488"}50`,
+                }}
+              >
                 <img
-                  src={companyLogo}
-                  alt={companyName || "Logo"}
-                  className="w-full h-full object-contain"
+                  src={effectiveBadge}
+                  alt={personName || "Profile Identity"}
+                  className={`w-full h-full ${
+                    effectiveBadge === effectiveCompanyLogo && !rawAvatar
+                      ? "object-contain p-2"
+                      : "object-cover"
+                  } ${getAvatarRadiusClass(theme.avatarShape)}`}
                 />
               </div>
             </div>
@@ -771,7 +811,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
         {/* Identity Information Section */}
         <div
           className={`px-6 ${
-            companyLogo ? "pt-12 sm:pt-14" : "pt-5"
+            effectiveBadge ? "pt-14 sm:pt-16" : "pt-6"
           } relative z-10 flex flex-col items-center text-center`}
         >
           <div className="space-y-1.5 w-full">
@@ -801,7 +841,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
                 {companyName && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 shadow-sm">
-                    <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    {effectiveCompanyLogo && effectiveCompanyLogo !== effectiveBadge ? (
+                      <img
+                        src={effectiveCompanyLogo}
+                        alt={companyName}
+                        className="w-4 h-4 object-contain rounded-full"
+                      />
+                    ) : (
+                      <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    )}
                     <span>{companyName}</span>
                   </div>
                 )}
@@ -934,8 +982,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               const mapUrl = locationBlock.mapUrl
                 ? resolveValidUrl(locationBlock.mapUrl)
                 : `https://maps.google.com/?q=${encodeURIComponent(
-                    locationBlock.address || contactBlock.location || ""
-                  )}`;
+                  locationBlock.address || contactBlock.location || ""
+                )}`;
               return (
                 <a
                   href={mapUrl || "#"}
@@ -1254,11 +1302,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                       key={cat}
                       type="button"
                       onClick={() => setPortfolioCategory(cat)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors cursor-pointer ${
-                        portfolioCategory === cat
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors cursor-pointer ${portfolioCategory === cat
                           ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
                           : "bg-slate-900 text-slate-400 hover:text-white border border-white/5"
-                      }`}
+                        }`}
                     >
                       {cat}
                     </button>
@@ -1383,9 +1430,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                         key={idx}
                         type="button"
                         onClick={() => setActiveTestimonialIdx(idx)}
-                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                          activeTestimonialIdx === idx ? "w-5 bg-teal-400" : "w-1.5 bg-white/20"
-                        }`}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${activeTestimonialIdx === idx ? "w-5 bg-teal-400" : "w-1.5 bg-white/20"
+                          }`}
                       />
                     ))}
                   </div>
@@ -1665,18 +1711,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       {/* (Save Contact, Inquiry Form, Install Web App)                  */}
       {/* ============================================================== */}
       <div
-        className={`${
-          sourceType === "preview"
+        className={`${sourceType === "preview"
             ? "sticky bottom-0 left-0 right-0 z-30 p-2.5 bg-slate-950/95 backdrop-blur-2xl border-t border-white/10 shadow-2xl"
             : "fixed bottom-0 left-0 right-0 z-40 p-3 sm:pb-4 flex justify-center pointer-events-none"
-        }`}
+          }`}
       >
         <div
-          className={`${
-            sourceType === "preview"
+          className={`${sourceType === "preview"
               ? "w-full grid grid-cols-3 gap-1.5"
               : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-          }`}
+            }`}
         >
           {/* Action 1: Save Contact (Direct vCard to Phone) */}
           <button
@@ -1815,8 +1859,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               </button>
 
               <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto border-2 border-white/20 shadow-lg bg-slate-800 flex items-center justify-center">
-                {companyLogo ? (
-                  <img src={companyLogo} alt="App Logo" className="w-full h-full object-contain p-2 bg-white" />
+                {effectiveCompanyLogo || effectiveBadge ? (
+                  <img src={effectiveCompanyLogo || effectiveBadge || ""} alt="App Logo" className="w-full h-full object-contain p-2 bg-white" />
                 ) : (
                   <Smartphone className="w-8 h-8 text-teal-400" />
                 )}

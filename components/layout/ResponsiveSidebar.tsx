@@ -63,7 +63,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
     { label: "Digital Profiles", href: "/dashboard/profiles", icon: Sliders },
     { label: "My NFC Cards", href: "/dashboard/cards", icon: CreditCard },
     { label: "QR Code Engine", href: "/dashboard/qr", icon: QrCode },
-    { label: "Lead CRM", href: "/dashboard/leads", icon: Users },
+    { label: "Leads & Enquiries", href: "/dashboard/leads", icon: Users },
     { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { label: "Card Orders", href: "/dashboard/orders", icon: ShoppingBag },
     { label: "Subscription & Billing", href: "/dashboard/billing", icon: Sparkles },
@@ -75,12 +75,12 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
         {/* Brand / Logo */}
         <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-blue-600 flex items-center justify-center shadow-lg shadow-teal-500/25">
               <Wifi className="w-4 h-4 text-white rotate-90" />
             </div>
             <div>
               <span className="text-base font-bold tracking-tight text-white block leading-tight">
-                TapSync<span className="text-blue-500">.</span>
+                Tapbez<span className="text-teal-400">.</span>
               </span>
               <span className="text-[10px] text-slate-400 font-medium block">
                 User Workspace
@@ -105,7 +105,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
               {session.workspace?.name || "Workspace"}
             </span>
             {session.membershipRole && (
-              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 capitalize shrink-0">
+              <span className="text-[10px] px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20 capitalize shrink-0 font-medium">
                 {session.membershipRole}
               </span>
             )}
@@ -123,13 +123,13 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
                   isActive
-                    ? "bg-blue-600/15 text-white border border-blue-500/30 shadow-sm shadow-blue-500/10"
+                    ? "bg-teal-500/15 text-white border border-teal-500/30 shadow-sm shadow-teal-500/10"
                     : "text-slate-300 hover:text-white hover:bg-slate-900/80"
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 transition-colors ${
-                    isActive ? "text-blue-400" : "text-slate-400 group-hover:text-blue-400"
+                    isActive ? "text-teal-400" : "text-slate-400 group-hover:text-teal-400"
                   }`}
                 />
                 <span>{item.label}</span>
@@ -175,7 +175,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
         <form action={logoutAction}>
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -190,11 +190,11 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
       {/* MOBILE TOP NAVBAR (Visible only on < md) */}
       <header className="md:hidden sticky top-0 z-40 h-14 px-4 bg-slate-950/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-blue-500/20">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-teal-500 to-blue-600 flex items-center justify-center shadow-md shadow-teal-500/20">
             <Wifi className="w-3.5 h-3.5 text-white rotate-90" />
           </div>
           <span className="text-sm font-bold tracking-tight text-white">
-            TapSync<span className="text-blue-500">.</span>
+            Tapbez<span className="text-teal-400">.</span>
           </span>
         </Link>
 
