@@ -392,9 +392,26 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   const handleUpdateSocial = (id: string, updates: Record<string, string>) => {
     const currentLinks = socialsBlock.links || [];
-    const updated = currentLinks.map((link: any) =>
-      link.id === id ? { ...link, ...updates } : link
-    );
+    const updated = currentLinks.map((link: any) => {
+      if (link.id === id) {
+        const merged = { ...link, ...updates };
+        // If user accidentally put URL into label and url is empty, auto-heal to url!
+        if (
+          !merged.url &&
+          merged.label &&
+          (merged.label.includes("http") ||
+            merged.label.includes(".com") ||
+            merged.label.includes(".in") ||
+            merged.label.includes("www.") ||
+            merged.label.includes("youtu"))
+        ) {
+          merged.url = merged.label;
+          merged.label = "";
+        }
+        return merged;
+      }
+      return link;
+    });
     setBlockData("social_links", { links: updated });
   };
 
@@ -1282,12 +1299,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     </div>
                   ) : (
                     socialsBlock.links.map((soc: any, index: number) => (
-                      <div key={soc.id || index} className="p-3 rounded-xl bg-slate-900/90 border border-white/10 space-y-2">
-                        <div className="flex items-center gap-2">
+                      <div key={soc.id || index} className="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <select
                             value={soc.platform || "instagram"}
                             onChange={(e) => handleUpdateSocial(soc.id, { platform: e.target.value })}
-                            className="w-36 sm:w-44 px-2.5 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs capitalize focus:outline-none"
+                            className="w-full sm:w-44 px-2.5 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs capitalize focus:outline-none shrink-0"
                           >
                             <option value="google_review">⭐ Google Review</option>
                             <option value="instagram">Instagram</option>
@@ -1302,36 +1319,48 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                             <option value="website">Custom Website</option>
                           </select>
 
+                          {/* Primary URL Input */}
+                          <div className="flex-1 flex items-center gap-2 w-full">
+                            <input
+                              type="text"
+                              value={soc.url || ""}
+                              onChange={(e) => handleUpdateSocial(soc.id, { url: e.target.value })}
+                              placeholder={
+                                soc.platform === "google_review"
+                                  ? "https://g.page/r/... (Google review link)"
+                                  : soc.platform === "whatsapp"
+                                  ? "https://wa.me/919876543210 or 9876543210"
+                                  : "Paste URL (https://... or username)"
+                              }
+                              className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500 font-mono"
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSocial(soc.id)}
+                              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0 cursor-pointer"
+                              title="Delete link"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Optional custom button label */}
+                        <div className="flex items-center gap-2 pl-0.5">
+                          <span className="text-[11px] text-slate-400 shrink-0">Button Title:</span>
                           <input
                             type="text"
                             value={soc.label || ""}
                             onChange={(e) => handleUpdateSocial(soc.id, { label: e.target.value })}
-                            placeholder={soc.platform === "google_review" ? "e.g. Google Reviews (5.0 ★)" : "Link label (optional)"}
-                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                            placeholder={
+                              soc.platform === "google_review"
+                                ? "e.g. Google Reviews (5.0 ★)"
+                                : "e.g. Follow on Instagram, Chat with Us (optional)"
+                            }
+                            className="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-950/70 border border-white/5 text-slate-300 text-xs focus:outline-none focus:border-blue-500"
                           />
-
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteSocial(soc.id)}
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0 cursor-pointer"
-                            title="Delete link"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
-                        <input
-                          type="url"
-                          value={soc.url || ""}
-                          onChange={(e) => handleUpdateSocial(soc.id, { url: e.target.value })}
-                          placeholder={
-                            soc.platform === "google_review"
-                              ? "https://g.page/r/... (Google review link)"
-                              : soc.platform === "whatsapp"
-                              ? "https://wa.me/919876543210"
-                              : "https://..."
-                          }
-                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
-                        />
                       </div>
                     ))
                   )}

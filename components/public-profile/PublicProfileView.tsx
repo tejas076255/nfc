@@ -123,6 +123,63 @@ function TelegramIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+// Ensures links have proper protocol (https://), handles handles/numbers, and falls back to label if url was pasted into label
+export function resolveValidUrl(url?: string, label?: string, platform?: string): string {
+  let raw = (url || "").trim();
+  const rawLabel = (label || "").trim();
+
+  // If url is empty or "#", check if label contains a URL
+  if (!raw || raw === "#") {
+    if (
+      rawLabel.startsWith("http://") ||
+      rawLabel.startsWith("https://") ||
+      rawLabel.startsWith("www.") ||
+      rawLabel.includes(".com") ||
+      rawLabel.includes(".in") ||
+      rawLabel.includes(".me") ||
+      rawLabel.includes(".org") ||
+      rawLabel.includes(".io") ||
+      rawLabel.includes(".be") ||
+      rawLabel.includes("youtube.com") ||
+      rawLabel.includes("youtu.be") ||
+      rawLabel.includes("instagram.com")
+    ) {
+      raw = rawLabel;
+    }
+  }
+
+  if (!raw || raw === "#") {
+    return "";
+  }
+
+  // Prepend protocol if missing
+  if (
+    !raw.startsWith("http://") &&
+    !raw.startsWith("https://") &&
+    !raw.startsWith("mailto:") &&
+    !raw.startsWith("tel:")
+  ) {
+    if (raw.startsWith("www.")) {
+      return `https://${raw}`;
+    }
+    if (platform === "whatsapp") {
+      const cleanDigits = raw.replace(/[^\d]/g, "");
+      return `https://wa.me/${cleanDigits}`;
+    }
+    if (raw.startsWith("@")) {
+      const handle = raw.slice(1);
+      if (platform === "instagram") return `https://instagram.com/${handle}`;
+      if (platform === "twitter" || platform === "x") return `https://x.com/${handle}`;
+      if (platform === "youtube") return `https://youtube.com/@${handle}`;
+      if (platform === "telegram") return `https://t.me/${handle}`;
+      if (platform === "tiktok") return `https://tiktok.com/@${handle}`;
+    }
+    return `https://${raw}`;
+  }
+
+  return raw;
+}
+
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken }: PublicProfileViewProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -156,6 +213,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3200);
+  };
+
+  const handleOpenExternal = (e: React.MouseEvent<HTMLAnchorElement>, targetUrl?: string) => {
+    if (!targetUrl || targetUrl === "#") {
+      e.preventDefault();
+      showToast("Link URL is missing. Please enter URL in Profile Editor.");
+      return;
+    }
+    if (sourceType === "preview") {
+      e.preventDefault();
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   // Extract blocks by type safely
@@ -463,14 +532,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </button>
           </div>
 
-          {/* 2. Brand / Company Logo Badge (Centered on Seam) */}
+          {/* 2. Brand / Company Logo Badge (Centered on Seam - Square format like Image 1) */}
           {companyLogo && (
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
-              <div className="px-5 py-2.5 rounded-2xl bg-white shadow-2xl border-2 border-white/90 backdrop-blur-xl flex items-center justify-center gap-2.5 max-w-[280px]">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white shadow-2xl border-2 border-white/90 backdrop-blur-xl flex items-center justify-center p-2.5">
                 <img
                   src={companyLogo}
                   alt={companyName || "Company Logo"}
-                  className="h-11 sm:h-12 w-auto max-w-[180px] max-h-12 object-contain"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
@@ -482,7 +551,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
         {/* ============================================================== */}
         <div
           className={`px-6 ${
-            companyLogo ? "pt-10 sm:pt-11" : "pt-4"
+            companyLogo ? "pt-12 sm:pt-14" : "pt-4"
           } relative z-10 flex flex-col items-center text-center`}
         >
           <div className="space-y-1 w-full">
@@ -514,71 +583,113 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             )}
           </div>
 
+          {/* Direct Hero CTA Buttons (Save Contact & Exchange Contact) */}
+          <div className="w-full space-y-2 mt-4">
+            <button
+              type="button"
+              onClick={handleDownloadVCard}
+              className="w-full py-3 px-4 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all cursor-pointer"
+              style={{
+                background: `linear-gradient(135deg, ${theme.accentColor || "#3b82f6"} 0%, #2563eb 100%)`,
+              }}
+            >
+              <Download className="w-4 h-4" />
+              <span>Save Contact to Phone</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setLeadModalOpen(true)}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/15 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+            >
+              <Mail className="w-4 h-4 text-blue-400" />
+              <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
+            </button>
+          </div>
+
           {/* Quick Communication Action Grid (Call, WhatsApp, Email, Map) */}
-          <div className="grid grid-cols-4 gap-2.5 w-full mt-4">
+          <div className="grid grid-cols-4 gap-2 w-full mt-3">
             {contactBlock.phone && (
               <a
                 href={`tel:${contactBlock.phone}`}
-                onClick={() => handleTrackAction("phone_click")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                onClick={(e) => {
+                  handleTrackAction("phone_click");
+                  handleOpenExternal(e, `tel:${contactBlock.phone}`);
+                }}
+                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
                 title="Call phone"
               >
-                <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20">
-                  <Phone className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20">
+                  <Phone className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[11px] font-medium text-slate-300 mt-1.5">Call</span>
+                <span className="text-[10px] font-medium text-slate-300 mt-1">Call</span>
               </a>
             )}
 
-            {contactBlock.whatsapp && (
-              <a
-                href={`https://wa.me/${contactBlock.whatsapp.replace(/[^\d]/g, "")}`}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => handleTrackAction("whatsapp_click")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
-                title="Chat on WhatsApp"
-              >
-                <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20">
-                  <MessageCircle className="w-4 h-4" />
-                </div>
-                <span className="text-[11px] font-medium text-slate-300 mt-1.5">WhatsApp</span>
-              </a>
-            )}
+            {contactBlock.whatsapp && (() => {
+              const waUrl = resolveValidUrl(contactBlock.whatsapp, "", "whatsapp");
+              return (
+                <a
+                  href={waUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    handleTrackAction("whatsapp_click");
+                    handleOpenExternal(e, waUrl);
+                  }}
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  title="Chat on WhatsApp"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20">
+                    <MessageCircle className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-300 mt-1">WhatsApp</span>
+                </a>
+              );
+            })()}
 
             {contactBlock.email && (
               <a
                 href={`mailto:${contactBlock.email}`}
-                onClick={() => handleTrackAction("email_click")}
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                onClick={(e) => {
+                  handleTrackAction("email_click");
+                  handleOpenExternal(e, `mailto:${contactBlock.email}`);
+                }}
+                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
                 title="Send email"
               >
-                <div className="w-9 h-9 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20">
-                  <Mail className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20">
+                  <Mail className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-[11px] font-medium text-slate-300 mt-1.5">Email</span>
+                <span className="text-[10px] font-medium text-slate-300 mt-1">Email</span>
               </a>
             )}
 
-            {(locationBlock.mapUrl || locationBlock.address || contactBlock.location) && (
-              <a
-                href={
-                  locationBlock.mapUrl ||
-                  `https://maps.google.com/?q=${encodeURIComponent(
+            {(locationBlock.mapUrl || locationBlock.address || contactBlock.location) && (() => {
+              const mapUrl = locationBlock.mapUrl
+                ? resolveValidUrl(locationBlock.mapUrl)
+                : `https://maps.google.com/?q=${encodeURIComponent(
                     locationBlock.address || contactBlock.location || ""
-                  )}`
-                }
-                target="_blank"
-                rel="noreferrer"
-                className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
-                title="Open location on Google Maps"
-              >
-                <div className="w-9 h-9 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/20">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <span className="text-[11px] font-medium text-slate-300 mt-1.5">Map</span>
-              </a>
-            )}
+                  )}`;
+              return (
+                <a
+                  href={mapUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    handleTrackAction("map_click");
+                    handleOpenExternal(e, mapUrl);
+                  }}
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  title="Open location on Google Maps"
+                >
+                  <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/20">
+                    <MapPin className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-300 mt-1">Map</span>
+                </a>
+              );
+            })()}
           </div>
         </div>
 
@@ -599,120 +710,143 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               </div>
 
               {/* 5A. Dedicated Google Reviews Feature Card */}
-              {googleReviewLink && (
-                <a
-                  href={googleReviewLink.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => handleTrackAction("google_review_click")}
-                  className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-900/80 border border-amber-500/30 flex items-center justify-between hover:border-amber-400/60 transition-all group shadow-sm cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-2 shadow-sm shrink-0">
-                      <GoogleReviewIcon className="w-6 h-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-white truncate">
-                          {googleReviewLink.label || "Google Reviews"}
-                        </span>
-                        <div className="flex items-center text-amber-400 shrink-0">
-                          <Star className="w-3 h-3 fill-amber-400" />
-                          <Star className="w-3 h-3 fill-amber-400" />
-                          <Star className="w-3 h-3 fill-amber-400" />
-                          <Star className="w-3 h-3 fill-amber-400" />
-                          <Star className="w-3 h-3 fill-amber-400" />
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-slate-400 truncate">
-                        Leave a 5-star review on Google
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 shrink-0 ml-2">
-                    <span>Review</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </span>
-                </a>
-              )}
-
-              {/* 5B. Other Important Links Grid (Facebook, Instagram, LinkedIn, etc.) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {regularLinks.map((s: any) => (
+              {googleReviewLink && (() => {
+                const revUrl = resolveValidUrl(googleReviewLink.url, googleReviewLink.label, "google_review");
+                return (
                   <a
-                    key={s.id}
-                    href={s.url}
+                    href={revUrl || "#"}
                     target="_blank"
-                    rel="noreferrer"
-                    onClick={() => handleTrackAction(`link_${s.platform}_click`)}
-                    className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/25 flex items-center justify-between transition-all group cursor-pointer"
+                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      handleTrackAction("google_review_click");
+                      handleOpenExternal(e, revUrl);
+                    }}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-900/80 border border-amber-500/30 flex items-center justify-between hover:border-amber-400/60 transition-all group shadow-sm cursor-pointer"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
-                        {renderSocialIcon(s.platform)}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-2 shadow-sm shrink-0">
+                        <GoogleReviewIcon className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-semibold text-slate-200 group-hover:text-white capitalize truncate">
-                        {s.label || formatPlatformName(s.platform)}
-                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-white truncate">
+                            {googleReviewLink.label || "Google Reviews"}
+                          </span>
+                          <div className="flex items-center text-amber-400 shrink-0">
+                            <Star className="w-3 h-3 fill-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400" />
+                            <Star className="w-3 h-3 fill-amber-400" />
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate">
+                          Leave a 5-star review on Google
+                        </p>
+                      </div>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 shrink-0 ml-1.5" />
+                    <span className="text-xs font-semibold text-amber-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1 shrink-0 ml-2">
+                      <span>Review</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </span>
                   </a>
-                ))}
+                );
+              })()}
 
-                {/* If websiteUrl is in contactBlock and not already in socialLinks */}
-                {contactBlock.websiteUrl &&
-                  !socialLinks.some((l) => l.url === contactBlock.websiteUrl) && (
+              {/* 5B. Other Important Links Grid (Facebook, Instagram, YouTube, LinkedIn, etc.) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {regularLinks.map((s: any) => {
+                  const validUrl = resolveValidUrl(s.url, s.label, s.platform);
+                  return (
                     <a
-                      href={contactBlock.websiteUrl}
+                      key={s.id}
+                      href={validUrl || "#"}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
+                      onClick={(e) => {
+                        handleTrackAction(`link_${s.platform}_click`);
+                        handleOpenExternal(e, validUrl);
+                      }}
                       className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/25 flex items-center justify-between transition-all group cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                          <Globe className="w-4 h-4 text-blue-400" />
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                          {renderSocialIcon(s.platform)}
                         </div>
-                        <span className="text-xs font-semibold text-slate-200 group-hover:text-white truncate">
-                          Official Website
+                        <span className="text-xs font-semibold text-slate-200 group-hover:text-white capitalize truncate">
+                          {s.label || formatPlatformName(s.platform)}
                         </span>
                       </div>
                       <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 shrink-0 ml-1.5" />
                     </a>
-                  )}
+                  );
+                })}
+
+                {/* If websiteUrl is in contactBlock and not already in socialLinks */}
+                {contactBlock.websiteUrl &&
+                  !socialLinks.some((l) => l.url === contactBlock.websiteUrl) && (() => {
+                    const webUrl = resolveValidUrl(contactBlock.websiteUrl);
+                    return (
+                      <a
+                        href={webUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          handleTrackAction("website_click");
+                          handleOpenExternal(e, webUrl);
+                        }}
+                        className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/25 flex items-center justify-between transition-all group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                            <Globe className="w-4 h-4 text-blue-400" />
+                          </div>
+                          <span className="text-xs font-semibold text-slate-200 group-hover:text-white truncate">
+                            Official Website
+                          </span>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 shrink-0 ml-1.5" />
+                      </a>
+                    );
+                  })()}
               </div>
             </div>
           )}
 
           {/* BEAUTYFOLIO SPECIALTY BADGE */}
-          {beautyfolioBlock.portfolioUrl && (
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 flex items-center justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
-                    Beautyfolio Verified
-                  </span>
-                  <Sparkles className="w-3.5 h-3.5 text-rose-400" />
-                </div>
-                <p className="text-sm font-medium text-slate-200">
-                  {beautyfolioBlock.headline || "View Verified Transformations"}
-                </p>
-                {beautyfolioBlock.featuredSpecialty && (
-                  <p className="text-xs text-rose-300/80">
-                    Specialty: {beautyfolioBlock.featuredSpecialty}
+          {beautyfolioBlock.portfolioUrl && (() => {
+            const bfUrl = resolveValidUrl(beautyfolioBlock.portfolioUrl);
+            return (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+                      Beautyfolio Verified
+                    </span>
+                    <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-200">
+                    {beautyfolioBlock.headline || "View Verified Transformations"}
                   </p>
-                )}
+                  {beautyfolioBlock.featuredSpecialty && (
+                    <p className="text-xs text-rose-300/80">
+                      Specialty: {beautyfolioBlock.featuredSpecialty}
+                    </p>
+                  )}
+                </div>
+                <a
+                  href={bfUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => handleOpenExternal(e, bfUrl)}
+                  className="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap ml-3 cursor-pointer"
+                >
+                  <span>View</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
-              <a
-                href={beautyfolioBlock.portfolioUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap ml-3"
-              >
-                <span>View</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ABOUT & BIOGRAPHY BLOCK */}
           {aboutBlock.bio && (
@@ -808,12 +942,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                     </>
                   );
 
-                  return item.projectUrl ? (
+                  const projUrl = item.projectUrl ? resolveValidUrl(item.projectUrl) : "";
+                  return projUrl ? (
                     <a
                       key={item.id}
-                      href={item.projectUrl}
+                      href={projUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
+                      onClick={(e) => handleOpenExternal(e, projUrl)}
                       className="group rounded-xl overflow-hidden border border-white/10 bg-slate-900 relative block hover:border-blue-500/40 transition-colors cursor-pointer"
                     >
                       {content}
@@ -838,17 +974,21 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-slate-200">{locationBlock.address}</p>
-                  {locationBlock.mapUrl && (
-                    <a
-                      href={locationBlock.mapUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Get Driving Directions</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </a>
-                  )}
+                  {locationBlock.mapUrl && (() => {
+                    const dirUrl = resolveValidUrl(locationBlock.mapUrl);
+                    return (
+                      <a
+                        href={dirUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => handleOpenExternal(e, dirUrl)}
+                        className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Get Driving Directions</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </a>
+                    );
+                  })()}
                 </div>
               </div>
 
