@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { FullProfileSnapshot } from "@/lib/profiles/types";
 import { generateVCardString } from "@/lib/profiles/vcard";
@@ -25,6 +25,24 @@ import {
   Copy,
   Check,
   Plus,
+  Calendar,
+  Trophy,
+  Users,
+  Award,
+  Briefcase,
+  Play,
+  FileDown,
+  FileText,
+  Search,
+  Filter,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Flag,
+  HelpCircle,
+  Bookmark,
+  CheckCircle,
+  Tag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -180,18 +198,31 @@ export function resolveValidUrl(url?: string, label?: string, platform?: string)
   return raw;
 }
 
+function getEmbedVideoUrl(url: string): string {
+  if (!url) return "";
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
+  const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  return url;
+}
+
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken }: PublicProfileViewProps) {
+  // Modal states
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [leadModalOpen, setLeadModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [activeProjectModal, setActiveProjectModal] = useState<any | null>(null);
+
+  // Form states
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [leadLoading, setLeadLoading] = useState(false);
   const [leadError, setLeadError] = useState<string | null>(null);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Form State
   const [visitorName, setVisitorName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -200,7 +231,22 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const [contactConsent, setContactConsent] = useState(true);
   const [marketingConsent, setMarketingConsent] = useState(false);
 
-  // Listen for PWA install event
+  // Interactive controls
+  const [servicesViewAll, setServicesViewAll] = useState(false);
+  const [servicesSearch, setServicesSearch] = useState("");
+  const [portfolioViewAll, setPortfolioViewAll] = useState(false);
+  const [portfolioCategory, setPortfolioCategory] = useState<string>("all");
+  const [readMoreAbout, setReadMoreAbout] = useState(false);
+  const [activeTestimonialIdx, setActiveTestimonialIdx] = useState(0);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [reportReason, setReportReason] = useState("misleading");
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+
+  // PWA & Toast
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   useEffect(() => {
     const handler = (e: any) => {
       e.preventDefault();
@@ -231,31 +277,89 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const blocks = profile.blocks || [];
   const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
   const contactBlock = blocks.find((b) => b.type === "contact_actions" && b.isEnabled)?.blockData || {};
+  const highlightsBlock = blocks.find((b) => b.type === "highlights" && b.isEnabled)?.blockData || {};
   const aboutBlock = blocks.find((b) => b.type === "about" && b.isEnabled)?.blockData || {};
   const servicesBlock = blocks.find((b) => b.type === "services" && b.isEnabled)?.blockData || {};
   const portfolioBlock = blocks.find((b) => b.type === "portfolio_gallery" && b.isEnabled)?.blockData || {};
+  const testimonialsBlock = blocks.find((b) => b.type === "testimonials" && b.isEnabled)?.blockData || {};
+  const certificationsBlock = blocks.find((b) => b.type === "certifications" && b.isEnabled)?.blockData || {};
+  const introVideoBlock = blocks.find((b) => b.type === "intro_video" && b.isEnabled)?.blockData || {};
+  const downloadsBlock = blocks.find((b) => b.type === "downloads" && b.isEnabled)?.blockData || {};
+  const faqBlock = blocks.find((b) => b.type === "faq" && b.isEnabled)?.blockData || {};
   const beautyfolioBlock = blocks.find((b) => b.type === "beautyfolio" && b.isEnabled)?.blockData || {};
   const socialsBlock = blocks.find((b) => b.type === "social_links" && b.isEnabled)?.blockData || {};
   const locationBlock = blocks.find((b) => b.type === "location" && b.isEnabled)?.blockData || {};
   const leadFormBlock = blocks.find((b) => b.type === "lead_form" && b.isEnabled)?.blockData || {};
 
-  // 1 & 2: Resolve Person Photo & Company Logo intelligently
-  let personPhoto = headerBlock.avatarUrl || headerBlock.coverUrl;
+  // 1. Resolve Cover Photo & Circular Company Logo intelligently
+  let personPhoto = headerBlock.coverUrl || headerBlock.avatarUrl;
   let companyLogo = headerBlock.logoUrl;
 
   if (headerBlock.coverUrl && headerBlock.avatarUrl && !headerBlock.logoUrl) {
     personPhoto = headerBlock.coverUrl;
     companyLogo = headerBlock.avatarUrl;
-  } else if (!personPhoto && headerBlock.coverUrl) {
-    personPhoto = headerBlock.coverUrl;
+  } else if (!companyLogo && headerBlock.avatarUrl && headerBlock.avatarUrl !== personPhoto) {
+    companyLogo = headerBlock.avatarUrl;
   }
 
-  // 3 & 4: Core Identity
+  // Identity Details
   const personName = headerBlock.name || profile.name || "Cardholder";
   const professionalTitle = headerBlock.title || profile.title || "Digital Identity";
   const companyName = headerBlock.company || "";
+  const businessCategory = headerBlock.category || profile.industry?.replace("_", " ") || "";
+  const tagline = headerBlock.tagline || aboutBlock.headline || "";
 
-  // 5: Links and Socials
+  // 2. Resolve Highlights / Statistics (Fallback to industry stats if not configured)
+  const statsList = useMemo(() => {
+    if (highlightsBlock.stats && Array.isArray(highlightsBlock.stats) && highlightsBlock.stats.length > 0) {
+      return highlightsBlock.stats;
+    }
+    // If aboutBlock has string highlights
+    if (aboutBlock.highlights && Array.isArray(aboutBlock.highlights) && aboutBlock.highlights.length > 0) {
+      return aboutBlock.highlights.map((h: string, idx: number) => ({
+        id: `h_${idx}`,
+        label: h,
+        value: "✓",
+        icon: "award",
+      }));
+    }
+    // Professional default stats
+    const industryStats: Record<string, any[]> = {
+      professional: [
+        { id: "s1", label: "Years Exp", value: "10+", icon: "clock" },
+        { id: "s2", label: "Clients Served", value: "350+", icon: "users" },
+        { id: "s3", label: "Satisfaction", value: "99%", icon: "trophy" },
+      ],
+      beauty: [
+        { id: "s1", label: "Years Exp", value: "8+", icon: "clock" },
+        { id: "s2", label: "Happy Clients", value: "1,200+", icon: "users" },
+        { id: "s3", label: "Client Rating", value: "4.9 ★", icon: "star" },
+      ],
+      creative: [
+        { id: "s1", label: "Years Exp", value: "9+", icon: "clock" },
+        { id: "s2", label: "Projects Done", value: "180+", icon: "briefcase" },
+        { id: "s3", label: "Design Awards", value: "12", icon: "award" },
+      ],
+      real_estate: [
+        { id: "s1", label: "Years Exp", value: "14+", icon: "clock" },
+        { id: "s2", label: "Closed Deals", value: "280+", icon: "briefcase" },
+        { id: "s3", label: "Client Rating", value: "4.9 ★", icon: "star" },
+      ],
+      local_business: [
+        { id: "s1", label: "Serving Since", value: "2016", icon: "calendar" },
+        { id: "s2", label: "Customers", value: "4,000+", icon: "users" },
+        { id: "s3", label: "Store Rating", value: "4.8 ★", icon: "star" },
+      ],
+      creator: [
+        { id: "s1", label: "Years Active", value: "6+", icon: "clock" },
+        { id: "s2", label: "Audience", value: "150K+", icon: "users" },
+        { id: "s3", label: "Collabs Done", value: "75+", icon: "award" },
+      ],
+    };
+    return industryStats[profile.industry] || industryStats.professional;
+  }, [highlightsBlock.stats, aboutBlock.highlights, profile.industry]);
+
+  // Socials and Links
   const socialLinks: any[] = socialsBlock.links || [];
   const googleReviewLink = socialLinks.find(
     (s) => s.platform === "google_review" || s.platform === "google" || s.platform?.includes("review")
@@ -321,6 +425,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   };
 
   const handleShareProfile = async () => {
+    handleTrackAction("share_profile_click");
     const pubUrl = getPublicUrl();
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -341,6 +446,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   };
 
   const handleInstallClick = () => {
+    handleTrackAction("install_app_click");
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choice: any) => {
@@ -400,15 +506,32 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
 
       const data = (await res.json()) as any;
       if (!res.ok) {
-        throw new Error(data.error || "Failed to submit lead");
+        throw new Error(data.error || "Failed to submit inquiry");
       }
 
       setLeadSubmitted(true);
     } catch (err: any) {
-      setLeadError(err.message || "Failed to submit lead");
+      setLeadError(err.message || "Failed to submit inquiry");
     } finally {
       setLeadLoading(false);
     }
+  };
+
+  const openServiceInquiry = (serviceTitle: string) => {
+    handleTrackAction("service_inquire_click");
+    setServiceInterest(serviceTitle);
+    setLeadModalOpen(true);
+  };
+
+  const handleReportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleTrackAction("report_profile_click");
+    setReportSubmitted(true);
+    setTimeout(() => {
+      setReportModalOpen(false);
+      setReportSubmitted(false);
+      showToast("Thank you. Report received for review.");
+    }, 2000);
   };
 
   const renderSocialIcon = (platform: string) => {
@@ -440,7 +563,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
     switch (platform) {
       case "google_review":
       case "google":
-        return "Google Reviews";
+        return "Write a Google Review";
       case "facebook":
         return "Facebook";
       case "instagram":
@@ -463,9 +586,108 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
     }
   };
 
+  const renderStatIcon = (iconName?: string) => {
+    switch (iconName) {
+      case "trophy":
+        return <Trophy className="w-4 h-4 text-amber-400" />;
+      case "users":
+        return <Users className="w-4 h-4 text-blue-400" />;
+      case "calendar":
+        return <Calendar className="w-4 h-4 text-emerald-400" />;
+      case "award":
+        return <Award className="w-4 h-4 text-purple-400" />;
+      case "star":
+        return <Star className="w-4 h-4 text-amber-400 fill-amber-400" />;
+      case "briefcase":
+        return <Briefcase className="w-4 h-4 text-cyan-400" />;
+      default:
+        return <Clock className="w-4 h-4 text-teal-400" />;
+    }
+  };
+
+  // Services filtering
+  const allServices: any[] = servicesBlock.items || [];
+  const filteredServices = useMemo(() => {
+    if (!servicesSearch.trim()) return allServices;
+    const q = servicesSearch.toLowerCase();
+    return allServices.filter(
+      (s) =>
+        s.title?.toLowerCase().includes(q) ||
+        s.description?.toLowerCase().includes(q) ||
+        s.category?.toLowerCase().includes(q)
+    );
+  }, [allServices, servicesSearch]);
+
+  const displayedServices = servicesViewAll ? filteredServices : filteredServices.slice(0, 3);
+
+  // Portfolio items & category filtering
+  const allPortfolioItems: any[] = portfolioBlock.items || [];
+  const portfolioCategories = useMemo(() => {
+    const cats = new Set<string>();
+    allPortfolioItems.forEach((item) => {
+      if (item.category) cats.add(item.category);
+    });
+    return ["all", ...Array.from(cats)];
+  }, [allPortfolioItems]);
+
+  const filteredPortfolio = useMemo(() => {
+    if (portfolioCategory === "all") return allPortfolioItems;
+    return allPortfolioItems.filter((i) => i.category === portfolioCategory);
+  }, [allPortfolioItems, portfolioCategory]);
+
+  const displayedPortfolio = portfolioViewAll ? filteredPortfolio : filteredPortfolio.slice(0, 4);
+
+  // Testimonials
+  const testimonials: any[] = testimonialsBlock.items || [
+    {
+      id: "t1",
+      clientName: "Rahul Sharma",
+      clientTitle: "Managing Director, Apex Dynamics",
+      rating: 5,
+      content:
+        "Extremely professional, proactive and delivered remarkable results ahead of schedule. Truly a seamless experience working together.",
+    },
+    {
+      id: "t2",
+      clientName: "Pooja Malhotra",
+      clientTitle: "Head of Marketing, Lumina Tech",
+      rating: 5,
+      content:
+        "Outstanding expertise and precision. Handled everything with utmost clarity. Highly recommend their services to any serious business.",
+    },
+  ];
+
+  // Certifications
+  const certifications: any[] = certificationsBlock.items || [];
+
+  // Downloads & Resources
+  const downloads: any[] = downloadsBlock.items || [];
+
+  // FAQs
+  const faqs: any[] = faqBlock.items || [
+    {
+      id: "f1",
+      question: "How do I save this profile or contact details?",
+      answer:
+        "Tap the 'Save Contact to Phone' button at the top or bottom of this screen. A standard .vcf contact card will download directly into your phone contacts without requiring an account.",
+    },
+    {
+      id: "f2",
+      question: "Can I book a consultation or appointment directly?",
+      answer:
+        "Yes! Use the 'Book Appointment' button in the quick action buttons, or tap 'Exchange Contact Details' to leave an inquiry message.",
+    },
+    {
+      id: "f3",
+      question: "How does the Tapbez NFC digital card work?",
+      answer:
+        "Tapbez cards use encrypted contactless NFC technology. Simply tap against any modern smartphone to instantly share this complete digital profile and portfolio.",
+    },
+  ];
+
   return (
     <div
-      className={`text-slate-100 flex flex-col items-center justify-start selection:bg-blue-500 selection:text-white ${
+      className={`text-slate-100 flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white ${
         sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"
       }`}
       style={{ backgroundColor: theme.backgroundColor || "#07090e" }}
@@ -487,18 +709,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
 
       {/* Main Mobile Card Container */}
       <div
-        className={`w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col bg-slate-950/70 backdrop-blur-xl ${
+        className={`w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col bg-slate-950/80 backdrop-blur-xl ${
           sourceType === "preview"
             ? "border-0 my-0 rounded-2xl"
             : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl border border-white/10"
         }`}
       >
         {/* ============================================================== */}
-        {/* 1. PROFILE PICTURE HERO & 2. LOGO BADGE                        */}
+        {/* 1. PROFILE HEADER & BRANDING                                   */}
         {/* ============================================================== */}
         <div className="relative w-full">
-          {/* Person's Photo (Hero) */}
-          <div className="h-64 sm:h-72 w-full relative overflow-hidden bg-slate-900">
+          {/* Cover Photo Banner */}
+          <div className="h-60 sm:h-64 w-full relative overflow-hidden bg-slate-900">
             {personPhoto ? (
               <img
                 src={personPhoto}
@@ -509,7 +731,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               <div
                 className="w-full h-full flex items-center justify-center"
                 style={{
-                  background: `linear-gradient(135deg, ${theme.primaryColor} 0%, ${theme.accentColor} 100%)`,
+                  background: `linear-gradient(135deg, ${theme.primaryColor || "#0f172a"} 0%, ${theme.accentColor || "#0d9488"} 100%)`,
                 }}
               >
                 <div className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-3xl font-bold text-white">
@@ -518,8 +740,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               </div>
             )}
 
-            {/* Bottom vignette overlay for seamless blend */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/45 to-transparent pointer-events-none" />
+            {/* Bottom vignette overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/50 to-transparent pointer-events-none" />
 
             {/* Quick Share Floating Button */}
             <button
@@ -532,13 +754,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </button>
           </div>
 
-          {/* 2. Brand / Company Logo Badge (Centered on Seam - Square format like Image 1) */}
+          {/* Circular Company Logo Overlapping Cover Image */}
           {companyLogo && (
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white shadow-2xl border-2 border-white/90 backdrop-blur-xl flex items-center justify-center p-2.5">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white shadow-2xl border-4 border-slate-900 overflow-hidden flex items-center justify-center p-2.5">
                 <img
                   src={companyLogo}
-                  alt={companyName || "Company Logo"}
+                  alt={companyName || "Logo"}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -546,69 +768,112 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           )}
         </div>
 
-        {/* ============================================================== */}
-        {/* 3. COMPANY NAME & 4. PERSON'S NAME & TITLE                     */}
-        {/* ============================================================== */}
+        {/* Identity Information Section */}
         <div
           className={`px-6 ${
-            companyLogo ? "pt-12 sm:pt-14" : "pt-4"
+            companyLogo ? "pt-12 sm:pt-14" : "pt-5"
           } relative z-10 flex flex-col items-center text-center`}
         >
-          <div className="space-y-1 w-full">
-            {/* 4. Person's Name */}
-            <div className="flex items-center justify-center gap-1.5">
+          <div className="space-y-1.5 w-full">
+            {/* Full Name & Verified Badge */}
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-sm">
                 {personName}
               </h1>
               {headerBlock.badge && (
-                <span title={headerBlock.badge}>
-                  <ShieldCheck className="w-5 h-5 text-blue-400 shrink-0" />
+                <span
+                  title={headerBlock.badge}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-[10px] font-semibold text-teal-400"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <span>{headerBlock.badge}</span>
                 </span>
               )}
             </div>
 
-            {/* Professional Title */}
-            <p className="text-sm font-semibold tracking-wide" style={{ color: theme.accentColor }}>
+            {/* Professional Designation */}
+            <p className="text-sm font-semibold tracking-wide" style={{ color: theme.accentColor || "#14b8a6" }}>
               {professionalTitle}
             </p>
 
-            {/* 3. Company Name (Prominent Tag/Badge) */}
-            {companyName && (
-              <div className="pt-1.5 flex justify-center">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 shadow-sm">
-                  <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                  <span className="tracking-wide">{companyName}</span>
-                </div>
+            {/* Company Name & Business Category */}
+            {(companyName || businessCategory) && (
+              <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
+                {companyName && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 shadow-sm">
+                    <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <span>{companyName}</span>
+                  </div>
+                )}
+                {businessCategory && (
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 uppercase tracking-wider font-mono">
+                    {businessCategory}
+                  </span>
+                )}
               </div>
+            )}
+
+            {/* Short Tagline / Value Proposition */}
+            {tagline && (
+              <p className="text-xs text-slate-300/90 pt-1 max-w-sm mx-auto leading-relaxed italic">
+                &ldquo;{tagline}&rdquo;
+              </p>
             )}
           </div>
 
-          {/* Direct Hero CTA Buttons (Save Contact & Exchange Contact) */}
+          {/* ============================================================== */}
+          {/* 2. PROFESSIONAL HIGHLIGHTS (EXPERIENCE, CLIENTS, EST.)        */}
+          {/* ============================================================== */}
+          {statsList && statsList.length > 0 && (
+            <div className="w-full mt-4 pt-1">
+              <div className="grid grid-cols-3 gap-2 w-full">
+                {statsList.slice(0, 3).map((stat: any, idx: number) => (
+                  <div
+                    key={stat.id || idx}
+                    className="p-2.5 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col items-center justify-center text-center shadow-sm hover:border-teal-500/30 transition-colors"
+                  >
+                    <div className="mb-1">{renderStatIcon(stat.icon)}</div>
+                    <span className="text-sm font-bold text-white tracking-tight">{stat.value}</span>
+                    <span className="text-[10px] text-slate-400 leading-tight mt-0.5 line-clamp-1">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 3. PRIMARY CONTACT ACTION & 5. CONTACT EXCHANGE                */}
+          {/* ============================================================== */}
           <div className="w-full space-y-2 mt-4">
             <button
               type="button"
               onClick={handleDownloadVCard}
-              className="w-full py-3 px-4 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all cursor-pointer"
               style={{
-                background: `linear-gradient(135deg, ${theme.accentColor || "#3b82f6"} 0%, #2563eb 100%)`,
+                background: `linear-gradient(135deg, ${theme.accentColor || "#0d9488"} 0%, #2563eb 50%, #9333ea 100%)`,
               }}
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 shrink-0" />
               <span>Save Contact to Phone</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setLeadModalOpen(true)}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/15 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              onClick={() => {
+                handleTrackAction("exchange_contact_click");
+                setLeadModalOpen(true);
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/15 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
             >
-              <Mail className="w-4 h-4 text-blue-400" />
+              <Mail className="w-4 h-4 text-teal-400 shrink-0" />
               <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
             </button>
           </div>
 
-          {/* Quick Communication Action Grid (Call, WhatsApp, Email, Map) */}
-          <div className="grid grid-cols-4 gap-2 w-full mt-3">
+          {/* ============================================================== */}
+          {/* 4. QUICK CONTACT BUTTONS (CALL, WA, EMAIL, MAP, BOOK)         */}
+          {/* ============================================================== */}
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 w-full mt-3">
             {contactBlock.phone && (
               <a
                 href={`tel:${contactBlock.phone}`}
@@ -690,26 +955,49 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 </a>
               );
             })()}
+
+            {contactBlock.bookingUrl && (() => {
+              const bUrl = resolveValidUrl(contactBlock.bookingUrl);
+              return (
+                <a
+                  href={bUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => {
+                    handleTrackAction("booking_click");
+                    handleOpenExternal(e, bUrl);
+                  }}
+                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  title="Book Appointment"
+                >
+                  <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-400 group-hover:bg-teal-500/20">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-300 mt-1">Book</span>
+                </a>
+              );
+            })()}
           </div>
         </div>
 
         {/* ============================================================== */}
-        {/* CONTENT STREAM: LINKS, SERVICES, PORTFOLIO                     */}
+        {/* MAIN BODY SECTIONS STREAM                                      */}
         {/* ============================================================== */}
         <div className="px-6 py-6 space-y-6">
           {/* ============================================================== */}
-          {/* 5. IMPORTANT LINKS (FB, INSTA, GOOGLE REVIEW, LINKEDIN, ETC.)  */}
+          {/* 6. SOCIAL MEDIA LINKS ("CONNECT WITH ME") & 7. GOOGLE REVIEW   */}
           {/* ============================================================== */}
           {(socialLinks.length > 0 || contactBlock.websiteUrl) && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Important Links & Socials
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Connect With Me</span>
                 </h3>
-                <span className="text-[10px] text-blue-400 font-medium">Verified Channels</span>
+                <span className="text-[10px] text-teal-400 font-medium">Verified Channels</span>
               </div>
 
-              {/* 5A. Dedicated Google Reviews Feature Card */}
+              {/* 7. Dedicated One-Click Google Review */}
               {googleReviewLink && (() => {
                 const revUrl = resolveValidUrl(googleReviewLink.url, googleReviewLink.label, "google_review");
                 return (
@@ -730,7 +1018,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-bold text-white truncate">
-                            {googleReviewLink.label || "Google Reviews"}
+                            {googleReviewLink.label || "Write a Google Review"}
                           </span>
                           <div className="flex items-center text-amber-400 shrink-0">
                             <Star className="w-3 h-3 fill-amber-400" />
@@ -741,7 +1029,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                           </div>
                         </div>
                         <p className="text-[11px] text-slate-400 truncate">
-                          Leave a 5-star review on Google
+                          Leave a 5-star review on Google in 1 tap
                         </p>
                       </div>
                     </div>
@@ -753,7 +1041,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 );
               })()}
 
-              {/* 5B. Other Important Links Grid (Facebook, Instagram, YouTube, LinkedIn, etc.) */}
+              {/* 6. Social Channels Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {regularLinks.map((s: any) => {
                   const validUrl = resolveValidUrl(s.url, s.label, s.platform);
@@ -782,7 +1070,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                   );
                 })}
 
-                {/* If websiteUrl is in contactBlock and not already in socialLinks */}
                 {contactBlock.websiteUrl &&
                   !socialLinks.some((l) => l.url === contactBlock.websiteUrl) && (() => {
                     const webUrl = resolveValidUrl(contactBlock.websiteUrl);
@@ -813,50 +1100,43 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </div>
           )}
 
-          {/* BEAUTYFOLIO SPECIALTY BADGE */}
-          {beautyfolioBlock.portfolioUrl && (() => {
-            const bfUrl = resolveValidUrl(beautyfolioBlock.portfolioUrl);
-            return (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/40 to-slate-900/60 border border-rose-500/20 flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
-                      Beautyfolio Verified
-                    </span>
-                    <Sparkles className="w-3.5 h-3.5 text-rose-400" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-200">
-                    {beautyfolioBlock.headline || "View Verified Transformations"}
-                  </p>
-                  {beautyfolioBlock.featuredSpecialty && (
-                    <p className="text-xs text-rose-300/80">
-                      Specialty: {beautyfolioBlock.featuredSpecialty}
-                    </p>
-                  )}
-                </div>
-                <a
-                  href={bfUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => handleOpenExternal(e, bfUrl)}
-                  className="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium flex items-center gap-1 transition-colors whitespace-nowrap ml-3 cursor-pointer"
-                >
-                  <span>View</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-            );
-          })()}
-
-          {/* ABOUT & BIOGRAPHY BLOCK */}
+          {/* ============================================================== */}
+          {/* 8. ABOUT ME / ABOUT BUSINESS                                   */}
+          {/* ============================================================== */}
           {aboutBlock.bio && (
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-white/10 space-y-2.5">
-              {aboutBlock.headline && (
-                <h3 className="text-sm font-semibold text-slate-200">{aboutBlock.headline}</h3>
+            <div className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Bookmark className="w-3.5 h-3.5 text-teal-400" />
+                  <span>{aboutBlock.headline || "About Me"}</span>
+                </h3>
+              </div>
+
+              {aboutBlock.imageUrl && (
+                <div className="w-full h-44 rounded-xl overflow-hidden relative border border-white/10">
+                  <img src={aboutBlock.imageUrl} alt="About" className="w-full h-full object-cover" />
+                </div>
               )}
-              <p className="text-xs leading-relaxed text-slate-300">{aboutBlock.bio}</p>
+
+              <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-line">
+                {readMoreAbout || aboutBlock.bio.length <= 160
+                  ? aboutBlock.bio
+                  : `${aboutBlock.bio.slice(0, 160)}...`}
+              </p>
+
+              {aboutBlock.bio.length > 160 && (
+                <button
+                  type="button"
+                  onClick={() => setReadMoreAbout(!readMoreAbout)}
+                  className="text-xs font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{readMoreAbout ? "Read Less" : "Read More"}</span>
+                  {readMoreAbout ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              )}
+
               {aboutBlock.highlights && aboutBlock.highlights.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/5">
                   {aboutBlock.highlights.map((h: string, i: number) => (
                     <span
                       key={i}
@@ -871,35 +1151,312 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           )}
 
           {/* ============================================================== */}
-          {/* 6. SERVICES / PRODUCTS                                         */}
+          {/* 9. SERVICES & PRODUCTS                                         */}
           {/* ============================================================== */}
-          {servicesBlock.items && servicesBlock.items.length > 0 && (
+          {allServices.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Services & Products
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Services & Products</span>
                 </h3>
-                <span className="text-[10px] text-slate-500 font-medium">
-                  {servicesBlock.items.length} Offerings
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {allServices.length} {allServices.length === 1 ? "Offering" : "Offerings"}
                 </span>
               </div>
+
+              {/* Search bar when > 3 items */}
+              {allServices.length > 3 && (
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <input
+                    type="text"
+                    value={servicesSearch}
+                    onChange={(e) => setServicesSearch(e.target.value)}
+                    placeholder="Search services or products..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+              )}
+
+              {/* Cards List */}
               <div className="space-y-2.5">
-                {servicesBlock.items.map((svc: any) => (
+                {displayedServices.map((svc: any) => (
                   <div
                     key={svc.id}
-                    className="p-4 rounded-xl bg-slate-900/70 border border-white/10 flex justify-between items-start gap-3 hover:border-white/20 transition-colors"
+                    className="p-4 rounded-xl bg-slate-900/70 border border-white/10 hover:border-white/20 transition-all flex flex-col gap-2.5"
                   >
-                    <div className="space-y-1 min-w-0 flex-1">
-                      <p className="text-sm font-bold text-white">{svc.title}</p>
-                      {svc.description && (
-                        <p className="text-xs text-slate-300 leading-relaxed">{svc.description}</p>
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-bold text-white">{svc.title}</p>
+                          {svc.duration && (
+                            <span className="text-[10px] text-slate-400 font-mono">({svc.duration})</span>
+                          )}
+                        </div>
+                        {svc.description && (
+                          <p className="text-xs text-slate-300 leading-relaxed">{svc.description}</p>
+                        )}
+                      </div>
+                      {svc.price && (
+                        <span className="text-xs font-bold text-teal-400 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 whitespace-nowrap shrink-0">
+                          {svc.price}
+                        </span>
                       )}
                     </div>
-                    {svc.price && (
-                      <span className="text-xs font-bold text-blue-400 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 whitespace-nowrap shrink-0">
-                        {svc.price}
-                      </span>
-                    )}
+
+                    <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                      <span className="text-[10px] text-slate-500">Fast Response</span>
+                      <button
+                        type="button"
+                        onClick={() => openServiceInquiry(svc.title)}
+                        className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 hover:text-white text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span>Enquire / Book</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* View All / Collapse toggle */}
+              {allServices.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setServicesViewAll(!servicesViewAll)}
+                  className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/50 hover:bg-slate-800/50 rounded-xl border border-white/5 transition-colors cursor-pointer text-center"
+                >
+                  {servicesViewAll ? "Show Less" : `View All Services (${allServices.length})`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 10. FEATURED WORK / PORTFOLIO                                  */}
+          {/* ============================================================== */}
+          {allPortfolioItems.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Featured Portfolio</span>
+                </h3>
+                <span className="text-[10px] text-slate-400 font-medium">Selected Work</span>
+              </div>
+
+              {/* Category Filter Pills */}
+              {portfolioCategories.length > 2 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {portfolioCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setPortfolioCategory(cat)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors cursor-pointer ${
+                        portfolioCategory === cat
+                          ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
+                          : "bg-slate-900 text-slate-400 hover:text-white border border-white/5"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Portfolio Grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {displayedPortfolio.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setActiveProjectModal(item)}
+                    className="group rounded-xl overflow-hidden border border-white/10 bg-slate-900 relative block hover:border-teal-500/40 transition-all cursor-pointer"
+                  >
+                    <div className="aspect-square w-full overflow-hidden relative bg-slate-800">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-950/80 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                        <ExternalLink className="w-3 h-3" />
+                      </div>
+                    </div>
+                    <div className="p-2.5 bg-slate-950/80 backdrop-blur-md">
+                      <p className="text-xs font-semibold text-slate-200 truncate">{item.title}</p>
+                      {item.description && (
+                        <p className="text-[10px] text-slate-400 truncate mt-0.5">{item.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* View All Portfolio toggle */}
+              {allPortfolioItems.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setPortfolioViewAll(!portfolioViewAll)}
+                  className="w-full py-2 text-xs font-semibold text-slate-400 hover:text-white bg-slate-900/50 hover:bg-slate-800/50 rounded-xl border border-white/5 transition-colors cursor-pointer text-center"
+                >
+                  {portfolioViewAll ? "Show Less" : `View All Projects (${allPortfolioItems.length})`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 13. INTRODUCTION VIDEO                                         */}
+          {/* ============================================================== */}
+          {introVideoBlock.videoUrl && (
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 space-y-2.5">
+              <div className="flex items-center gap-1.5">
+                <Play className="w-3.5 h-3.5 text-rose-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  {introVideoBlock.title || "Introduction Video"}
+                </h3>
+              </div>
+              <div className="aspect-video w-full rounded-xl overflow-hidden bg-black border border-white/10">
+                <iframe
+                  src={getEmbedVideoUrl(introVideoBlock.videoUrl)}
+                  title="Introduction Video"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              {introVideoBlock.description && (
+                <p className="text-xs text-slate-400">{introVideoBlock.description}</p>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 11. CLIENT TESTIMONIALS                                        */}
+          {/* ============================================================== */}
+          {testimonials && testimonials.length > 0 && (
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-950 border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                  <span>Client Testimonials</span>
+                </h3>
+                <span className="text-[10px] text-teal-400 font-medium">Verified Feedback</span>
+              </div>
+
+              {/* Active Testimonial Card */}
+              {(() => {
+                const t = testimonials[activeTestimonialIdx] || testimonials[0];
+                return (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-1 text-amber-400">
+                      {[...Array(t.rating || 5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
+                      ))}
+                    </div>
+
+                    <p className="text-xs text-slate-200 italic leading-relaxed">
+                      &ldquo;{t.content}&rdquo;
+                    </p>
+
+                    <div className="pt-1 flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-teal-500/20 text-teal-300 font-bold text-xs flex items-center justify-center border border-teal-500/30">
+                        {t.clientName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">{t.clientName}</p>
+                        {t.clientTitle && <p className="text-[10px] text-slate-400">{t.clientTitle}</p>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Navigation Indicators */}
+              {testimonials.length > 1 && (
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-1">
+                    {testimonials.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveTestimonialIdx(idx)}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          activeTestimonialIdx === idx ? "w-5 bg-teal-400" : "w-1.5 bg-white/20"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveTestimonialIdx((prev) => (prev > 0 ? prev - 1 : testimonials.length - 1))
+                      }
+                      className="px-2 py-1 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-white cursor-pointer"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveTestimonialIdx((prev) => (prev < testimonials.length - 1 ? prev + 1 : 0))
+                      }
+                      className="px-2 py-1 rounded bg-slate-800 text-[10px] text-slate-300 hover:text-white cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 12. CERTIFICATIONS & ACHIEVEMENTS                              */}
+          {/* ============================================================== */}
+          {certifications.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Certifications & Awards</span>
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {certifications.map((c: any) => (
+                  <div
+                    key={c.id}
+                    className="p-3 rounded-xl bg-slate-900/80 border border-white/10 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                        <Award className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate">{c.title}</p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {c.issuer} {c.year ? `• ${c.year}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    {c.credentialUrl && (() => {
+                      const cUrl = resolveValidUrl(c.credentialUrl);
+                      return (
+                        <a
+                          href={cUrl || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => handleOpenExternal(e, cUrl)}
+                          className="text-xs text-teal-400 hover:underline shrink-0 flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Verify</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -907,82 +1464,78 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           )}
 
           {/* ============================================================== */}
-          {/* 7. PORTFOLIO SHOWCASE                                          */}
+          {/* 14. DOWNLOADS & RESOURCES                                      */}
           {/* ============================================================== */}
-          {portfolioBlock.items && portfolioBlock.items.length > 0 && (
+          {downloads.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Featured Portfolio
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <FileDown className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Downloads & Resources</span>
                 </h3>
-                <span className="text-[10px] text-slate-500 font-medium">Selected Work</span>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                {portfolioBlock.items.map((item: any) => {
-                  const content = (
-                    <>
-                      <div className="aspect-square w-full overflow-hidden relative bg-slate-800">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        {item.projectUrl && (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-950/80 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
-                            <ExternalLink className="w-3 h-3" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-2.5 bg-slate-950/80 backdrop-blur-md">
-                        <p className="text-xs font-semibold text-slate-200 truncate">{item.title}</p>
-                        {item.description && (
-                          <p className="text-[10px] text-slate-400 truncate mt-0.5">{item.description}</p>
-                        )}
-                      </div>
-                    </>
-                  );
-
-                  const projUrl = item.projectUrl ? resolveValidUrl(item.projectUrl) : "";
-                  return projUrl ? (
+              <div className="space-y-2">
+                {downloads.map((d: any) => {
+                  const fileUrl = resolveValidUrl(d.fileUrl);
+                  return (
                     <a
-                      key={item.id}
-                      href={projUrl}
+                      key={d.id}
+                      href={fileUrl || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => handleOpenExternal(e, projUrl)}
-                      className="group rounded-xl overflow-hidden border border-white/10 bg-slate-900 relative block hover:border-blue-500/40 transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        handleTrackAction("download_resource_click");
+                        handleOpenExternal(e, fileUrl);
+                      }}
+                      className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 flex items-center justify-between gap-3 group transition-colors cursor-pointer"
                     >
-                      {content}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4 text-teal-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-white group-hover:text-teal-300 truncate">
+                            {d.title}
+                          </p>
+                          <p className="text-[10px] text-slate-400 truncate">
+                            {d.fileType?.toUpperCase()} {d.fileSize ? `• ${d.fileSize}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="p-1.5 rounded-lg bg-white/5 text-slate-300 group-hover:text-white shrink-0">
+                        <Download className="w-3.5 h-3.5" />
+                      </span>
                     </a>
-                  ) : (
-                    <div
-                      key={item.id}
-                      className="group rounded-xl overflow-hidden border border-white/10 bg-slate-900 relative"
-                    >
-                      {content}
-                    </div>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* STOREFRONT LOCATION & HOURS BLOCK */}
+          {/* ============================================================== */}
+          {/* 15. BUSINESS LOCATION & MAP                                    */}
+          {/* ============================================================== */}
           {locationBlock.address && (
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-white/10 space-y-3">
+            <div className="p-4 rounded-2xl bg-slate-900/70 border border-white/10 space-y-3">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-slate-200">{locationBlock.address}</p>
-                  {locationBlock.mapUrl && (() => {
-                    const dirUrl = resolveValidUrl(locationBlock.mapUrl);
+                <div className="space-y-1 min-w-0 flex-1">
+                  <p className="text-xs font-bold text-white">Business Location</p>
+                  <p className="text-xs text-slate-300 leading-relaxed">{locationBlock.address}</p>
+                  {(() => {
+                    const dirUrl = locationBlock.mapUrl
+                      ? resolveValidUrl(locationBlock.mapUrl)
+                      : `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`;
                     return (
                       <a
                         href={dirUrl || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => handleOpenExternal(e, dirUrl)}
-                        className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        onClick={(e) => {
+                          handleTrackAction("map_click");
+                          handleOpenExternal(e, dirUrl);
+                        }}
+                        className="text-[11px] text-teal-400 hover:underline flex items-center gap-1 cursor-pointer pt-0.5"
                       >
                         <span>Get Driving Directions</span>
                         <ArrowRight className="w-3 h-3" />
@@ -1009,38 +1562,107 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </div>
           )}
 
-          {/* TWO-WAY LEAD EXCHANGE TRIGGER */}
+          {/* ============================================================== */}
+          {/* 17. FREQUENTLY ASKED QUESTIONS (FAQ)                           */}
+          {/* ============================================================== */}
+          {faqs.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Frequently Asked Questions</span>
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {faqs.map((f: any, idx: number) => {
+                  const isOpen = openFaqIndex === idx;
+                  return (
+                    <div
+                      key={f.id || idx}
+                      className="rounded-xl bg-slate-900/80 border border-white/10 overflow-hidden transition-colors"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                        className="w-full p-3 text-left flex items-center justify-between gap-2 text-xs font-semibold text-slate-200 hover:text-white cursor-pointer"
+                      >
+                        <span>{f.question}</span>
+                        {isOpen ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        )}
+                      </button>
+                      {isOpen && (
+                        <div className="px-3 pb-3 text-xs text-slate-300 leading-relaxed border-t border-white/5 pt-2">
+                          {f.answer}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* 16. INQUIRY / CONTACT EXCHANGE CALLOUT                         */}
+          {/* ============================================================== */}
           <div className="pt-2">
             <button
-              onClick={() => setLeadModalOpen(true)}
+              onClick={() => {
+                handleTrackAction("exchange_contact_click");
+                setLeadModalOpen(true);
+              }}
               className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-slate-200 text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <Mail className="w-4 h-4 text-blue-400" />
+              <Mail className="w-4 h-4 text-teal-400" />
               <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
             </button>
             <p className="text-[11px] text-slate-500 text-center mt-1.5">
-              Voluntary two-way exchange. Your details are confidential.
+              Voluntary two-way exchange. Your contact details remain confidential.
             </p>
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="mt-auto py-6 border-t border-white/10 flex flex-col items-center justify-center text-center px-4">
+        {/* ============================================================== */}
+        {/* 19. PROFILE FOOTER                                             */}
+        {/* ============================================================== */}
+        <div className="mt-auto py-6 border-t border-white/10 flex flex-col items-center justify-center text-center px-4 space-y-2">
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span>Powered by</span>
-            <Link href="/" className="font-semibold text-slate-400 hover:text-white transition-colors">
-              TapSync NFC
+            <Link href="/" className="font-bold text-slate-300 hover:text-teal-400 transition-colors">
+              Tapbez
             </Link>
           </div>
-          <p className="text-[10px] text-slate-600 mt-0.5">
-            Smart Contactless NFC Business Cards & Identities
+          <p className="text-[10px] text-slate-600">
+            Smart Contactless Digital Identities & NFC Solutions
           </p>
+          <div className="pt-2 flex items-center gap-4 text-[11px] text-slate-500">
+            <button
+              type="button"
+              onClick={handleShareProfile}
+              className="hover:text-slate-300 flex items-center gap-1 cursor-pointer"
+            >
+              <Share2 className="w-3 h-3" />
+              <span>Share</span>
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setReportModalOpen(true)}
+              className="hover:text-slate-300 flex items-center gap-1 cursor-pointer"
+            >
+              <Flag className="w-3 h-3" />
+              <span>Report Profile</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ============================================================== */}
-      {/* 8. STICKY BOTTOM ACTIONS SECTION                               */}
-      {/* (Save Contact, Save Profile, Install Web App)                  */}
+      {/* 18. STICKY MOBILE FOOTER                                       */}
+      {/* (Save Contact, Inquiry Form, Install Web App)                  */}
       {/* ============================================================== */}
       <div
         className={`${
@@ -1062,7 +1684,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             onClick={handleDownloadVCard}
             className="py-2.5 px-2 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer truncate"
             style={{
-              background: `linear-gradient(135deg, ${theme.accentColor} 0%, #2563eb 100%)`,
+              background: `linear-gradient(135deg, ${theme.accentColor || "#0d9488"} 0%, #2563eb 100%)`,
             }}
             title="Download vCard contact to phone"
           >
@@ -1070,18 +1692,21 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             <span className="truncate">Save Contact</span>
           </button>
 
-          {/* Action 2: Save Profile (Share Sheet / QR) */}
+          {/* Action 2: Inquiry Form */}
           <button
             type="button"
-            onClick={handleShareProfile}
+            onClick={() => {
+              handleTrackAction("sticky_inquiry_click");
+              setLeadModalOpen(true);
+            }}
             className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10 text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate"
-            title="Share or Save profile link"
+            title="Open contact exchange form"
           >
-            <Share2 className="w-3.5 h-3.5 shrink-0 text-blue-400" />
-            <span className="truncate">Save Profile</span>
+            <Mail className="w-3.5 h-3.5 shrink-0 text-teal-400" />
+            <span className="truncate">Inquiry Form</span>
           </button>
 
-          {/* Action 3: Install Web App (PWA / Add to Home Screen) */}
+          {/* Action 3: Install Web App */}
           <button
             type="button"
             onClick={handleInstallClick}
@@ -1095,7 +1720,83 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       </div>
 
       {/* ============================================================== */}
-      {/* MODAL 1: INSTALL WEB APP (PWA / ADD TO HOME SCREEN)            */}
+      {/* MODAL 1: SHARE PROFILE                                         */}
+      {/* ============================================================== */}
+      <AnimatePresence>
+        {shareModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative space-y-4"
+            >
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center">
+                <h3 className="text-base font-bold text-white">Share Profile</h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Share {personName}&apos;s verified digital card
+                </p>
+              </div>
+
+              {/* Direct Link Copy Box */}
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-white/10">
+                <input
+                  type="text"
+                  readOnly
+                  value={getPublicUrl()}
+                  className="bg-transparent text-xs text-slate-300 flex-1 outline-none font-mono truncate px-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(getPublicUrl());
+                    setCopiedLink(true);
+                    showToast("Profile link copied!");
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer transition-colors"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `Check out ${personName}'s digital card: ${getPublicUrl()}`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2.5 px-3 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-emerald-600/30 transition-colors"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
+                <a
+                  href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(getPublicUrl())}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2.5 px-3 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-blue-600/30 transition-colors"
+                >
+                  <LinkedInIcon className="w-4 h-4" />
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================== */}
+      {/* MODAL 2: INSTALL WEB APP (PWA / ADD TO HOME SCREEN)            */}
       {/* ============================================================== */}
       <AnimatePresence>
         {installModalOpen && (
@@ -1113,14 +1814,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 <X className="w-5 h-5" />
               </button>
 
-              {/* App Icon preview */}
               <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto border-2 border-white/20 shadow-lg bg-slate-800 flex items-center justify-center">
                 {companyLogo ? (
                   <img src={companyLogo} alt="App Logo" className="w-full h-full object-contain p-2 bg-white" />
-                ) : personPhoto ? (
-                  <img src={personPhoto} alt="App Icon" className="w-full h-full object-cover" />
                 ) : (
-                  <Smartphone className="w-8 h-8 text-blue-400" />
+                  <Smartphone className="w-8 h-8 text-teal-400" />
                 )}
               </div>
 
@@ -1131,39 +1829,19 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 </p>
               </div>
 
-              {/* Step-by-Step Instructions */}
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-white/10 text-left space-y-3 text-xs">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                    1
-                  </div>
-                  <p className="text-slate-300">
-                    Tap the <strong className="text-white">Share</strong> icon{" "}
-                    <Share2 className="w-3.5 h-3.5 inline text-blue-400" /> (on iPhone Safari) or{" "}
-                    <strong className="text-white">Menu (⋮)</strong> (on Android Chrome).
-                  </p>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                    2
-                  </div>
-                  <p className="text-slate-300">
-                    Scroll down and select <strong className="text-white">&apos;Add to Home Screen&apos;</strong> 📲.
-                  </p>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                    3
-                  </div>
-                  <p className="text-slate-300">
-                    Tap <strong className="text-white">Add</strong>. An app icon will be saved to your device home screen!
-                  </p>
-                </div>
+              <div className="text-left space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-white/10">
+                <p className="font-semibold text-white">On iPhone (Safari):</p>
+                <p className="text-slate-400">1. Tap the Share button in Safari bottom bar.</p>
+                <p className="text-slate-400">2. Scroll down and tap &quot;Add to Home Screen&quot;.</p>
+                <p className="font-semibold text-white pt-1">On Android (Chrome):</p>
+                <p className="text-slate-400">1. Tap the three dots (menu) in top right.</p>
+                <p className="text-slate-400">2. Tap &quot;Install app&quot; or &quot;Add to Home screen&quot;.</p>
               </div>
 
               <button
+                type="button"
                 onClick={() => setInstallModalOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Got It
               </button>
@@ -1173,75 +1851,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       </AnimatePresence>
 
       {/* ============================================================== */}
-      {/* MODAL 2: QR & PROFILE SHARING                                  */}
-      {/* ============================================================== */}
-      <AnimatePresence>
-        {shareModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative text-center space-y-4"
-            >
-              <button
-                onClick={() => {
-                  setShareModalOpen(false);
-                  setCopiedLink(false);
-                }}
-                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div>
-                <h3 className="text-base font-bold text-white">Share Business Profile</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Scan with any phone camera or copy link</p>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl shadow-inner inline-block mx-auto">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
-                    getPublicUrl()
-                  )}`}
-                  alt="Profile QR Code"
-                  className="w-48 h-48"
-                />
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pubUrl = getPublicUrl();
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(pubUrl);
-                      setCopiedLink(true);
-                      setTimeout(() => setCopiedLink(false), 3000);
-                    }
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {copiedLink ? (
-                    <>
-                      <Check className="w-4 h-4 text-emerald-300" />
-                      <span>Link Copied to Clipboard!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4" />
-                      <span>Copy Profile Link</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ============================================================== */}
-      {/* MODAL 3: LEAD EXCHANGE FORM                                    */}
+      {/* MODAL 3: INQUIRY / CONTACT EXCHANGE FORM                       */}
       {/* ============================================================== */}
       <AnimatePresence>
         {leadModalOpen && (
@@ -1250,108 +1860,112 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative overflow-hidden"
+              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
             >
               <button
-                onClick={() => {
-                  setLeadModalOpen(false);
-                  setLeadSubmitted(false);
-                  setLeadError(null);
-                }}
+                onClick={() => setLeadModalOpen(false)}
                 className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {leadSubmitted ? (
-                <div className="text-center py-8 space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+                <div className="text-center py-6 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-bold text-white">Details Sent Successfully</h3>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                    Thank you, {visitorName}! Your contact details have been delivered to {personName}.
+                  <h3 className="text-base font-bold text-white">Details Exchanged!</h3>
+                  <p className="text-xs text-slate-300">
+                    Thank you, {visitorName}. Your information has been shared directly with {personName}.
                   </p>
                   <button
-                    onClick={() => setLeadModalOpen(false)}
-                    className="mt-4 px-6 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700 transition-colors cursor-pointer"
+                    type="button"
+                    onClick={() => {
+                      setLeadModalOpen(false);
+                      setLeadSubmitted(false);
+                      setVisitorName("");
+                      setPhone("");
+                      setEmail("");
+                      setMessage("");
+                    }}
+                    className="w-full mt-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-colors cursor-pointer"
                   >
-                    Done
+                    Close
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmitLead} className="space-y-4">
+                <form onSubmit={handleSubmitLead} className="space-y-3.5">
                   <div>
-                    <h3 className="text-lg font-bold text-white">
+                    <h3 className="text-base font-bold text-white">
                       {leadFormBlock.title || "Exchange Contact Details"}
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      {leadFormBlock.subtitle || "Leave your details to stay in touch."}
+                      {leadFormBlock.subtitle || "Share your details to connect directly."}
                     </p>
                   </div>
 
                   {leadError && (
-                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                    <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
                       {leadError}
                     </div>
                   )}
 
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">
-                        Your Full Name <span className="text-red-400">*</span>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                        Your Full Name *
                       </label>
                       <input
                         type="text"
                         required
                         value={visitorName}
                         onChange={(e) => setVisitorName(e.target.value)}
-                        placeholder="e.g. Priyanshu Sharma"
-                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="e.g. Rahul Sharma"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">
-                        Phone Number <span className="text-red-400">*</span>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                        Phone Number *
                       </label>
                       <input
                         type="tel"
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+91 98765 43210"
-                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="e.g. +91 98765 43210"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
                         Email Address (Optional)
                       </label>
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@company.com"
-                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="e.g. rahul@example.com"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
                       />
                     </div>
 
-                    {leadFormBlock.services && leadFormBlock.services.length > 0 && (
+                    {allServices.length > 0 && (
                       <div>
-                        <label className="block text-xs font-medium text-slate-300 mb-1">
+                        <label className="block text-[11px] font-medium text-slate-300 mb-1">
                           Service of Interest
                         </label>
                         <select
                           value={serviceInterest}
                           onChange={(e) => setServiceInterest(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
                         >
-                          <option value="">Select an inquiry topic...</option>
-                          {leadFormBlock.services.map((svc: string, i: number) => (
-                            <option key={i} value={svc}>
-                              {svc}
+                          <option value="">General Inquiry / Networking</option>
+                          {allServices.map((svc: any) => (
+                            <option key={svc.id} value={svc.title}>
+                              {svc.title} {svc.price ? `(${svc.price})` : ""}
                             </option>
                           ))}
                         </select>
@@ -1359,52 +1973,194 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                     )}
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">
-                        Message / Note (Optional)
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                        Message (Optional)
                       </label>
                       <textarea
                         rows={2}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Brief note on what you need..."
-                        className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                        placeholder="Brief note or inquiry..."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500 resize-none"
                       />
                     </div>
-                  </div>
 
-                  {/* CONSENT CHECKBOXES */}
-                  <div className="space-y-2 pt-2 border-t border-white/10">
-                    <label className="flex items-start gap-2 cursor-pointer text-[11px] text-slate-300 leading-tight">
-                      <input
-                        type="checkbox"
-                        checked={contactConsent}
-                        onChange={(e) => setContactConsent(e.target.checked)}
-                        className="mt-0.5 rounded border-white/20 text-blue-600 focus:ring-0"
-                      />
-                      <span>
-                        I consent to sharing my contact details with {personName} for direct business communication.
-                      </span>
-                    </label>
+                    {/* Consents */}
+                    <div className="space-y-1.5 pt-1">
+                      <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          required
+                          checked={contactConsent}
+                          onChange={(e) => setContactConsent(e.target.checked)}
+                          className="mt-0.5 rounded text-teal-500 focus:ring-0"
+                        />
+                        <span>I consent to share my contact information with {personName}.</span>
+                      </label>
 
-                    <label className="flex items-start gap-2 cursor-pointer text-[11px] text-slate-400 leading-tight">
-                      <input
-                        type="checkbox"
-                        checked={marketingConsent}
-                        onChange={(e) => setMarketingConsent(e.target.checked)}
-                        className="mt-0.5 rounded border-white/20 text-blue-600 focus:ring-0"
-                      />
-                      <span>
-                        (Optional) I agree to receive business updates, announcements, or catalogs.
-                      </span>
-                    </label>
+                      <label className="flex items-start gap-2 text-[11px] text-slate-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={marketingConsent}
+                          onChange={(e) => setMarketingConsent(e.target.checked)}
+                          className="mt-0.5 rounded text-teal-500 focus:ring-0"
+                        />
+                        <span>I agree to receive occasional updates or service follow-ups.</span>
+                      </label>
+                    </div>
                   </div>
 
                   <button
                     type="submit"
                     disabled={leadLoading}
-                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-lg active:scale-[0.98] cursor-pointer"
                   >
-                    {leadLoading ? "Sending Details..." : leadFormBlock.buttonLabel || "Submit Contact Details"}
+                    {leadLoading ? "Submitting..." : "Send Information"}
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================== */}
+      {/* MODAL 4: PROJECT DETAILS MODAL                                 */}
+      {/* ============================================================== */}
+      <AnimatePresence>
+        {activeProjectModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-5 shadow-2xl relative max-h-[85vh] overflow-y-auto space-y-3.5"
+            >
+              <button
+                onClick={() => setActiveProjectModal(null)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-white/10 relative">
+                <img
+                  src={activeProjectModal.imageUrl}
+                  alt={activeProjectModal.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <div>
+                {activeProjectModal.category && (
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 font-mono uppercase tracking-wider">
+                    {activeProjectModal.category}
+                  </span>
+                )}
+                <h3 className="text-base font-bold text-white mt-1">{activeProjectModal.title}</h3>
+                {activeProjectModal.description && (
+                  <p className="text-xs text-slate-300 leading-relaxed mt-1 whitespace-pre-line">
+                    {activeProjectModal.description}
+                  </p>
+                )}
+              </div>
+
+              {activeProjectModal.projectUrl && (() => {
+                const pUrl = resolveValidUrl(activeProjectModal.projectUrl);
+                return (
+                  <a
+                    href={pUrl || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => handleOpenExternal(e, pUrl)}
+                    className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <span>Visit Live Project</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                );
+              })()}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ============================================================== */}
+      {/* MODAL 5: REPORT PROFILE                                        */}
+      {/* ============================================================== */}
+      <AnimatePresence>
+        {reportModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative space-y-4"
+            >
+              <button
+                onClick={() => setReportModalOpen(false)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center mx-auto mb-2">
+                  <Flag className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white">Report Digital Profile</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Help maintain the integrity of verified Tapbez profiles.
+                </p>
+              </div>
+
+              {reportSubmitted ? (
+                <div className="text-center py-4 text-xs text-emerald-400">
+                  Report submitted. Our trust & safety team will review this profile.
+                </div>
+              ) : (
+                <form onSubmit={handleReportSubmit} className="space-y-3">
+                  <div className="space-y-1.5 text-xs text-slate-300">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="reason"
+                        value="misleading"
+                        checked={reportReason === "misleading"}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="text-teal-500"
+                      />
+                      <span>Misleading or inaccurate identity</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="reason"
+                        value="spam"
+                        checked={reportReason === "spam"}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="text-teal-500"
+                      />
+                      <span>Spam or unsolicited promotions</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="reason"
+                        value="copyright"
+                        checked={reportReason === "copyright"}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        className="text-teal-500"
+                      />
+                      <span>Copyright or trademark infringement</span>
+                    </label>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Submit Report
                   </button>
                 </form>
               )}

@@ -680,6 +680,47 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-1">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Business Category
+                      </label>
+                      <input
+                        type="text"
+                        value={headerBlock.category || ""}
+                        onChange={(e) => updateBlockData("identity_header", { category: e.target.value })}
+                        placeholder="e.g. Legal Advisory, Tech, Salon"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Professional Tagline
+                      </label>
+                      <input
+                        type="text"
+                        value={headerBlock.tagline || ""}
+                        onChange={(e) => updateBlockData("identity_header", { tagline: e.target.value })}
+                        placeholder="e.g. Empowering growth through counsel"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">
+                        Verified Profile Badge
+                      </label>
+                      <input
+                        type="text"
+                        value={headerBlock.badge || ""}
+                        onChange={(e) => updateBlockData("identity_header", { badge: e.target.value })}
+                        placeholder="e.g. Verified Practitioner, Official"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
                   {/* VISUAL ASSETS: PERSON PHOTO & COMPANY LOGO */}
                   <div className="pt-2 space-y-4 border-t border-white/10">
                     <div className="flex items-center justify-between">
@@ -917,6 +958,19 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       value={contactBlock.websiteUrl || ""}
                       onChange={(e) => updateBlockData("contact_actions", { websiteUrl: e.target.value })}
                       placeholder="https://..."
+                      className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      Book Appointment URL (Calendly, Cal.com, etc.)
+                    </label>
+                    <input
+                      type="url"
+                      value={contactBlock.bookingUrl || ""}
+                      onChange={(e) => updateBlockData("contact_actions", { bookingUrl: e.target.value })}
+                      placeholder="https://calendly.com/... or booking page"
                       className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
                     />
                   </div>
