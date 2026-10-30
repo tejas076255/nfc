@@ -42,7 +42,7 @@ export interface AboutBlockData {
 
 export interface SocialLinkItem {
   id: string;
-  platform: "linkedin" | "instagram" | "twitter" | "github" | "youtube" | "facebook" | "whatsapp" | "tiktok";
+  platform: "linkedin" | "instagram" | "twitter" | "github" | "youtube" | "facebook" | "whatsapp" | "tiktok" | "google_review" | "telegram" | "website" | string;
   url: string;
   label?: string;
 }

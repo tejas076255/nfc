@@ -1282,28 +1282,39 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     </div>
                   ) : (
                     socialsBlock.links.map((soc: any, index: number) => (
-                      <div key={soc.id || index} className="p-3 rounded-xl bg-slate-900/90 border border-white/10 space-y-2 sm:space-y-0 sm:flex sm:items-center sm:gap-2.5">
-                        <div className="flex items-center gap-2 sm:w-36 sm:shrink-0">
+                      <div key={soc.id || index} className="p-3 rounded-xl bg-slate-900/90 border border-white/10 space-y-2">
+                        <div className="flex items-center gap-2">
                           <select
                             value={soc.platform || "instagram"}
                             onChange={(e) => handleUpdateSocial(soc.id, { platform: e.target.value })}
-                            className="flex-1 px-2.5 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs capitalize focus:outline-none"
+                            className="w-36 sm:w-44 px-2.5 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs capitalize focus:outline-none"
                           >
-                            <option value="linkedin">LinkedIn</option>
+                            <option value="google_review">⭐ Google Review</option>
                             <option value="instagram">Instagram</option>
-                            <option value="twitter">X (Twitter)</option>
-                            <option value="whatsapp">WhatsApp</option>
                             <option value="facebook">Facebook</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="whatsapp">WhatsApp</option>
                             <option value="youtube">YouTube</option>
+                            <option value="twitter">X (Twitter)</option>
+                            <option value="telegram">Telegram</option>
                             <option value="github">GitHub</option>
                             <option value="tiktok">TikTok</option>
                             <option value="website">Custom Website</option>
                           </select>
+
+                          <input
+                            type="text"
+                            value={soc.label || ""}
+                            onChange={(e) => handleUpdateSocial(soc.id, { label: e.target.value })}
+                            placeholder={soc.platform === "google_review" ? "e.g. Google Reviews (5.0 ★)" : "Link label (optional)"}
+                            className="flex-1 min-w-0 px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                          />
+
                           <button
                             type="button"
                             onClick={() => handleDeleteSocial(soc.id)}
-                            className="sm:hidden p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                            title="Delete social link"
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0 cursor-pointer"
+                            title="Delete link"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1312,17 +1323,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                           type="url"
                           value={soc.url || ""}
                           onChange={(e) => handleUpdateSocial(soc.id, { url: e.target.value })}
-                          placeholder="https://..."
-                          className="w-full sm:flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                          placeholder={
+                            soc.platform === "google_review"
+                              ? "https://g.page/r/... (Google review link)"
+                              : soc.platform === "whatsapp"
+                              ? "https://wa.me/919876543210"
+                              : "https://..."
+                          }
+                          className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
                         />
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSocial(soc.id)}
-                          className="hidden sm:flex p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors shrink-0"
-                          title="Delete social link"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     ))
                   )}
