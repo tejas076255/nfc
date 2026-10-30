@@ -252,22 +252,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           {/* Smooth bottom vignette overlay for seamless blend into card */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/45 to-transparent pointer-events-none" />
 
-          {/* Company / Business Logo (Prominently visible at top-left) */}
-          {companyLogo && (
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/50 shadow-xl max-w-[220px]">
-              <img
-                src={companyLogo}
-                alt={headerBlock.company || "Company Logo"}
-                className="h-7 w-auto max-w-[120px] max-h-7 object-contain"
-              />
-              {headerBlock.company && (
-                <span className="text-xs font-bold text-slate-900 truncate">
-                  {headerBlock.company}
-                </span>
-              )}
-            </div>
-          )}
-
           {/* Quick Share Floating Button */}
           <button
             onClick={() => setShareModalOpen(true)}
@@ -278,8 +262,26 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           </button>
         </div>
 
+        {/* Company / Business Logo (Centered prominently between hero photo & profile identity) */}
+        {companyLogo && (
+          <div className="-mt-7 sm:-mt-8 relative z-20 flex justify-center px-4">
+            <div className="px-4 py-2 rounded-2xl bg-white/95 backdrop-blur-xl border border-white/60 shadow-2xl flex items-center justify-center gap-2.5 max-w-[240px]">
+              <img
+                src={companyLogo}
+                alt={headerBlock.company || "Company Logo"}
+                className="h-8 sm:h-9 w-auto max-w-[150px] object-contain"
+              />
+              {headerBlock.company && (
+                <span className="text-xs font-bold text-slate-900 truncate">
+                  {headerBlock.company}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Identity Header & Details */}
-        <div className="px-6 pt-3 relative z-10 flex flex-col items-center text-center">
+        <div className={`px-6 ${companyLogo ? "pt-3" : "pt-4"} relative z-10 flex flex-col items-center text-center`}>
           <div className="space-y-1 w-full">
             <div className="flex items-center justify-center gap-1.5">
               <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">
@@ -296,24 +298,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               {headerBlock.title || profile.title || "Digital Identity"}
             </p>
 
-            {/* Company / Organization & Brand Logo */}
-            {(companyLogo || headerBlock.company) && (
-              <div className="flex items-center justify-center gap-2 mt-2">
-                {companyLogo && (
-                  <div className="p-1 px-1.5 rounded-md bg-white/10 border border-white/10 flex items-center justify-center">
-                    <img
-                      src={companyLogo}
-                      alt={headerBlock.company || "Company Logo"}
-                      className="h-5 w-auto max-w-[90px] max-h-5 object-contain"
-                    />
-                  </div>
-                )}
-                {headerBlock.company && (
-                  <p className="text-xs text-slate-300 font-medium">
-                    {headerBlock.company}
-                  </p>
-                )}
-              </div>
+            {headerBlock.company && (
+              <p className="text-xs text-slate-300 font-medium mt-1">
+                {headerBlock.company}
+              </p>
             )}
           </div>
 
