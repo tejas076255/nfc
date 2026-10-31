@@ -772,6 +772,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             {/* Bottom vignette overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/40 to-transparent pointer-events-none" />
 
+            {/* Brand Logo Watermark on Top Left */}
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white font-extrabold text-xs tracking-tight shadow-md">
+              <span className="text-white">tap</span><span className="text-teal-400">bez</span>
+            </div>
+
             {/* Quick Share Floating Button */}
             <button
               onClick={handleShareProfile}
@@ -836,35 +841,44 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               {professionalTitle}
             </p>
 
-            {/* Company Name & Business Category */}
-            {(companyName || businessCategory) && (
-              <div className="pt-1 flex items-center justify-center gap-2 flex-wrap">
-                {companyName && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200 shadow-sm">
-                    {effectiveCompanyLogo && effectiveCompanyLogo !== effectiveBadge ? (
-                      <img
-                        src={effectiveCompanyLogo}
-                        alt={companyName}
-                        className="w-4 h-4 object-contain rounded-full"
-                      />
-                    ) : (
-                      <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                    )}
-                    <span>{companyName}</span>
-                  </div>
-                )}
+            {/* Dedicated Company Card matching screenshot */}
+            {(companyName || tagline) && (
+              <div className="w-full mt-2.5 p-3 rounded-2xl bg-slate-900/90 border border-white/10 flex items-center gap-3 text-left shadow-md">
+                <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
+                  {effectiveCompanyLogo ? (
+                    <img
+                      src={effectiveCompanyLogo}
+                      alt={companyName || "Company Logo"}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <Building2 className="w-5 h-5 text-teal-600" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  {companyName && (
+                    <h3 className="text-xs sm:text-sm font-bold text-white truncate">
+                      {companyName}
+                    </h3>
+                  )}
+                  {tagline && (
+                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      {tagline}
+                    </p>
+                  )}
+                </div>
                 {businessCategory && (
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 uppercase tracking-wider font-mono">
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 font-mono shrink-0">
                     {businessCategory}
                   </span>
                 )}
               </div>
             )}
 
-            {/* Short Tagline / Value Proposition */}
-            {tagline && (
-              <p className="text-xs text-slate-300/90 pt-1 max-w-sm mx-auto leading-relaxed italic">
-                &ldquo;{tagline}&rdquo;
+            {/* Short Value Proposition / Personal Quote */}
+            {(headerBlock.valueProposition || (!companyName && tagline)) && (
+              <p className="text-xs text-slate-300/90 pt-1.5 px-2 leading-relaxed italic text-center">
+                &ldquo;{headerBlock.valueProposition || tagline}&rdquo;
               </p>
             )}
           </div>
