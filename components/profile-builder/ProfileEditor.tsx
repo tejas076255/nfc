@@ -635,15 +635,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </label>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Direct Call Phone */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
-                <Phone className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
+                <Phone className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-900">Direct Phone Call</span>
+              <span className="text-xs font-bold text-slate-900">Direct Call</span>
             </div>
             <input
               type="checkbox"
@@ -657,18 +657,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.phone || ""}
             onChange={(e) => updateBlockData("contact_actions", { phone: e.target.value })}
             placeholder="+91 98250 12345"
-            className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
 
         {/* WhatsApp Chat */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
-                <MessageCircle className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
+                <MessageCircle className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-900">WhatsApp Chat</span>
+              <span className="text-xs font-bold text-slate-900">WhatsApp Chat</span>
             </div>
             <input
               type="checkbox"
@@ -682,18 +682,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.whatsapp || ""}
             onChange={(e) => updateBlockData("contact_actions", { whatsapp: e.target.value })}
             placeholder="+91 98250 12345 or full URL"
-            className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
 
         {/* Email */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-600 flex items-center justify-center shrink-0">
-                <Mail className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 flex items-center justify-center shrink-0">
+                <Mail className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-900">Email Address</span>
+              <span className="text-xs font-bold text-slate-900">Email Address</span>
             </div>
             <input
               type="checkbox"
@@ -707,18 +707,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.email || ""}
             onChange={(e) => updateBlockData("contact_actions", { email: e.target.value })}
             placeholder="hello@yourbrand.com"
-            className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
 
         {/* Map / Location */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0">
+                <MapPin className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-900">Map / Office Address</span>
+              <span className="text-xs font-bold text-slate-900">Map Pin</span>
             </div>
             <input
               type="checkbox"
@@ -738,19 +738,19 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               updateBlockData("location", { address: e.target.value });
               updateBlockData("contact_actions", { location: e.target.value });
             }}
-            placeholder="e.g. Ring Road, Surat, Gujarat, India"
-            className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            placeholder="e.g. Ring Road, Surat, Gujarat"
+            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
 
         {/* Book Appointment */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 sm:col-span-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-teal-600 flex items-center justify-center shrink-0">
-                <Calendar className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-teal-500/15 text-teal-600 flex items-center justify-center shrink-0">
+                <Calendar className="w-3.5 h-3.5" />
               </div>
-              <span className="text-sm font-bold text-slate-900">Appointment / Calendly Link</span>
+              <span className="text-xs font-bold text-slate-900">Appointment / Calendly Link</span>
             </div>
             <input
               type="checkbox"
@@ -764,7 +764,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.bookingUrl || ""}
             onChange={(e) => updateBlockData("contact_actions", { bookingUrl: e.target.value })}
             placeholder="https://calendly.com/your-username"
-            className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
           />
         </div>
       </div>
@@ -1520,28 +1520,43 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   );
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-[#f4f7fc] text-slate-800">
+    <div className="flex-1 flex flex-col h-full max-h-screen overflow-hidden bg-[#f4f7fc] text-slate-800">
       {/* ============================================================== */}
-      {/* 1. TOP HEADER BAR                                              */}
+      {/* 1. TOP HEADER BAR (COMPACT & FIXED)                            */}
       {/* ============================================================== */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200/90 px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-        <div>
-          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <span>Edit Profile</span>
-          </h1>
-          <p className="text-xs text-slate-500">
-            Manage your mobile-first digital business card content and styling.
-          </p>
+      <header className="shrink-0 bg-white border-b border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs z-30">
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <span>Edit Profile</span>
+            </h1>
+            <p className="text-[11px] text-slate-500 hidden sm:block">
+              Manage your mobile-first digital business card content and styling.
+            </p>
+          </div>
+
+          {/* Public Profile Link Pill */}
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 max-w-[200px] sm:max-w-[240px]">
+            <span className="truncate">{getPublicUrl()}</span>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="p-0.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-white transition-colors cursor-pointer"
+              title="Copy link"
+            >
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* View Mode Switcher */}
-          <div className="hidden lg:flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200">
+          <div className="hidden lg:flex items-center gap-1 p-0.5 rounded-xl bg-slate-100 border border-slate-200">
             <button
               type="button"
               onClick={() => setViewMode("onboarding")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "onboarding" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -1550,7 +1565,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 viewMode === "grid" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 hover:text-slate-900"
               }`}
             >
@@ -1558,27 +1573,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             </button>
           </div>
 
-          {/* Public Profile Link Pill */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 max-w-[200px] sm:max-w-[260px]">
-            <span className="truncate">{getPublicUrl()}</span>
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              className="p-1 rounded-md text-slate-500 hover:text-slate-800 hover:bg-white transition-colors cursor-pointer"
-              title="Copy link"
-            >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-
           {/* View Live Profile Button */}
           <Link
             href={`/p/${profile.slug}`}
             target="_blank"
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-slate-500" />
-            <span>View Live</span>
+            <span className="hidden sm:inline">View Live</span>
           </Link>
 
           {/* Save Draft Button */}
@@ -1586,7 +1588,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             type="button"
             onClick={handleSaveDraft}
             disabled={isSaving}
-            className="px-4 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-3.5 h-3.5 text-slate-500" />
             <span>{isSaving ? "Saving..." : "Save Draft"}</span>
@@ -1597,7 +1599,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             type="button"
             onClick={handlePublish}
             disabled={isPublishing}
-            className="px-5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50 cursor-pointer"
           >
             <Globe className="w-3.5 h-3.5" />
             <span>{isPublishing ? "Publishing..." : "Publish"}</span>
@@ -1607,31 +1609,81 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
       {/* FEEDBACK BANNERS */}
       {saveMessage && (
-        <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-2 text-xs text-emerald-800 font-medium flex items-center gap-2">
+        <div className="shrink-0 bg-emerald-50 border-b border-emerald-200 px-6 py-1.5 text-xs text-emerald-800 font-medium flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{saveMessage}</span>
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border-b border-red-200 px-6 py-2 text-xs text-red-800 font-medium flex items-center justify-between gap-2">
+        <div className="shrink-0 bg-red-50 border-b border-red-200 px-6 py-1.5 text-xs text-red-800 font-medium flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
           {planLimitError && (
-            <Link href="/dashboard/billing" className="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold">
+            <Link href="/dashboard/billing" className="px-2.5 py-0.5 rounded-lg bg-red-600 text-white text-xs font-bold">
               Upgrade Plan
             </Link>
           )}
         </div>
       )}
 
+      {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
+      {viewMode === "onboarding" && (
+        <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
+              Step {currentStep} of {STEPS.length}
+            </span>
+            <div className="min-w-0">
+              <span className="text-xs font-black text-slate-900 block truncate">
+                {STEPS[currentStep - 1].label}
+              </span>
+            </div>
+            <div className="w-20 sm:w-28 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0 hidden sm:block">
+              <div
+                className="bg-gradient-to-r from-blue-600 to-teal-500 h-full rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-[10px] font-extrabold text-slate-500 shrink-0 hidden sm:inline">
+              {Math.round((currentStep / STEPS.length) * 100)}%
+            </span>
+          </div>
+
+          {/* Stepper Nav Quick Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+            {STEPS.map((s) => {
+              const isActive = currentStep === s.id;
+              const isDone = currentStep > s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => goToStep(s.id)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : isDone
+                      ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  <span className="text-[10px]">{isDone ? "✓" : s.id}</span>
+                  <span>{s.short}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* MOBILE SWITCHER TAB */}
-      <div className="md:hidden flex border-b border-slate-200 bg-white p-1">
+      <div className="md:hidden shrink-0 flex border-b border-slate-200 bg-white p-1">
         <button
           type="button"
           onClick={() => setMobileTab("editor")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${
             mobileTab === "editor" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
           }`}
         >
@@ -1640,7 +1692,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         <button
           type="button"
           onClick={() => setMobileTab("preview")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors ${
             mobileTab === "preview" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
           }`}
         >
@@ -1651,103 +1703,56 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       {/* ============================================================== */}
       {/* 2. MAIN WORKSPACE: LEFT EDITOR + RIGHT LIVE SIMULATOR          */}
       {/* ============================================================== */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* LEFT/CENTER EDITOR */}
         <div
-          className={`flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto ${
-            mobileTab === "editor" ? "block" : "hidden md:block"
+          className={`flex-1 flex flex-col min-h-0 overflow-hidden ${
+            mobileTab === "editor" ? "flex" : "hidden md:flex"
           }`}
         >
           {viewMode === "onboarding" ? (
             /* ============================================================ */
             /* ONBOARDING STEP-BY-STEP DESKTOP EXPERIENCE                   */
             /* ============================================================ */
-            <div className="max-w-3xl mx-auto space-y-6">
-              {/* Stepper Header Card */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-blue-600">
-                      Step {currentStep} of {STEPS.length}
-                    </span>
-                    <h2 className="text-lg font-black text-slate-900 tracking-tight">
-                      {STEPS[currentStep - 1].label}
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      {STEPS[currentStep - 1].desc}
-                    </p>
-                  </div>
-                  <span className="text-xs font-extrabold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 self-start sm:self-auto">
-                    {Math.round((currentStep / STEPS.length) * 100)}% Complete
-                  </span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
-                  />
-                </div>
-
-                {/* Stepper Nav Pills */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
-                  {STEPS.map((s) => {
-                    const isActive = currentStep === s.id;
-                    const isDone = currentStep > s.id;
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => goToStep(s.id)}
-                        className={`px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
-                          isActive
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                            : isDone
-                            ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        }`}
-                      >
-                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black bg-black/10">
-                          {isDone ? "✓" : s.id}
-                        </span>
-                        <span>{s.short}</span>
-                      </button>
-                    );
-                  })}
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#f4f7fc]">
+              {/* Active Step Form: Scrollable inside only */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 scrollbar-thin">
+                <div className="max-w-2xl mx-auto space-y-4">
+                  {currentStep === 1 && renderHeaderSection(true)}
+                  {currentStep === 2 && renderQuickActionsSection()}
+                  {currentStep === 3 && renderSocialsSection()}
+                  {currentStep === 4 && renderAboutAndStatsSection()}
+                  {currentStep === 5 && renderServicesSection()}
+                  {currentStep === 6 && renderPortfolioSection()}
+                  {currentStep === 7 && renderTestimonialsAndMapSection()}
+                  {currentStep === 8 && renderAppearanceAndSeoSection()}
                 </div>
               </div>
 
-              {/* Active Step Content */}
-              {currentStep === 1 && renderHeaderSection(true)}
-              {currentStep === 2 && renderQuickActionsSection()}
-              {currentStep === 3 && renderSocialsSection()}
-              {currentStep === 4 && renderAboutAndStatsSection()}
-              {currentStep === 5 && renderServicesSection()}
-              {currentStep === 6 && renderPortfolioSection()}
-              {currentStep === 7 && renderTestimonialsAndMapSection()}
-              {currentStep === 8 && renderAppearanceAndSeoSection()}
-
-              {/* Bottom Onboarding Stepper Controls */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              {/* PINNED BOTTOM STEPPER CONTROLS BAR: ALWAYS IN SIGHT! */}
+              <div className="shrink-0 bg-white border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20">
                 <button
                   type="button"
                   disabled={currentStep === 1}
                   onClick={() => goToStep(Math.max(1, currentStep - 1))}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  <span>Previous Step</span>
+                  <span>Previous</span>
                 </button>
 
-                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <div className="text-[11px] font-bold text-slate-500 hidden sm:block">
+                  Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
+                </div>
+
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSaving}
-                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                   >
-                    <Save className="w-4 h-4 text-slate-600" />
+                    <Save className="w-3.5 h-3.5 text-slate-600" />
                     <span>{isSaving ? "Saving..." : "Save Draft"}</span>
                   </button>
 
@@ -1755,7 +1760,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     <button
                       type="button"
                       onClick={() => goToStep(Math.min(STEPS.length, currentStep + 1))}
-                      className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 cursor-pointer transition-all"
+                      className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all"
                     >
                       <span>Next Step</span>
                       <ChevronRight className="w-4 h-4" />
@@ -1765,10 +1770,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       type="button"
                       onClick={handlePublish}
                       disabled={isPublishing}
-                      className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 cursor-pointer transition-all"
+                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/25 cursor-pointer transition-all"
                     >
                       <Globe className="w-4 h-4" />
-                      <span>{isPublishing ? "Publishing..." : "Finish & Publish Profile"}</span>
+                      <span>{isPublishing ? "Publishing..." : "Finish & Publish"}</span>
                     </button>
                   )}
                 </div>
@@ -1778,22 +1783,24 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             /* ============================================================ */
             /* 3-COLUMN GRID OVERVIEW MODE                                  */
             /* ============================================================ */
-            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 items-start">
-              <div className="space-y-6">
-                {renderHeaderSection(false)}
-                {renderSocialsSection()}
-                {renderPortfolioSection()}
-              </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin">
+              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 items-start">
+                <div className="space-y-6">
+                  {renderHeaderSection(false)}
+                  {renderSocialsSection()}
+                  {renderPortfolioSection()}
+                </div>
 
-              <div className="space-y-6">
-                {renderQuickActionsSection()}
-                {renderAboutAndStatsSection()}
-                {renderServicesSection()}
-              </div>
+                <div className="space-y-6">
+                  {renderQuickActionsSection()}
+                  {renderAboutAndStatsSection()}
+                  {renderServicesSection()}
+                </div>
 
-              <div className="space-y-6">
-                {renderTestimonialsAndMapSection()}
-                {renderAppearanceAndSeoSection()}
+                <div className="space-y-6">
+                  {renderTestimonialsAndMapSection()}
+                  {renderAppearanceAndSeoSection()}
+                </div>
               </div>
             </div>
           )}
@@ -1803,87 +1810,88 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {/* RIGHT COLUMN: REALISTIC LIVE PREVIEW (MOBILE SIMULATOR)       */}
         {/* ============================================================== */}
         <div
-          className={`w-full md:w-[410px] lg:w-[440px] shrink-0 bg-[#0d121f] border-l border-slate-800 p-4 sm:p-6 flex flex-col items-center justify-start overflow-y-auto ${
+          className={`w-full md:w-[370px] lg:w-[390px] xl:w-[420px] shrink-0 bg-[#0a0f1d] border-l border-white/5 p-3 flex flex-col items-center justify-center overflow-hidden min-h-0 ${
             mobileTab === "preview" ? "flex" : "hidden md:flex"
           }`}
         >
-          <div className="w-full max-w-sm sticky top-4">
-            {/* Simulator Device Switcher */}
-            <div className="flex items-center justify-between text-xs text-slate-300 mb-3 px-1">
-              <span className="flex items-center gap-1.5 font-bold text-white text-sm">
-                <span>Live Preview (Mobile)</span>
-              </span>
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-900 border border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setPreviewDevice("mobile")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                  title="Mobile View"
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewDevice("tablet")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                  title="Tablet View"
-                >
-                  <Tablet className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewDevice("desktop")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                  title="Desktop View"
-                >
-                  <Monitor className="w-3.5 h-3.5" />
-                </button>
-              </div>
+          {/* Simulator Device Switcher */}
+          <div className="w-full max-w-[320px] flex items-center justify-between text-xs text-slate-300 mb-2 px-1 shrink-0">
+            <span className="flex items-center gap-1.5 font-bold text-white text-xs">
+              <span>Live Preview</span>
+            </span>
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-900 border border-white/10">
+              <button
+                type="button"
+                onClick={() => setPreviewDevice("mobile")}
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
+                  previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+                title="Mobile View"
+              >
+                <Smartphone className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewDevice("tablet")}
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
+                  previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+                title="Tablet View"
+              >
+                <Tablet className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewDevice("desktop")}
+                className={`p-1 rounded-md transition-colors cursor-pointer ${
+                  previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                }`}
+                title="Desktop View"
+              >
+                <Monitor className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+
+          {/* REALISTIC SMARTPHONE BEZEL FRAME (FIT EXACTLY IN VIEWPORT) */}
+          <div className="w-full max-w-[320px] h-full max-h-[calc(100vh-130px)] aspect-[9/18.5] rounded-[38px] p-2 bg-slate-950 border-[5px] border-slate-800 shadow-2xl relative flex flex-col overflow-hidden shrink min-h-0">
+            {/* iPhone Top Notch / Speaker Slit */}
+            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-3.5 rounded-full bg-black z-30 flex items-center justify-center">
+              <div className="w-8 h-1 rounded-full bg-slate-800" />
             </div>
 
-            {/* REALISTIC SMARTPHONE BEZEL FRAME */}
-            <div className="rounded-[44px] p-2.5 sm:p-3 bg-slate-950 border-[6px] border-slate-800 shadow-2xl relative overflow-hidden w-full">
-              {/* iPhone Top Notch / Speaker Slit */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-4 rounded-full bg-black z-30 flex items-center justify-center">
-                <div className="w-10 h-1 rounded-full bg-slate-800" />
-              </div>
-
-              {/* Status Bar */}
-              <div className="pt-2 px-6 pb-1 flex items-center justify-between text-[11px] font-semibold text-white/90 z-20 relative select-none">
-                <span>9:41</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px]">5G</span>
-                  <div className="w-5 h-2.5 rounded-sm border border-white/80 p-0.5 flex items-center">
-                    <div className="w-full h-full bg-white rounded-xs" />
-                  </div>
+            {/* Status Bar */}
+            <div className="pt-1 px-5 pb-1 flex items-center justify-between text-[10px] font-semibold text-white/90 z-20 relative select-none shrink-0">
+              <span>9:41</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[9px]">5G</span>
+                <div className="w-4 h-2 rounded-2xs border border-white/80 p-0.5 flex items-center">
+                  <div className="w-full h-full bg-white rounded-2xs" />
                 </div>
               </div>
-
-              {/* Scrollable Mobile Viewport */}
-              <div className="w-full rounded-[30px] overflow-hidden max-h-[82vh] sm:max-h-[720px] overflow-y-auto scrollbar-none">
-                <PublicProfileView
-                  profile={{
-                    id: profile.id,
-                    slug: profile.slug,
-                    name: profile.name,
-                    title: profile.title,
-                    bio: profile.bio,
-                    industry: profile.industry,
-                    templateId: profile.templateId,
-                    themeConfig: profile.themeConfig,
-                    blocks: profile.blocks,
-                    searchIndexed: Boolean(profile.searchIndexed),
-                  }}
-                  sourceType="preview"
-                />
-              </div>
             </div>
+
+            {/* Scrollable Mobile Viewport */}
+            <div className="w-full flex-1 rounded-[26px] overflow-hidden overflow-y-auto scrollbar-none min-h-0">
+              <PublicProfileView
+                profile={{
+                  id: profile.id,
+                  slug: profile.slug,
+                  name: profile.name,
+                  title: profile.title,
+                  bio: profile.bio,
+                  industry: profile.industry,
+                  templateId: profile.templateId,
+                  themeConfig: profile.themeConfig,
+                  blocks: profile.blocks,
+                  searchIndexed: Boolean(profile.searchIndexed),
+                }}
+                sourceType="preview"
+              />
+            </div>
+
+            {/* Home indicator bar */}
+            <div className="w-24 h-1 rounded-full bg-white/40 my-1 mx-auto shrink-0" />
           </div>
         </div>
       </div>

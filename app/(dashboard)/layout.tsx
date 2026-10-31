@@ -23,7 +23,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const primaryProfileId = profiles.length > 0 ? profiles[0].id : undefined;
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col md:flex-row selection:bg-blue-600 selection:text-white">
+    <div className="h-screen max-h-screen overflow-hidden bg-[#07090e] text-slate-100 flex flex-col md:flex-row selection:bg-blue-600 selection:text-white">
       <Suspense fallback={<div className="w-64 bg-[#0a0f1d] min-h-screen hidden md:block" />}>
         <ResponsiveSidebar
           session={session}
@@ -35,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </Suspense>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {isAdmin && (
           <div className="bg-gradient-to-r from-purple-950/60 via-slate-950 to-purple-950/60 border-b border-purple-500/20 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
             <div className="flex items-center gap-2 text-purple-300">
