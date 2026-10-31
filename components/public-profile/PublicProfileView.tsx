@@ -305,31 +305,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const locationBlock = blocks.find((b) => b.type === "location" && b.isEnabled)?.blockData || {};
   const leadFormBlock = blocks.find((b) => b.type === "lead_form" && b.isEnabled)?.blockData || {};
 
-  // 1. Resolve Cover Photo, Centered Identity Badge & Company Logo intelligently
+  // 1. Resolve Hero Portrait (Profile Photo in Background) & Centered Company Logo
   const rawCover = headerBlock.coverUrl;
   const rawAvatar = headerBlock.avatarUrl || headerBlock.photoUrl;
   const rawLogo = headerBlock.logoUrl;
 
-  let effectiveCover: string | null = rawCover || null;
-  let effectiveBadge: string | null = rawAvatar || rawLogo || null;
-  let effectiveCompanyLogo: string | null = rawLogo || null;
-
-  // Legacy case: coverUrl has person photo, avatarUrl has company logo, logoUrl is empty
-  if (rawCover && rawAvatar && !rawLogo) {
-    effectiveCover = rawCover;
-    effectiveBadge = rawAvatar;
-    effectiveCompanyLogo = rawAvatar;
-  } else if (!rawCover && rawAvatar && rawLogo) {
-    // Both avatar and logo provided, but no cover banner
-    effectiveCover = null;
-    effectiveBadge = rawAvatar;
-    effectiveCompanyLogo = rawLogo;
-  } else if (!rawCover && rawAvatar && !rawLogo) {
-    // Only avatar provided
-    effectiveCover = null;
-    effectiveBadge = rawAvatar;
-    effectiveCompanyLogo = null;
-  }
+  // Profile image appears in the background (hero portrait)
+  const heroPortrait = rawAvatar || rawCover || null;
+  // Brand/company logo appears centered over the hero portrait
+  const centerLogo = rawLogo || (rawCover && rawAvatar && rawCover !== rawAvatar ? rawAvatar : null);
+  const effectiveCompanyLogo = rawLogo || centerLogo || null;
+  const effectiveBadge = centerLogo || heroPortrait || null;
+  const experienceList: any[] = highlightsBlock.experienceTimeline || highlightsBlock.experiences || [];
 
   // Identity Details
   const personName = headerBlock.name || profile.name || "Cardholder";
@@ -704,7 +691,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       id: "f2",
       question: "Can I book a consultation or appointment directly?",
       answer:
-        "Yes! Use the 'Book Appointment' button in the quick action buttons, or tap 'Exchange Contact Details' to leave an inquiry message.",
+        "Yes! Use the 'Book Appointment' button in the quick action buttons, or use the Inquiry Form at the bottom of the screen.",
     },
     {
       id: "f3",
@@ -746,11 +733,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
         {/* 1. PROFILE HEADER & BRANDING                                   */}
         {/* ============================================================== */}
         <div className="relative w-full">
-          {/* Cover Photo Banner */}
-          <div className="h-52 sm:h-60 w-full relative overflow-hidden bg-slate-900">
-            {effectiveCover ? (
+          {/* Hero Profile Photo in Background */}
+          <div className="h-56 sm:h-64 w-full relative overflow-hidden bg-slate-900">
+            {heroPortrait ? (
               <img
-                src={effectiveCover}
+                src={heroPortrait}
                 alt={personName}
                 className="w-full h-full object-cover object-top filter brightness-95"
               />
@@ -788,36 +775,34 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </button>
           </div>
 
-          {/* Centered Identity Badge (Avatar / Logo) Overlapping Cover Banner */}
-          {effectiveBadge && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
-              <div
-                className={`w-24 h-24 sm:w-28 sm:h-28 ${getAvatarRadiusClass(
-                  theme.avatarShape
-                )} bg-white shadow-2xl border-4 border-slate-950 overflow-hidden flex items-center justify-center p-1 relative`}
-                style={{
-                  boxShadow: `0 16px 36px -8px ${theme.accentColor || "#0d9488"}50`,
-                }}
-              >
+          {/* Centered Logo Badge Overlapping Hero Portrait */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-20 flex justify-center">
+            <div
+              className={`w-24 h-24 sm:w-28 sm:h-28 ${getAvatarRadiusClass(
+                theme.avatarShape
+              )} bg-white shadow-2xl border-4 border-slate-950 overflow-hidden flex items-center justify-center p-2 relative`}
+              style={{
+                boxShadow: `0 16px 36px -8px ${theme.accentColor || "#0d9488"}50`,
+              }}
+            >
+              {centerLogo ? (
                 <img
-                  src={effectiveBadge}
-                  alt={personName || "Profile Identity"}
-                  className={`w-full h-full ${
-                    effectiveBadge === effectiveCompanyLogo && !rawAvatar
-                      ? "object-contain p-2"
-                      : "object-cover"
-                  } ${getAvatarRadiusClass(theme.avatarShape)}`}
+                  src={centerLogo}
+                  alt={companyName || personName}
+                  className="w-full h-full object-contain"
                 />
-              </div>
+              ) : (
+                <div className="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-slate-800 font-extrabold text-2xl shadow-inner">
+                  {(companyName || personName).charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Identity Information Section */}
         <div
-          className={`px-6 ${
-            effectiveBadge ? "pt-14 sm:pt-16" : "pt-6"
-          } relative z-10 flex flex-col items-center text-center`}
+          className="px-6 pt-14 sm:pt-16 relative z-10 flex flex-col items-center text-center"
         >
           <div className="space-y-1.5 w-full">
             {/* Full Name & Verified Badge */}
@@ -904,133 +889,135 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           )}
 
           {/* ============================================================== */}
-          {/* 3. PRIMARY CONTEXTUAL CTA: EXCHANGE CONTACT                    */}
+          {/* QUICK CONTACT BUTTONS (CALL, WA, EMAIL, MAP, BOOK)             */}
           {/* ============================================================== */}
-          <div className="w-full mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                handleTrackAction("exchange_contact_click");
-                setLeadModalOpen(true);
-              }}
-              className="w-full py-3.5 px-4 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer border border-white/15"
-              style={{
-                background: `linear-gradient(135deg, ${theme.accentColor || "#0d9488"} 0%, #2563eb 100%)`,
-              }}
-            >
-              <Mail className="w-4 h-4 shrink-0" />
-              <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
-            </button>
-          </div>
-
-          {/* ============================================================== */}
-          {/* 4. QUICK CONTACT BUTTONS (CALL, WA, EMAIL, MAP, BOOK)         */}
-          {/* ============================================================== */}
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 w-full mt-3.5">
-            {contactBlock.phone && (
-              <a
-                href={`tel:${contactBlock.phone}`}
-                onClick={(e) => {
+          {(() => {
+            const actions: any[] = [];
+            if (contactBlock.phone) {
+              actions.push({
+                type: "call",
+                label: "Call",
+                href: `tel:${contactBlock.phone}`,
+                icon: Phone,
+                colorBg: "bg-blue-500/25",
+                colorBorder: "border-blue-500/40",
+                colorText: "text-blue-300",
+                onClick: (e: any) => {
                   handleTrackAction("phone_click");
                   handleOpenExternal(e, `tel:${contactBlock.phone}`);
-                }}
-                className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
-                title="Call phone"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/25 border border-blue-500/35 flex items-center justify-center text-blue-300 shadow-xs group-hover:scale-105 transition-transform">
-                  <Phone className="w-4.5 h-4.5" />
-                </div>
-                <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Call</span>
-              </a>
-            )}
-
-            {contactBlock.whatsapp && (() => {
+                },
+              });
+            }
+            if (contactBlock.whatsapp) {
               const waUrl = resolveValidUrl(contactBlock.whatsapp, "", "whatsapp");
-              return (
-                <a
-                  href={waUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    handleTrackAction("whatsapp_click");
-                    handleOpenExternal(e, waUrl);
-                  }}
-                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
-                  title="Chat on WhatsApp"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/25 border border-emerald-500/35 flex items-center justify-center text-emerald-300 shadow-xs group-hover:scale-105 transition-transform">
-                    <MessageCircle className="w-4.5 h-4.5" />
-                  </div>
-                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">WhatsApp</span>
-                </a>
-              );
-            })()}
-
-            {contactBlock.email && (
-              <a
-                href={`mailto:${contactBlock.email}`}
-                onClick={(e) => {
+              actions.push({
+                type: "whatsapp",
+                label: "WhatsApp",
+                href: waUrl || "#",
+                isExternal: true,
+                icon: MessageCircle,
+                colorBg: "bg-emerald-500/25",
+                colorBorder: "border-emerald-500/40",
+                colorText: "text-emerald-300",
+                onClick: (e: any) => {
+                  handleTrackAction("whatsapp_click");
+                  handleOpenExternal(e, waUrl);
+                },
+              });
+            }
+            if (contactBlock.email) {
+              actions.push({
+                type: "email",
+                label: "Email",
+                href: `mailto:${contactBlock.email}`,
+                icon: Mail,
+                colorBg: "bg-purple-500/25",
+                colorBorder: "border-purple-500/40",
+                colorText: "text-purple-300",
+                onClick: (e: any) => {
                   handleTrackAction("email_click");
                   handleOpenExternal(e, `mailto:${contactBlock.email}`);
-                }}
-                className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
-                title="Send email"
-              >
-                <div className="w-10 h-10 rounded-xl bg-purple-500/25 border border-purple-500/35 flex items-center justify-center text-purple-300 shadow-xs group-hover:scale-105 transition-transform">
-                  <Mail className="w-4.5 h-4.5" />
-                </div>
-                <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Email</span>
-              </a>
-            )}
-
-            {(locationBlock.mapUrl || locationBlock.address || contactBlock.location) && (() => {
+                },
+              });
+            }
+            if (locationBlock.mapUrl || locationBlock.address || contactBlock.location) {
               const mapUrl = locationBlock.mapUrl
                 ? resolveValidUrl(locationBlock.mapUrl)
                 : `https://maps.google.com/?q=${encodeURIComponent(
-                  locationBlock.address || contactBlock.location || ""
-                )}`;
-              return (
-                <a
-                  href={mapUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    handleTrackAction("map_click");
-                    handleOpenExternal(e, mapUrl);
-                  }}
-                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
-                  title="Open location on Google Maps"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/25 border border-amber-500/35 flex items-center justify-center text-amber-300 shadow-xs group-hover:scale-105 transition-transform">
-                    <MapPin className="w-4.5 h-4.5" />
-                  </div>
-                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Map</span>
-                </a>
-              );
-            })()}
-
-            {contactBlock.bookingUrl && (() => {
+                    locationBlock.address || contactBlock.location || ""
+                  )}`;
+              actions.push({
+                type: "map",
+                label: "Map",
+                href: mapUrl || "#",
+                isExternal: true,
+                icon: MapPin,
+                colorBg: "bg-amber-500/25",
+                colorBorder: "border-amber-500/40",
+                colorText: "text-amber-300",
+                onClick: (e: any) => {
+                  handleTrackAction("map_click");
+                  handleOpenExternal(e, mapUrl);
+                },
+              });
+            }
+            if (contactBlock.bookingUrl) {
               const bUrl = resolveValidUrl(contactBlock.bookingUrl);
-              return (
-                <a
-                  href={bUrl || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    handleTrackAction("booking_click");
-                    handleOpenExternal(e, bUrl);
-                  }}
-                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
-                  title="Book Appointment"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/25 border border-teal-500/35 flex items-center justify-center text-teal-300 shadow-xs group-hover:scale-105 transition-transform">
-                    <Calendar className="w-4.5 h-4.5" />
-                  </div>
-                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Book</span>
-                </a>
-              );
-            })()}
-          </div>
+              actions.push({
+                type: "book",
+                label: "Book",
+                href: bUrl || "#",
+                isExternal: true,
+                icon: Calendar,
+                colorBg: "bg-teal-500/25",
+                colorBorder: "border-teal-500/40",
+                colorText: "text-teal-300",
+                onClick: (e: any) => {
+                  handleTrackAction("booking_click");
+                  handleOpenExternal(e, bUrl);
+                },
+              });
+            }
+
+            if (actions.length === 0) return null;
+
+            const gridColsClass =
+              actions.length === 1
+                ? "grid-cols-1"
+                : actions.length === 2
+                ? "grid-cols-2"
+                : actions.length === 3
+                ? "grid-cols-3"
+                : "grid-cols-4 sm:grid-cols-5";
+
+            return (
+              <div className={`grid ${gridColsClass} gap-2.5 w-full mt-4`}>
+                {actions.map((act) => {
+                  const Icon = act.icon;
+                  return (
+                    <a
+                      key={act.type}
+                      href={act.href}
+                      target={act.isExternal ? "_blank" : undefined}
+                      rel={act.isExternal ? "noopener noreferrer" : undefined}
+                      onClick={act.onClick}
+                      className="flex flex-col items-center justify-center py-3.5 px-3 rounded-2xl bg-slate-900/90 hover:bg-slate-800/90 border border-white/20 hover:border-white/40 shadow-lg active:scale-95 transition-all group cursor-pointer min-h-[78px]"
+                      title={act.label}
+                    >
+                      <div
+                        className={`w-11 h-11 rounded-xl ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">
+                        {act.label}
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ============================================================== */}
@@ -1200,6 +1187,53 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ============================================================== */}
+          {/* CAREER EXPERIENCE & WORK HISTORY                               */}
+          {/* ============================================================== */}
+          {experienceList && experienceList.length > 0 && (
+            <div className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-teal-400" />
+                  <span>Work Experience & Career</span>
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {experienceList.length} {experienceList.length === 1 ? "Role" : "Roles"}
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {experienceList.map((exp: any, idx: number) => (
+                  <div
+                    key={exp.id || idx}
+                    className="p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1 hover:border-teal-500/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                          {exp.role || exp.title}
+                        </h4>
+                        <p className="text-xs text-teal-400 font-medium truncate mt-0.5">
+                          {exp.company}
+                        </p>
+                      </div>
+                      {exp.period && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono shrink-0">
+                          {exp.period}
+                        </span>
+                      )}
+                    </div>
+                    {exp.description && (
+                      <p className="text-xs text-slate-400 leading-relaxed pt-1 whitespace-pre-line">
+                        {exp.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

@@ -86,6 +86,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [selectedSocialPlatform, setSelectedSocialPlatform] = useState("instagram");
   const [newSocialUrl, setNewSocialUrl] = useState("");
 
+  // Portfolio modal state for manual project addition
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [editingProjectIndex, setEditingProjectIndex] = useState<number | null>(null);
+  const [projectFormData, setProjectFormData] = useState({
+    title: "",
+    category: "Web Development",
+    imageUrl: "",
+    linkUrl: "",
+    description: "",
+  });
+
   // Blocks accessor
   const blocks: ProfileBlockItem[] = profile.blocks || [];
 
@@ -229,9 +240,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       const compressedBase64 = await compressImageFile(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.85 });
 
       if (targetField === "avatarUrl") {
-        updateBlockData("identity_header", { avatarUrl: compressedBase64 });
+        updateBlockData("identity_header", { avatarUrl: compressedBase64, coverUrl: compressedBase64 });
       } else if (targetField === "coverUrl") {
-        updateBlockData("identity_header", { coverUrl: compressedBase64 });
+        updateBlockData("identity_header", { coverUrl: compressedBase64, avatarUrl: compressedBase64 });
       } else if (targetField === "aboutImageUrl") {
         updateBlockData("about", { imageUrl: compressedBase64 });
       } else if (targetField === "companyLogoUrl") {
@@ -244,6 +255,50 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     } finally {
       setUploadingField(null);
     }
+  };
+
+  // Project file upload & save handler for manual addition
+  const handleProjectFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const base64 = await compressImageFile(file, { maxWidth: 1000, maxHeight: 1000, quality: 0.85 });
+      setProjectFormData((prev) => ({ ...prev, imageUrl: base64 }));
+    } catch (err: any) {
+      setErrorMessage("Failed to process project image.");
+    }
+  };
+
+  const handleSaveProject = () => {
+    if (!projectFormData.title.trim()) {
+      setErrorMessage("Please enter a project title.");
+      return;
+    }
+    const finalImage = projectFormData.imageUrl.trim() || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80";
+    let updated: any[];
+    if (editingProjectIndex !== null && editingProjectIndex >= 0) {
+      updated = [...portfolioList];
+      updated[editingProjectIndex] = {
+        ...updated[editingProjectIndex],
+        ...projectFormData,
+        imageUrl: finalImage,
+      };
+    } else {
+      updated = [
+        ...portfolioList,
+        {
+          id: `p_${Date.now()}`,
+          ...projectFormData,
+          imageUrl: finalImage,
+        },
+      ];
+    }
+    updateBlockData("portfolio_gallery", { items: updated });
+    setShowProjectModal(false);
+    setEditingProjectIndex(null);
+    setProjectFormData({ title: "", category: "Web Development", imageUrl: "", linkUrl: "", description: "" });
+    setSaveMessage("Project saved successfully!");
+    setTimeout(() => setSaveMessage(null), 2500);
   };
 
   // Save Draft
@@ -361,6 +416,20 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const testimonialsBlock: any = getBlock("testimonials").blockData || {};
   const locationBlock: any = getBlock("location").blockData || {};
   const downloadsBlock: any = getBlock("downloads").blockData || {};
+  const faqBlock: any = getBlock("faq").blockData || {};
+
+  // Resolved experience timeline
+  const experienceTimeline: any[] = highlightsBlock.experienceTimeline || [
+    { id: "exp1", role: "Founder & Lead Consultant", company: "Upmark Digital", period: "2018 - Present", description: "Leading digital strategy, AI-driven solutions and growth frameworks for 500+ clients." },
+    { id: "exp2", role: "Senior Digital Marketing Specialist", company: "Apex Media", period: "2014 - 2018", description: "Managed enterprise marketing campaigns and client conversion pipelines." }
+  ];
+
+  // Resolved FAQs
+  const faqList: any[] = faqBlock.items || [
+    { id: "f1", question: "How do I save this profile or contact details?", answer: "Tap the 'Save Contact' button in the sticky action bar at the bottom of the screen. A standard .vcf contact card will download directly into your phone contacts without requiring an account." },
+    { id: "f2", question: "Can I book a consultation or appointment directly?", answer: "Yes! Use the 'Book Appointment' button in the quick action buttons, or use the Inquiry Form at the bottom." },
+    { id: "f3", question: "How does the Tapbez NFC digital card work?", answer: "Tapbez cards use encrypted contactless NFC technology. Simply tap against any modern smartphone to instantly share this complete digital profile and portfolio." }
+  ];
 
   // Resolved social links
   const socialLinks: any[] = socialsBlock.links || [
@@ -433,7 +502,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: 4, label: "About & Stats", short: "About", icon: "📝", desc: "Bio narrative, skill tags & experience numbers" },
     { id: 5, label: "Services & Products", short: "Services", icon: "💼", desc: "Service packages, pricing & descriptions" },
     { id: 6, label: "Featured Portfolio", short: "Portfolio", icon: "🎨", desc: "Project gallery, photos & video media" },
-    { id: 7, label: "Reviews & Map", short: "Reviews", icon: "⭐", desc: "Client testimonials & Google Map location" },
+    { id: 7, label: "Reviews, FAQ & Map", short: "Reviews & FAQ", icon: "⭐", desc: "Client testimonials, FAQs & Google Map location" },
     { id: 8, label: "Theme, SEO & Files", short: "Theme & SEO", icon: "✨", desc: "Industry templates, colors, PDFs & SEO" },
   ];
 
@@ -465,65 +534,65 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </label>
       </div>
 
-      {/* Cover Banner Upload */}
-      <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-700">Cover Banner (1440 × 400 px recommended)</label>
-        <div className="h-36 sm:h-44 w-full rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden relative group">
-          {headerBlock.coverUrl ? (
-            <img src={headerBlock.coverUrl} alt="Cover Banner" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1.5 bg-slate-50">
-              <ImageIcon className="w-8 h-8 text-slate-300" />
-              <span className="text-xs font-medium">No cover banner set</span>
-            </div>
-          )}
-          <label className="absolute bottom-3 right-3 px-3 py-2 rounded-xl bg-black/75 hover:bg-black text-white text-xs font-semibold cursor-pointer shadow-lg transition-all flex items-center gap-1.5 active:scale-95">
-            <Camera className="w-4 h-4" />
-            <span>{uploadingField === "coverUrl" ? "Uploading..." : "Change Banner"}</span>
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "coverUrl")} />
-          </label>
-        </div>
-      </div>
-
-      {/* Avatar & Logo Two-Col */}
+      {/* Hero Profile Photo & Centered Company Logo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Profile Avatar */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden shrink-0 relative border-2 border-white shadow-sm">
-            {headerBlock.avatarUrl ? (
-              <img src={headerBlock.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-lg bg-teal-50 text-teal-600">
-                {profile.name?.charAt(0) || "U"}
-              </div>
-            )}
-          </div>
-          <div className="space-y-1">
-            <span className="block text-xs font-bold text-slate-800">Profile Portrait</span>
-            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer transition-colors shadow-xs">
-              <Camera className="w-3.5 h-3.5 text-blue-600" />
+        {/* Hero Profile Photo (Appears in background) */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="block text-xs font-bold text-slate-900">Hero Profile Photo</span>
+              <p className="text-[11px] text-slate-500">Appears in background as main hero portrait</p>
+            </div>
+            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs active:scale-95">
+              <Camera className="w-3.5 h-3.5" />
               <span>{uploadingField === "avatarUrl" ? "Uploading..." : "Upload Photo"}</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "avatarUrl")} />
             </label>
           </div>
-        </div>
-
-        {/* Company Logo */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden shrink-0 relative border-2 border-white shadow-sm flex items-center justify-center">
-            {headerBlock.logoUrl ? (
-              <img src={headerBlock.logoUrl} alt="Company Logo" className="w-full h-full object-contain p-1" />
+          <div className="h-36 sm:h-40 w-full rounded-xl bg-slate-200 overflow-hidden relative border border-slate-300/80">
+            {headerBlock.avatarUrl || headerBlock.coverUrl ? (
+              <img
+                src={headerBlock.avatarUrl || headerBlock.coverUrl}
+                alt="Profile Portrait"
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <Building2 className="w-6 h-6 text-slate-400" />
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-1 bg-slate-100">
+                <ImageIcon className="w-8 h-8 text-slate-300" />
+                <span className="text-xs font-medium">No profile photo uploaded</span>
+              </div>
             )}
           </div>
-          <div className="space-y-1">
-            <span className="block text-xs font-bold text-slate-800">Company Logo</span>
-            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer transition-colors shadow-xs">
+        </div>
+
+        {/* Brand / Company Logo (Appears centered over portrait) */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="block text-xs font-bold text-slate-900">Company / Brand Logo</span>
+              <p className="text-[11px] text-slate-500">Appears in center circular badge over portrait</p>
+            </div>
+            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 cursor-pointer transition-colors shadow-xs active:scale-95">
               <Upload className="w-3.5 h-3.5 text-blue-600" />
               <span>{uploadingField === "companyLogoUrl" ? "Uploading..." : "Upload Logo"}</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "companyLogoUrl")} />
             </label>
+          </div>
+          <div className="h-36 sm:h-40 w-full rounded-xl bg-white border border-slate-300/80 flex items-center justify-center p-3 relative">
+            {headerBlock.logoUrl ? (
+              <img
+                src={headerBlock.logoUrl}
+                alt="Company Logo"
+                className="max-h-28 max-w-full object-contain"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center text-slate-400 gap-1.5">
+                <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center border border-dashed border-slate-300">
+                  <Building2 className="w-6 h-6 text-slate-400" />
+                </div>
+                <span className="text-xs font-medium text-slate-400">No logo uploaded (optional)</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1064,6 +1133,150 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           ))}
         </div>
       </div>
+
+      {/* Card 4C: Work Experience & Career Timeline */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+              💼
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Work Experience & Career Timeline</h2>
+              <p className="text-xs text-slate-500">Add your professional career history, job titles, and achievements.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const newExp = {
+                id: `exp_${Date.now()}`,
+                role: "Job Title / Role",
+                company: "Company Name",
+                period: "2022 - Present",
+                description: "Describe key responsibilities and accomplishments...",
+              };
+              const updated = [...experienceTimeline, newExp];
+              updateBlockData("highlights", { experienceTimeline: updated });
+              setSaveMessage("Experience entry added!");
+              setTimeout(() => setSaveMessage(null), 2000);
+            }}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Experience</span>
+          </button>
+        </div>
+
+        <div className="space-y-3 pt-1">
+          {experienceTimeline.length === 0 ? (
+            <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
+              <Briefcase className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-600 font-medium">No career experiences added yet.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  const newExp = {
+                    id: `exp_${Date.now()}`,
+                    role: "Founder & Lead Consultant",
+                    company: "Upmark Digital",
+                    period: "2018 - Present",
+                    description: "Spearheaded brand strategy, AI implementations and digital marketing for clients.",
+                  };
+                  updateBlockData("highlights", { experienceTimeline: [newExp] });
+                }}
+                className="text-xs text-blue-600 font-bold hover:underline cursor-pointer"
+              >
+                + Add your first experience
+              </button>
+            </div>
+          ) : (
+            experienceTimeline.map((exp: any, idx: number) => (
+              <div
+                key={exp.id || idx}
+                className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 relative group"
+              >
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <span className="text-xs font-bold text-slate-700">Role #{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = experienceTimeline.filter((_: any, i: number) => i !== idx);
+                      updateBlockData("highlights", { experienceTimeline: updated });
+                    }}
+                    className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                    title="Delete experience"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-600">Role / Designation *</label>
+                    <input
+                      type="text"
+                      value={exp.role || exp.title || ""}
+                      onChange={(e) => {
+                        const updated = [...experienceTimeline];
+                        updated[idx] = { ...updated[idx], role: e.target.value, title: e.target.value };
+                        updateBlockData("highlights", { experienceTimeline: updated });
+                      }}
+                      placeholder="e.g. Senior Consultant"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-600">Company / Organization *</label>
+                    <input
+                      type="text"
+                      value={exp.company || ""}
+                      onChange={(e) => {
+                        const updated = [...experienceTimeline];
+                        updated[idx] = { ...updated[idx], company: e.target.value };
+                        updateBlockData("highlights", { experienceTimeline: updated });
+                      }}
+                      placeholder="e.g. Upmark Digital"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-600">Duration / Period</label>
+                    <input
+                      type="text"
+                      value={exp.period || ""}
+                      onChange={(e) => {
+                        const updated = [...experienceTimeline];
+                        updated[idx] = { ...updated[idx], period: e.target.value };
+                        updateBlockData("highlights", { experienceTimeline: updated });
+                      }}
+                      placeholder="e.g. 2021 - Present"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-600">Description & Key Achievements</label>
+                  <textarea
+                    rows={2}
+                    value={exp.description || ""}
+                    onChange={(e) => {
+                      const updated = [...experienceTimeline];
+                      updated[idx] = { ...updated[idx], description: e.target.value };
+                      updateBlockData("highlights", { experienceTimeline: updated });
+                    }}
+                    placeholder="Briefly describe responsibilities, projects, and impact..."
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 
@@ -1191,14 +1404,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         <button
           type="button"
           onClick={() => {
-            const newItem = {
-              id: `p_${Date.now()}`,
-              title: "New Featured Project",
-              imageUrl: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&auto=format&fit=crop&q=80",
-            };
-            updateBlockData("portfolio_gallery", { items: [...portfolioList, newItem] });
+            setEditingProjectIndex(null);
+            setProjectFormData({
+              title: "",
+              category: "Web Development",
+              imageUrl: "",
+              linkUrl: "",
+              description: "",
+            });
+            setShowProjectModal(true);
           }}
-          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
+          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Project</span>
@@ -1207,35 +1423,225 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {portfolioList.map((item, idx) => (
-          <div key={item.id || idx} className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 group space-y-2">
-            <div className="h-32 bg-slate-200 overflow-hidden relative">
-              <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = portfolioList.filter((_, i) => i !== idx);
-                  updateBlockData("portfolio_gallery", { items: updated });
-                }}
-                className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-red-600 text-white transition-colors cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="p-2.5">
-              <input
-                type="text"
-                value={item.title}
-                onChange={(e) => {
-                  const updated = [...portfolioList];
-                  updated[idx] = { ...updated[idx], title: e.target.value };
-                  updateBlockData("portfolio_gallery", { items: updated });
-                }}
-                className="w-full text-xs font-bold text-slate-800 bg-transparent focus:outline-none"
-              />
+          <div key={item.id || idx} className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 group space-y-2 hover:border-slate-300 transition-all shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="h-32 sm:h-36 bg-slate-200 overflow-hidden relative">
+                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                
+                {/* Category Pill */}
+                {item.category && (
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-semibold backdrop-blur-xs">
+                    {item.category}
+                  </span>
+                )}
+
+                {/* Edit & Delete Action Buttons */}
+                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingProjectIndex(idx);
+                      setProjectFormData({
+                        title: item.title || "",
+                        category: item.category || "Web Development",
+                        imageUrl: item.imageUrl || "",
+                        linkUrl: item.linkUrl || "",
+                        description: item.description || "",
+                      });
+                      setShowProjectModal(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-black/70 hover:bg-blue-600 text-white transition-colors cursor-pointer shadow-sm"
+                    title="Edit project"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = portfolioList.filter((_, i) => i !== idx);
+                      updateBlockData("portfolio_gallery", { items: updated });
+                    }}
+                    className="p-1.5 rounded-lg bg-black/70 hover:bg-red-600 text-white transition-colors cursor-pointer shadow-sm"
+                    title="Delete project"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-3 space-y-1">
+                <p className="text-xs font-bold text-slate-900 truncate">{item.title}</p>
+                {item.description && (
+                  <p className="text-[11px] text-slate-500 line-clamp-1">{item.description}</p>
+                )}
+                {item.linkUrl && (
+                  <a
+                    href={item.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:underline pt-0.5"
+                  >
+                    <span>Visit Project</span>
+                    <ExternalLink className="w-2.5 h-2.5" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Interactive Modal for Manual Project Addition */}
+      {showProjectModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingProjectIndex !== null ? "Edit Project" : "Add New Project"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Enter project details, upload an image or paste a link.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProjectModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+              {/* Project Title */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Project Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={projectFormData.title}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, title: e.target.value })}
+                  placeholder="e.g. Modern E-Commerce Platform"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:bg-white"
+                />
+              </div>
+
+              {/* Category */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Category / Tag</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {["Web Design", "Branding", "Social Media", "App Development", "Photography", "Case Study"].map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setProjectFormData({ ...projectFormData, category: cat })}
+                      className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                        projectFormData.category === cat
+                          ? "bg-blue-600 border-blue-600 text-white shadow-xs"
+                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={projectFormData.category}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, category: e.target.value })}
+                  placeholder="Or type custom category tag"
+                  className="w-full mt-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Project Image */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">Project Image *</label>
+                
+                {/* Image Preview */}
+                <div className="h-36 w-full rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden relative flex items-center justify-center">
+                  {projectFormData.imageUrl ? (
+                    <img
+                      src={projectFormData.imageUrl}
+                      alt="Project Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center p-3 text-slate-400">
+                      <ImageIcon className="w-8 h-8 mx-auto mb-1 text-slate-300" />
+                      <span className="text-xs">No project image selected</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload or URL options */}
+                <div className="flex items-center gap-2 pt-1">
+                  <label className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs active:scale-95">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleProjectFileUpload}
+                    />
+                  </label>
+                  <span className="text-xs text-slate-400 font-medium">or paste URL:</span>
+                  <input
+                    type="url"
+                    value={projectFormData.imageUrl}
+                    onChange={(e) => setProjectFormData({ ...projectFormData, imageUrl: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Project URL */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Live Project URL (Optional)</label>
+                <input
+                  type="url"
+                  value={projectFormData.linkUrl}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, linkUrl: e.target.value })}
+                  placeholder="https://example.com/project"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              {/* Project Description */}
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Short Summary / Description</label>
+                <textarea
+                  rows={2}
+                  value={projectFormData.description}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
+                  placeholder="Briefly describe what this project was and results achieved..."
+                  className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowProjectModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveProject}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
+              >
+                {editingProjectIndex !== null ? "Update Project" : "Add Project"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1325,6 +1731,93 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 }}
                 className="w-full text-xs text-slate-700 bg-transparent border-t border-slate-200/80 pt-2 focus:outline-none resize-none"
               />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Frequently Asked Questions (FAQ) Card */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+              ❓
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Frequently Asked Questions (FAQ)</h2>
+              <p className="text-xs text-slate-500">Provide direct answers to frequent client questions, booking terms & inquiries.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const newFaq = {
+                id: `faq_${Date.now()}`,
+                question: "New Frequently Asked Question?",
+                answer: "Provide clear and concise answer here to help your clients understand your offerings.",
+              };
+              const updated = [...faqList, newFaq];
+              updateBlockData("faq", { items: updated });
+              setSaveMessage("FAQ item added!");
+              setTimeout(() => setSaveMessage(null), 2000);
+            }}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Question</span>
+          </button>
+        </div>
+
+        <div className="space-y-3.5 pt-1">
+          {faqList.map((faq: any, idx: number) => (
+            <div
+              key={faq.id || idx}
+              className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 relative group"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span className="text-xs font-bold text-slate-700">Question #{idx + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = faqList.filter((_: any, i: number) => i !== idx);
+                    updateBlockData("faq", { items: updated });
+                  }}
+                  className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                  title="Delete question"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-600">Question *</label>
+                <input
+                  type="text"
+                  value={faq.question || ""}
+                  onChange={(e) => {
+                    const updated = [...faqList];
+                    updated[idx] = { ...updated[idx], question: e.target.value };
+                    updateBlockData("faq", { items: updated });
+                  }}
+                  placeholder="e.g. How does your consulting process work?"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-600">Answer *</label>
+                <textarea
+                  rows={2}
+                  value={faq.answer || ""}
+                  onChange={(e) => {
+                    const updated = [...faqList];
+                    updated[idx] = { ...updated[idx], answer: e.target.value };
+                    updateBlockData("faq", { items: updated });
+                  }}
+                  placeholder="Type the detailed answer here..."
+                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
             </div>
           ))}
         </div>
