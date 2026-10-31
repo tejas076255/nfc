@@ -9,6 +9,7 @@ import {
   Palette,
   Sliders,
   Share2,
+  QrCode,
   BarChart3,
   Users,
   CreditCard,
@@ -91,6 +92,7 @@ export function ResponsiveSidebar({
     { id: "appearance", label: "Appearance", href: `${profileEditorUrl}#appearance`, icon: Palette },
     { id: "settings", label: "Settings", href: `${profileEditorUrl}#settings`, icon: Sliders },
     { id: "seo", label: "SEO & Sharing", href: `${profileEditorUrl}#seo`, icon: Share2 },
+    { id: "qr", label: "QR Code", href: "/dashboard/qr", icon: QrCode },
     { id: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { id: "leads", label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
     { id: "cards", label: "My NFC Cards", href: "/dashboard/cards", icon: CreditCard },
@@ -115,6 +117,10 @@ export function ResponsiveSidebar({
       }
       // On /dashboard/profiles listing
       return item.id === "edit-profile";
+    }
+
+    if (pathname.startsWith("/dashboard/qr")) {
+      return item.id === "qr";
     }
 
     if (pathname.startsWith("/dashboard/analytics")) {

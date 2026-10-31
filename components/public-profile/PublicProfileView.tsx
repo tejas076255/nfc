@@ -325,55 +325,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const businessCategory = headerBlock.category || profile.industry?.replace("_", " ") || "";
   const tagline = headerBlock.tagline || aboutBlock.headline || "";
 
-  // 2. Resolve Highlights / Statistics (Fallback to industry stats if not configured)
+  // 2. Resolve Highlights / Statistics (Only if explicitly configured)
   const statsList = useMemo(() => {
     if (highlightsBlock.stats && Array.isArray(highlightsBlock.stats) && highlightsBlock.stats.length > 0) {
       return highlightsBlock.stats;
     }
-    // If aboutBlock has string highlights
-    if (aboutBlock.highlights && Array.isArray(aboutBlock.highlights) && aboutBlock.highlights.length > 0) {
-      return aboutBlock.highlights.map((h: string, idx: number) => ({
-        id: `h_${idx}`,
-        label: h,
-        value: "✓",
-        icon: "award",
-      }));
-    }
-    // Professional default stats
-    const industryStats: Record<string, any[]> = {
-      professional: [
-        { id: "s1", label: "Years Exp", value: "10+", icon: "clock" },
-        { id: "s2", label: "Clients Served", value: "350+", icon: "users" },
-        { id: "s3", label: "Satisfaction", value: "99%", icon: "trophy" },
-      ],
-      beauty: [
-        { id: "s1", label: "Years Exp", value: "8+", icon: "clock" },
-        { id: "s2", label: "Happy Clients", value: "1,200+", icon: "users" },
-        { id: "s3", label: "Client Rating", value: "4.9 ★", icon: "star" },
-      ],
-      creative: [
-        { id: "s1", label: "Years Exp", value: "9+", icon: "clock" },
-        { id: "s2", label: "Projects Done", value: "180+", icon: "briefcase" },
-        { id: "s3", label: "Design Awards", value: "12", icon: "award" },
-      ],
-      real_estate: [
-        { id: "s1", label: "Years Exp", value: "14+", icon: "clock" },
-        { id: "s2", label: "Closed Deals", value: "280+", icon: "briefcase" },
-        { id: "s3", label: "Client Rating", value: "4.9 ★", icon: "star" },
-      ],
-      local_business: [
-        { id: "s1", label: "Serving Since", value: "2016", icon: "calendar" },
-        { id: "s2", label: "Customers", value: "4,000+", icon: "users" },
-        { id: "s3", label: "Store Rating", value: "4.8 ★", icon: "star" },
-      ],
-      creator: [
-        { id: "s1", label: "Years Active", value: "6+", icon: "clock" },
-        { id: "s2", label: "Audience", value: "150K+", icon: "users" },
-        { id: "s3", label: "Collabs Done", value: "75+", icon: "award" },
-      ],
-    };
-    return industryStats[profile.industry] || industryStats.professional;
-  }, [highlightsBlock.stats, aboutBlock.highlights, profile.industry]);
+    return [];
+  }, [highlightsBlock.stats]);
 
   // Socials and Links
   const socialLinks: any[] = socialsBlock.links || [];
@@ -826,40 +784,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               {professionalTitle}
             </p>
 
-            {/* Dedicated Company Card matching screenshot */}
-            {(companyName || tagline) && (
-              <div className="w-full mt-2.5 p-3 rounded-2xl bg-slate-900/90 border border-white/10 flex items-center gap-3 text-left shadow-md">
-                <div className="w-10 h-10 rounded-xl bg-white p-1 flex items-center justify-center shrink-0 shadow-sm border border-slate-200">
-                  {effectiveCompanyLogo ? (
-                    <img
-                      src={effectiveCompanyLogo}
-                      alt={companyName || "Company Logo"}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <Building2 className="w-5 h-5 text-teal-600" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  {companyName && (
-                    <h3 className="text-xs sm:text-sm font-bold text-white truncate">
-                      {companyName}
-                    </h3>
-                  )}
-                  {tagline && (
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      {tagline}
-                    </p>
-                  )}
-                </div>
-                {businessCategory && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400 font-mono shrink-0">
-                    {businessCategory}
-                  </span>
-                )}
-              </div>
-            )}
-
             {/* Short Value Proposition / Personal Quote */}
             {(headerBlock.valueProposition || (!companyName && tagline)) && (
               <p className="text-xs text-slate-300/90 pt-1.5 px-2 leading-relaxed italic text-center">
@@ -867,26 +791,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
               </p>
             )}
           </div>
-
-          {/* ============================================================== */}
-          {/* 2. PROFESSIONAL HIGHLIGHTS (EXPERIENCE, CLIENTS, EST.)        */}
-          {/* ============================================================== */}
-          {statsList && statsList.length > 0 && (
-            <div className="w-full mt-4 pt-1">
-              <div className="grid grid-cols-3 gap-2 w-full">
-                {statsList.slice(0, 3).map((stat: any, idx: number) => (
-                  <div
-                    key={stat.id || idx}
-                    className="p-2.5 rounded-xl bg-slate-900/80 border border-white/10 flex flex-col items-center justify-center text-center shadow-sm hover:border-teal-500/30 transition-colors"
-                  >
-                    <div className="mb-1">{renderStatIcon(stat.icon)}</div>
-                    <span className="text-sm font-bold text-white tracking-tight">{stat.value}</span>
-                    <span className="text-[10px] text-slate-400 leading-tight mt-0.5 line-clamp-1">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ============================================================== */}
           {/* QUICK CONTACT BUTTONS (CALL, WA, EMAIL, MAP, BOOK)             */}

@@ -17,6 +17,7 @@ import {
   Share2,
   Copy,
   ExternalLink,
+  QrCode,
   Smartphone,
   Tablet,
   Monitor,
@@ -88,6 +89,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // Portfolio modal state for manual project addition
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [editingProjectIndex, setEditingProjectIndex] = useState<number | null>(null);
   const [projectFormData, setProjectFormData] = useState({
     title: "",
@@ -448,13 +450,6 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: "st3", label: "Title / Founder Year", value: "2018", icon: "calendar" },
   ];
 
-  // Resolved experiences / stats
-  const experiencesStats: any[] = [
-    { id: "exp1", label: "Years Experience", value: "20+", icon: "briefcase" },
-    { id: "exp2", label: "Clients & Students", value: "500+", icon: "users" },
-    { id: "exp3", label: "Projects Completed", value: "1000+", icon: "trophy" },
-    { id: "exp4", label: "Client Rating", value: "4.9 ★", icon: "star" },
-  ];
 
   // Resolved about tags
   const aboutTags: string[] = aboutBlock.highlights || ["Training", "Consulting", "AI Solutions", "Business Growth"];
@@ -499,7 +494,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: 1, label: "Header & Identity", short: "Header", icon: "👤", desc: "Avatar, banner, name, role & brand logo" },
     { id: 2, label: "Action Buttons", short: "Actions", icon: "⚡", desc: "Direct call, WhatsApp, email & map directions" },
     { id: 3, label: "Social Links", short: "Socials", icon: "🔗", desc: "Instagram, YouTube, LinkedIn & web channels" },
-    { id: 4, label: "About & Stats", short: "About", icon: "📝", desc: "Bio narrative, skill tags & experience numbers" },
+    { id: 4, label: "About & Experience", short: "About", icon: "📝", desc: "Bio narrative, skill tags & career timeline" },
     { id: 5, label: "Services & Products", short: "Services", icon: "💼", desc: "Service packages, pricing & descriptions" },
     { id: 6, label: "Featured Portfolio", short: "Portfolio", icon: "🎨", desc: "Project gallery, photos & video media" },
     { id: 7, label: "Reviews, FAQ & Map", short: "Reviews & FAQ", icon: "⭐", desc: "Client testimonials, FAQs & Google Map location" },
@@ -1089,48 +1084,6 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               </button>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Card 4B: Experience & Stats Numbers */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-              📊
-            </span>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Experience Highlights & Numbers</h2>
-              <p className="text-xs text-slate-500">Display impressive milestones (years of experience, clients, founded year).</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {experiencesStats.map((exp, idx) => (
-            <div key={exp.id || idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-              <input
-                type="text"
-                value={exp.value}
-                onChange={(e) => {
-                  const updated = [...experiencesStats];
-                  updated[idx] = { ...updated[idx], value: e.target.value };
-                  updateBlockData("highlights", { stats: updated });
-                }}
-                className="w-full text-center text-lg font-black text-slate-900 bg-transparent focus:outline-none"
-              />
-              <input
-                type="text"
-                value={exp.label}
-                onChange={(e) => {
-                  const updated = [...experiencesStats];
-                  updated[idx] = { ...updated[idx], label: e.target.value };
-                  updateBlockData("highlights", { stats: updated });
-                }}
-                className="w-full text-center text-[11px] font-semibold text-slate-500 bg-transparent focus:outline-none"
-              />
-            </div>
-          ))}
         </div>
       </div>
 
@@ -2076,6 +2029,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             <span className="hidden sm:inline">View Live</span>
           </Link>
 
+          {/* QR Code Quick Modal Button */}
+          <button
+            type="button"
+            onClick={() => setShowQrModal(true)}
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            title="Scan QR to open profile"
+          >
+            <QrCode className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden sm:inline">QR Code</span>
+          </button>
+
           {/* Save Draft Button */}
           <button
             type="button"
@@ -2388,6 +2352,61 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
         </div>
       </div>
+
+      {/* Quick QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="text-left">
+                <h3 className="text-base font-bold text-slate-900">Profile QR Code</h3>
+                <p className="text-[11px] text-slate-500">Scan to view digital profile instantly</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex justify-center py-2">
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-md">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(getPublicUrl())}`}
+                  alt="Profile QR Code"
+                  className="w-48 h-48 rounded-xl object-contain"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1 text-center">
+              <p className="text-xs font-bold text-slate-800">{profile.name}</p>
+              <p className="text-[11px] text-blue-600 font-mono truncate">{getPublicUrl()}</p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(getPublicUrl())}`}
+                download={`qr_${profile.slug || "profile"}.png`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/20 text-center cursor-pointer"
+              >
+                Download PNG
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
