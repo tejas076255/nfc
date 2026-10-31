@@ -885,6 +885,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
 
             if (actions.length === 0) return null;
 
+            const isFive = actions.length >= 5;
+            const isFour = actions.length === 4;
+
             const gridColsClass =
               actions.length === 1
                 ? "grid-cols-1"
@@ -896,41 +899,45 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 ? "grid-cols-4"
                 : "grid-cols-5";
 
-            const gapClass = actions.length >= 5 ? "gap-1.5 sm:gap-2.5" : "gap-2 sm:gap-3";
-            const labelSizeClass =
-              actions.length >= 5
-                ? "text-[10px] sm:text-[11px]"
-                : actions.length === 4
-                ? "text-[11px] sm:text-xs"
-                : "text-xs sm:text-sm";
+            const gapClass = isFive ? "gap-1" : "gap-2 sm:gap-2.5";
+            const cardPadding = isFive ? "py-2 px-0.5" : isFour ? "py-2.5 px-1" : "py-3 px-2";
+            const iconCircleSize = isFive ? "w-[34px] h-[34px]" : isFour ? "w-9 h-9" : "w-10 h-10";
+            const iconSize = isFive ? "w-4 h-4" : "w-5 h-5";
+            const labelSizeClass = isFive
+              ? "text-[9.5px] font-semibold tracking-tighter"
+              : isFour
+              ? "text-[11px] font-semibold tracking-tight"
+              : "text-xs font-semibold";
 
             return (
-              <div className={`grid ${gridColsClass} ${gapClass} w-full mt-4`}>
-                {actions.map((act) => {
-                  const Icon = act.icon;
-                  return (
-                    <a
-                      key={act.type}
-                      href={act.href}
-                      target={act.isExternal ? "_blank" : undefined}
-                      rel={act.isExternal ? "noopener noreferrer" : undefined}
-                      onClick={act.onClick}
-                      className="flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 shadow-md active:scale-95 transition-all group cursor-pointer min-w-0"
-                      title={act.label}
-                    >
-                      <div
-                        className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform shrink-0`}
+              <div className="w-full mt-4 -mx-1 sm:mx-0">
+                <div className={`grid ${gridColsClass} ${gapClass} w-full`}>
+                  {actions.map((act) => {
+                    const Icon = act.icon;
+                    return (
+                      <a
+                        key={act.type}
+                        href={act.href}
+                        target={act.isExternal ? "_blank" : undefined}
+                        rel={act.isExternal ? "noopener noreferrer" : undefined}
+                        onClick={act.onClick}
+                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 shadow-md active:scale-95 transition-all group cursor-pointer overflow-hidden`}
+                        title={act.label}
                       >
-                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      </div>
-                      <span
-                        className={`${labelSizeClass} font-semibold text-slate-200 mt-1.5 text-center truncate max-w-full tracking-tight group-hover:text-white transition-colors`}
-                      >
-                        {act.label}
-                      </span>
-                    </a>
-                  );
-                })}
+                        <div
+                          className={`${iconCircleSize} rounded-full ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform shrink-0`}
+                        >
+                          <Icon className={`${iconSize} shrink-0`} />
+                        </div>
+                        <span
+                          className={`${labelSizeClass} text-slate-200 mt-1 text-center w-full block whitespace-nowrap group-hover:text-white transition-colors`}
+                        >
+                          {act.label}
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
             );
           })()}
