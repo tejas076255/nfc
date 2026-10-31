@@ -803,9 +803,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 label: "Call",
                 href: `tel:${contactBlock.phone}`,
                 icon: Phone,
-                colorBg: "bg-blue-500/25",
-                colorBorder: "border-blue-500/40",
-                colorText: "text-blue-300",
+                colorBg: "bg-blue-500/15",
+                colorBorder: "border-blue-500/30",
+                colorText: "text-blue-400",
                 onClick: (e: any) => {
                   handleTrackAction("phone_click");
                   handleOpenExternal(e, `tel:${contactBlock.phone}`);
@@ -819,10 +819,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 label: "WhatsApp",
                 href: waUrl || "#",
                 isExternal: true,
-                icon: MessageCircle,
-                colorBg: "bg-emerald-500/25",
-                colorBorder: "border-emerald-500/40",
-                colorText: "text-emerald-300",
+                icon: WhatsAppIcon,
+                colorBg: "bg-emerald-500/15",
+                colorBorder: "border-emerald-500/30",
+                colorText: "text-emerald-400",
                 onClick: (e: any) => {
                   handleTrackAction("whatsapp_click");
                   handleOpenExternal(e, waUrl);
@@ -835,9 +835,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 label: "Email",
                 href: `mailto:${contactBlock.email}`,
                 icon: Mail,
-                colorBg: "bg-purple-500/25",
-                colorBorder: "border-purple-500/40",
-                colorText: "text-purple-300",
+                colorBg: "bg-purple-500/15",
+                colorBorder: "border-purple-500/30",
+                colorText: "text-purple-400",
                 onClick: (e: any) => {
                   handleTrackAction("email_click");
                   handleOpenExternal(e, `mailto:${contactBlock.email}`);
@@ -856,9 +856,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 href: mapUrl || "#",
                 isExternal: true,
                 icon: MapPin,
-                colorBg: "bg-amber-500/25",
-                colorBorder: "border-amber-500/40",
-                colorText: "text-amber-300",
+                colorBg: "bg-amber-500/15",
+                colorBorder: "border-amber-500/30",
+                colorText: "text-amber-400",
                 onClick: (e: any) => {
                   handleTrackAction("map_click");
                   handleOpenExternal(e, mapUrl);
@@ -873,9 +873,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 href: bUrl || "#",
                 isExternal: true,
                 icon: Calendar,
-                colorBg: "bg-teal-500/25",
-                colorBorder: "border-teal-500/40",
-                colorText: "text-teal-300",
+                colorBg: "bg-teal-500/15",
+                colorBorder: "border-teal-500/30",
+                colorText: "text-teal-400",
                 onClick: (e: any) => {
                   handleTrackAction("booking_click");
                   handleOpenExternal(e, bUrl);
@@ -892,10 +892,20 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 ? "grid-cols-2"
                 : actions.length === 3
                 ? "grid-cols-3"
-                : "grid-cols-4 sm:grid-cols-5";
+                : actions.length === 4
+                ? "grid-cols-4"
+                : "grid-cols-5";
+
+            const gapClass = actions.length >= 5 ? "gap-1.5 sm:gap-2.5" : "gap-2 sm:gap-3";
+            const labelSizeClass =
+              actions.length >= 5
+                ? "text-[10px] sm:text-[11px]"
+                : actions.length === 4
+                ? "text-[11px] sm:text-xs"
+                : "text-xs sm:text-sm";
 
             return (
-              <div className={`grid ${gridColsClass} gap-2.5 w-full mt-4`}>
+              <div className={`grid ${gridColsClass} ${gapClass} w-full mt-4`}>
                 {actions.map((act) => {
                   const Icon = act.icon;
                   return (
@@ -905,15 +915,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                       target={act.isExternal ? "_blank" : undefined}
                       rel={act.isExternal ? "noopener noreferrer" : undefined}
                       onClick={act.onClick}
-                      className="flex flex-col items-center justify-center py-3.5 px-3 rounded-2xl bg-slate-900/90 hover:bg-slate-800/90 border border-white/20 hover:border-white/40 shadow-lg active:scale-95 transition-all group cursor-pointer min-h-[78px]"
+                      className="flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 shadow-md active:scale-95 transition-all group cursor-pointer min-w-0"
                       title={act.label}
                     >
                       <div
-                        className={`w-11 h-11 rounded-xl ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform`}
+                        className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform shrink-0`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       </div>
-                      <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">
+                      <span
+                        className={`${labelSizeClass} font-semibold text-slate-200 mt-1.5 text-center truncate max-w-full tracking-tight group-hover:text-white transition-colors`}
+                      >
                         {act.label}
                       </span>
                     </a>
