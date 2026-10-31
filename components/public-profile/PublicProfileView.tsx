@@ -903,17 +903,21 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             const cardPadding = isFive ? "py-2 px-0.5" : isFour ? "py-2.5 px-1" : "py-3 px-2";
             const iconCircleSize = isFive ? "w-[34px] h-[34px]" : isFour ? "w-9 h-9" : "w-10 h-10";
             const iconSize = isFive ? "w-4 h-4" : "w-5 h-5";
-            const labelSizeClass = isFive
-              ? "text-[9.5px] font-semibold tracking-tighter"
-              : isFour
-              ? "text-[11px] font-semibold tracking-tight"
-              : "text-xs font-semibold";
 
             return (
-              <div className="w-full mt-4 -mx-1 sm:mx-0">
+              <div className="w-[calc(100%+1rem)] mt-4 -mx-2 sm:mx-0 sm:w-full">
                 <div className={`grid ${gridColsClass} ${gapClass} w-full`}>
                   {actions.map((act) => {
                     const Icon = act.icon;
+                    // For WhatsApp in 5-button layout, optimize font size so the 8-letter word fits with clean margins
+                    const labelSizeClass = isFive
+                      ? act.type === "whatsapp"
+                        ? "text-[8.5px] sm:text-[9.5px] font-semibold tracking-tight"
+                        : "text-[9.5px] sm:text-[10px] font-semibold tracking-tight"
+                      : isFour
+                      ? "text-[11px] font-semibold tracking-tight"
+                      : "text-xs font-semibold";
+
                     return (
                       <a
                         key={act.type}
@@ -921,7 +925,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                         target={act.isExternal ? "_blank" : undefined}
                         rel={act.isExternal ? "noopener noreferrer" : undefined}
                         onClick={act.onClick}
-                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 shadow-md active:scale-95 transition-all group cursor-pointer overflow-hidden`}
+                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 shadow-md active:scale-95 transition-all group cursor-pointer`}
                         title={act.label}
                       >
                         <div
@@ -930,7 +934,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                           <Icon className={`${iconSize} shrink-0`} />
                         </div>
                         <span
-                          className={`${labelSizeClass} text-slate-200 mt-1 text-center w-full block whitespace-nowrap group-hover:text-white transition-colors`}
+                          className={`${labelSizeClass} text-slate-200 mt-1 text-center w-full block whitespace-nowrap group-hover:text-white transition-colors leading-tight`}
                         >
                           {act.label}
                         </span>
