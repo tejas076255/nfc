@@ -5,10 +5,6 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Edit3,
-  Layers,
-  Palette,
-  Sliders,
-  Share2,
   QrCode,
   BarChart3,
   Users,
@@ -51,19 +47,8 @@ export function ResponsiveSidebar({
   planName,
 }: ResponsiveSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hash, setHash] = useState("");
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  // Track window hash for sub-sections
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHash(window.location.hash);
-      const handleHashChange = () => setHash(window.location.hash);
-      window.addEventListener("hashchange", handleHashChange);
-      return () => window.removeEventListener("hashchange", handleHashChange);
-    }
-  }, [pathname]);
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -88,10 +73,6 @@ export function ResponsiveSidebar({
 
   const navItems = [
     { id: "edit-profile", label: "Edit Profile", href: profileEditorUrl, icon: Edit3 },
-    { id: "sections", label: "Sections", href: `${profileEditorUrl}#sections`, icon: Layers },
-    { id: "appearance", label: "Appearance", href: `${profileEditorUrl}#appearance`, icon: Palette },
-    { id: "settings", label: "Settings", href: `${profileEditorUrl}#settings`, icon: Sliders },
-    { id: "seo", label: "SEO & Sharing", href: `${profileEditorUrl}#seo`, icon: Share2 },
     { id: "qr", label: "QR Code", href: "/dashboard/qr", icon: QrCode },
     { id: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { id: "leads", label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
@@ -105,17 +86,6 @@ export function ResponsiveSidebar({
 
   const isItemActive = (item: (typeof navItems)[0]) => {
     if (pathname.includes("/dashboard/profiles")) {
-      if (pathname.includes("/edit")) {
-        if (item.id === "sections") return hash === "#sections";
-        if (item.id === "appearance") return hash === "#appearance";
-        if (item.id === "settings") return hash === "#settings";
-        if (item.id === "seo") return hash === "#seo";
-        if (item.id === "edit-profile") {
-          return !hash || hash === "#profile-header" || hash === "#" || hash === "";
-        }
-        return false;
-      }
-      // On /dashboard/profiles listing
       return item.id === "edit-profile";
     }
 
