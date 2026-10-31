@@ -21,7 +21,7 @@ export async function GET(req: Request, { params }: RouteProps) {
   return NextResponse.json({ profile });
 }
 
-export async function PATCH(req: Request, { params }: RouteProps) {
+async function handleUpdate(req: Request, params: Promise<{ id: string }>) {
   const session = await getCurrentSession();
   if (!session?.workspace) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -36,4 +36,12 @@ export async function PATCH(req: Request, { params }: RouteProps) {
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to update draft" }, { status: 400 });
   }
+}
+
+export async function PUT(req: Request, { params }: RouteProps) {
+  return handleUpdate(req, params);
+}
+
+export async function PATCH(req: Request, { params }: RouteProps) {
+  return handleUpdate(req, params);
 }

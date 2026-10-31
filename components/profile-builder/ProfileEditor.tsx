@@ -325,9 +325,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         }),
       });
 
-      const data = (await res.json()) as any;
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
       if (!res.ok) {
-        throw new Error(data.error || "Failed to save draft");
+        throw new Error(data.error || `Failed to save draft (Status: ${res.status})`);
       }
 
       setSaveMessage("Draft saved successfully to Cloudflare D1.");
@@ -352,13 +357,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         method: "POST",
       });
 
-      const data = (await res.json()) as any;
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
       if (!res.ok) {
         if (res.status === 403 && data.code === "PLAN_LIMIT_EXCEEDED") {
           setPlanLimitError(true);
           throw new Error(data.error || "Plan published profiles limit reached.");
         }
-        throw new Error(data.error || "Failed to publish profile");
+        throw new Error(data.error || `Failed to publish profile (Status: ${res.status})`);
       }
 
       setProfile({ ...profile, status: "published" });
