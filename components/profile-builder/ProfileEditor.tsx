@@ -406,7 +406,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // Quick Action Buttons definitions
   const quickActionsConfig = [
-    { id: "vcard", label: "Save Contact to Phone (vCard)", icon: Download, isEnabled: true },
+    { id: "vcard", label: "Save Contact to Phone (Sticky Action Bar)", icon: Download, isEnabled: true },
     { id: "call", label: "Call", icon: Phone, isEnabled: Boolean(contactBlock.phone), value: contactBlock.phone || "+91 98250 12345", field: "phone" },
     { id: "whatsapp", label: "WhatsApp", icon: MessageCircle, isEnabled: Boolean(contactBlock.whatsapp), value: contactBlock.whatsapp || "+919825012345", field: "whatsapp" },
     { id: "email", label: "Email", icon: Mail, isEnabled: Boolean(contactBlock.email), value: contactBlock.email || "hello@upmark.in", field: "email" },

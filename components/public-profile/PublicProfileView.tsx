@@ -698,7 +698,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       id: "f1",
       question: "How do I save this profile or contact details?",
       answer:
-        "Tap the 'Save Contact to Phone' button at the top or bottom of this screen. A standard .vcf contact card will download directly into your phone contacts without requiring an account.",
+        "Tap the 'Save Contact' button in the sticky action bar at the bottom of the screen. A standard .vcf contact card will download directly into your phone contacts without requiring an account.",
     },
     {
       id: "f2",
@@ -904,30 +904,21 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           )}
 
           {/* ============================================================== */}
-          {/* 3. PRIMARY CONTACT ACTION & 5. CONTACT EXCHANGE                */}
+          {/* 3. PRIMARY CONTEXTUAL CTA: EXCHANGE CONTACT                    */}
           {/* ============================================================== */}
-          <div className="w-full space-y-2 mt-4">
-            <button
-              type="button"
-              onClick={handleDownloadVCard}
-              className="w-full py-3.5 px-4 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all cursor-pointer"
-              style={{
-                background: `linear-gradient(135deg, ${theme.accentColor || "#0d9488"} 0%, #2563eb 50%, #9333ea 100%)`,
-              }}
-            >
-              <Download className="w-4 h-4 shrink-0" />
-              <span>Save Contact to Phone</span>
-            </button>
-
+          <div className="w-full mt-4">
             <button
               type="button"
               onClick={() => {
                 handleTrackAction("exchange_contact_click");
                 setLeadModalOpen(true);
               }}
-              className="w-full py-3 px-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/15 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              className="w-full py-3.5 px-4 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-[0.98] transition-all cursor-pointer border border-white/15"
+              style={{
+                background: `linear-gradient(135deg, ${theme.accentColor || "#0d9488"} 0%, #2563eb 100%)`,
+              }}
             >
-              <Mail className="w-4 h-4 text-teal-400 shrink-0" />
+              <Mail className="w-4 h-4 shrink-0" />
               <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
             </button>
           </div>
@@ -935,7 +926,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           {/* ============================================================== */}
           {/* 4. QUICK CONTACT BUTTONS (CALL, WA, EMAIL, MAP, BOOK)         */}
           {/* ============================================================== */}
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 w-full mt-3">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 w-full mt-3.5">
             {contactBlock.phone && (
               <a
                 href={`tel:${contactBlock.phone}`}
@@ -943,13 +934,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                   handleTrackAction("phone_click");
                   handleOpenExternal(e, `tel:${contactBlock.phone}`);
                 }}
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
                 title="Call phone"
               >
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20">
-                  <Phone className="w-3.5 h-3.5" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/25 border border-blue-500/35 flex items-center justify-center text-blue-300 shadow-xs group-hover:scale-105 transition-transform">
+                  <Phone className="w-4.5 h-4.5" />
                 </div>
-                <span className="text-[10px] font-medium text-slate-300 mt-1">Call</span>
+                <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Call</span>
               </a>
             )}
 
@@ -964,13 +955,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                     handleTrackAction("whatsapp_click");
                     handleOpenExternal(e, waUrl);
                   }}
-                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
                   title="Chat on WhatsApp"
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20">
-                    <MessageCircle className="w-3.5 h-3.5" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/25 border border-emerald-500/35 flex items-center justify-center text-emerald-300 shadow-xs group-hover:scale-105 transition-transform">
+                    <MessageCircle className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-[10px] font-medium text-slate-300 mt-1">WhatsApp</span>
+                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">WhatsApp</span>
                 </a>
               );
             })()}
@@ -982,13 +973,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                   handleTrackAction("email_click");
                   handleOpenExternal(e, `mailto:${contactBlock.email}`);
                 }}
-                className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
                 title="Send email"
               >
-                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20">
-                  <Mail className="w-3.5 h-3.5" />
+                <div className="w-10 h-10 rounded-xl bg-purple-500/25 border border-purple-500/35 flex items-center justify-center text-purple-300 shadow-xs group-hover:scale-105 transition-transform">
+                  <Mail className="w-4.5 h-4.5" />
                 </div>
-                <span className="text-[10px] font-medium text-slate-300 mt-1">Email</span>
+                <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Email</span>
               </a>
             )}
 
@@ -1007,13 +998,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                     handleTrackAction("map_click");
                     handleOpenExternal(e, mapUrl);
                   }}
-                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
                   title="Open location on Google Maps"
                 >
-                  <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/20">
-                    <MapPin className="w-3.5 h-3.5" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/25 border border-amber-500/35 flex items-center justify-center text-amber-300 shadow-xs group-hover:scale-105 transition-transform">
+                    <MapPin className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-[10px] font-medium text-slate-300 mt-1">Map</span>
+                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Map</span>
                 </a>
               );
             })()}
@@ -1029,13 +1020,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                     handleTrackAction("booking_click");
                     handleOpenExternal(e, bUrl);
                   }}
-                  className="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 transition-colors group cursor-pointer"
+                  className="flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 border border-white/20 hover:border-white/35 shadow-md active:scale-95 transition-all group cursor-pointer min-h-[74px]"
                   title="Book Appointment"
                 >
-                  <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-400 group-hover:bg-teal-500/20">
-                    <Calendar className="w-3.5 h-3.5" />
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/25 border border-teal-500/35 flex items-center justify-center text-teal-300 shadow-xs group-hover:scale-105 transition-transform">
+                    <Calendar className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-[10px] font-medium text-slate-300 mt-1">Book</span>
+                  <span className="text-xs font-bold text-white tracking-wide mt-1.5 drop-shadow-xs">Book</span>
                 </a>
               );
             })()}
@@ -1665,24 +1656,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             </div>
           )}
 
-          {/* ============================================================== */}
-          {/* 16. INQUIRY / CONTACT EXCHANGE CALLOUT                         */}
-          {/* ============================================================== */}
-          <div className="pt-2">
-            <button
-              onClick={() => {
-                handleTrackAction("exchange_contact_click");
-                setLeadModalOpen(true);
-              }}
-              className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/15 text-slate-200 text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Mail className="w-4 h-4 text-teal-400" />
-              <span>{leadFormBlock.title || "Exchange Contact Details"}</span>
-            </button>
-            <p className="text-[11px] text-slate-500 text-center mt-1.5">
-              Voluntary two-way exchange. Your contact details remain confidential.
-            </p>
-          </div>
         </div>
 
         {/* ============================================================== */}
