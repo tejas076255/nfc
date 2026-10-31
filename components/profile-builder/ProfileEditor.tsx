@@ -76,8 +76,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [copiedLink, setCopiedLink] = useState(false);
   const [portfolioTab, setPortfolioTab] = useState<"images" | "videos" | "mix">("images");
 
-  // Onboarding vs Grid View State
-  const [viewMode, setViewMode] = useState<"onboarding" | "grid">("onboarding");
+  // Onboarding Step State
   const [currentStep, setCurrentStep] = useState(1);
 
   // Inline inputs state
@@ -1997,28 +1996,6 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* View Mode Switcher */}
-          <div className="hidden lg:flex items-center gap-1 p-0.5 rounded-xl bg-slate-100 border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setViewMode("onboarding")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === "onboarding" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>🎯 Onboarding Flow</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                viewMode === "grid" ? "bg-white text-blue-600 shadow-xs" : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>📑 Grid View</span>
-            </button>
-          </div>
-
           {/* View Live Profile Button */}
           <Link
             href={`/p/${profile.slug}`}
@@ -2086,54 +2063,52 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       )}
 
       {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
-      {viewMode === "onboarding" && (
-        <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs">
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
-              Step {currentStep} of {STEPS.length}
-            </span>
-            <div className="min-w-0">
-              <span className="text-xs font-black text-slate-900 block truncate">
-                {STEPS[currentStep - 1].label}
-              </span>
-            </div>
-            <div className="w-20 sm:w-28 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0 hidden sm:block">
-              <div
-                className="bg-gradient-to-r from-blue-600 to-teal-500 h-full rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
-              />
-            </div>
-            <span className="text-[10px] font-extrabold text-slate-500 shrink-0 hidden sm:inline">
-              {Math.round((currentStep / STEPS.length) * 100)}%
+      <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs">
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
+            Step {currentStep} of {STEPS.length}
+          </span>
+          <div className="min-w-0">
+            <span className="text-xs font-black text-slate-900 block truncate">
+              {STEPS[currentStep - 1].label}
             </span>
           </div>
-
-          {/* Stepper Nav Quick Pills */}
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
-            {STEPS.map((s) => {
-              const isActive = currentStep === s.id;
-              const isDone = currentStep > s.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => goToStep(s.id)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : isDone
-                      ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  <span className="text-[10px]">{isDone ? "✓" : s.id}</span>
-                  <span>{s.short}</span>
-                </button>
-              );
-            })}
+          <div className="w-20 sm:w-28 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0 hidden sm:block">
+            <div
+              className="bg-gradient-to-r from-blue-600 to-teal-500 h-full rounded-full transition-all duration-300"
+              style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+            />
           </div>
+          <span className="text-[10px] font-extrabold text-slate-500 shrink-0 hidden sm:inline">
+            {Math.round((currentStep / STEPS.length) * 100)}%
+          </span>
         </div>
-      )}
+
+        {/* Stepper Nav Quick Pills */}
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+          {STEPS.map((s) => {
+            const isActive = currentStep === s.id;
+            const isDone = currentStep > s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => goToStep(s.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : isDone
+                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                <span className="text-[10px]">{isDone ? "✓" : s.id}</span>
+                <span>{s.short}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* MOBILE SWITCHER TAB */}
       <div className="md:hidden shrink-0 flex border-b border-slate-200 bg-white p-1">
@@ -2167,100 +2142,74 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             mobileTab === "editor" ? "flex" : "hidden md:flex"
           }`}
         >
-          {viewMode === "onboarding" ? (
-            /* ============================================================ */
-            /* ONBOARDING STEP-BY-STEP DESKTOP EXPERIENCE                   */
-            /* ============================================================ */
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#f4f7fc]">
-              {/* Active Step Form: Scrollable inside only */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 scrollbar-thin">
-                <div className="max-w-2xl mx-auto space-y-4">
-                  {currentStep === 1 && renderHeaderSection(true)}
-                  {currentStep === 2 && renderQuickActionsSection()}
-                  {currentStep === 3 && renderSocialsSection()}
-                  {currentStep === 4 && renderAboutAndStatsSection()}
-                  {currentStep === 5 && renderServicesSection()}
-                  {currentStep === 6 && renderPortfolioSection()}
-                  {currentStep === 7 && renderTestimonialsAndMapSection()}
-                  {currentStep === 8 && renderAppearanceAndSeoSection()}
-                </div>
+          {/* ============================================================ */}
+          {/* ONBOARDING STEP-BY-STEP DESKTOP EXPERIENCE                   */}
+          {/* ============================================================ */}
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#f4f7fc]">
+            {/* Active Step Form: Scrollable inside only */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 scrollbar-thin">
+              <div className="max-w-2xl mx-auto space-y-4">
+                {currentStep === 1 && renderHeaderSection(true)}
+                {currentStep === 2 && renderQuickActionsSection()}
+                {currentStep === 3 && renderSocialsSection()}
+                {currentStep === 4 && renderAboutAndStatsSection()}
+                {currentStep === 5 && renderServicesSection()}
+                {currentStep === 6 && renderPortfolioSection()}
+                {currentStep === 7 && renderTestimonialsAndMapSection()}
+                {currentStep === 8 && renderAppearanceAndSeoSection()}
+              </div>
+            </div>
+
+            {/* PINNED BOTTOM STEPPER CONTROLS BAR: ALWAYS IN SIGHT! */}
+            <div className="shrink-0 bg-white border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20">
+              <button
+                type="button"
+                disabled={currentStep === 1}
+                onClick={() => goToStep(Math.max(1, currentStep - 1))}
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              <div className="text-[11px] font-bold text-slate-500 hidden sm:block">
+                Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
               </div>
 
-              {/* PINNED BOTTOM STEPPER CONTROLS BAR: ALWAYS IN SIGHT! */}
-              <div className="shrink-0 bg-white border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  disabled={currentStep === 1}
-                  onClick={() => goToStep(Math.max(1, currentStep - 1))}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  onClick={handleSaveDraft}
+                  disabled={isSaving}
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>Previous</span>
+                  <Save className="w-3.5 h-3.5 text-slate-600" />
+                  <span>{isSaving ? "Saving..." : "Save Draft"}</span>
                 </button>
 
-                <div className="text-[11px] font-bold text-slate-500 hidden sm:block">
-                  Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
-                </div>
-
-                <div className="flex items-center gap-2">
+                {currentStep < STEPS.length ? (
                   <button
                     type="button"
-                    onClick={handleSaveDraft}
-                    disabled={isSaving}
-                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    onClick={() => goToStep(Math.min(STEPS.length, currentStep + 1))}
+                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all"
                   >
-                    <Save className="w-3.5 h-3.5 text-slate-600" />
-                    <span>{isSaving ? "Saving..." : "Save Draft"}</span>
+                    <span>Next Step</span>
+                    <ChevronRight className="w-4 h-4" />
                   </button>
-
-                  {currentStep < STEPS.length ? (
-                    <button
-                      type="button"
-                      onClick={() => goToStep(Math.min(STEPS.length, currentStep + 1))}
-                      className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all"
-                    >
-                      <span>Next Step</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handlePublish}
-                      disabled={isPublishing}
-                      className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/25 cursor-pointer transition-all"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span>{isPublishing ? "Publishing..." : "Finish & Publish"}</span>
-                    </button>
-                  )}
-                </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/25 cursor-pointer transition-all"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>{isPublishing ? "Publishing..." : "Finish & Publish"}</span>
+                  </button>
+                )}
               </div>
             </div>
-          ) : (
-            /* ============================================================ */
-            /* 3-COLUMN GRID OVERVIEW MODE                                  */
-            /* ============================================================ */
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin">
-              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 items-start">
-                <div className="space-y-6">
-                  {renderHeaderSection(false)}
-                  {renderSocialsSection()}
-                  {renderPortfolioSection()}
-                </div>
-
-                <div className="space-y-6">
-                  {renderQuickActionsSection()}
-                  {renderAboutAndStatsSection()}
-                  {renderServicesSection()}
-                </div>
-
-                <div className="space-y-6">
-                  {renderTestimonialsAndMapSection()}
-                  {renderAppearanceAndSeoSection()}
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* ============================================================== */}
