@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  Smartphone,
   Edit3,
   QrCode,
   BarChart3,
@@ -72,7 +73,8 @@ export function ResponsiveSidebar({
     : `/dashboard/profiles`;
 
   const navItems = [
-    { id: "edit-profile", label: "Edit Profile", href: profileEditorUrl, icon: Edit3 },
+    { id: "profiles", label: "Digital Profiles", href: "/dashboard/profiles", icon: Smartphone },
+    { id: "edit-profile", label: "Profile Studio", href: profileEditorUrl, icon: Edit3 },
     { id: "qr", label: "QR Code", href: "/dashboard/qr", icon: QrCode },
     { id: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { id: "leads", label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
@@ -85,7 +87,11 @@ export function ResponsiveSidebar({
   ];
 
   const isItemActive = (item: (typeof navItems)[0]) => {
-    if (pathname.includes("/dashboard/profiles")) {
+    if (pathname === "/dashboard/profiles" || pathname === "/dashboard/profiles/new") {
+      return item.id === "profiles";
+    }
+
+    if (pathname.includes("/dashboard/profiles") && pathname.includes("/edit")) {
       return item.id === "edit-profile";
     }
 

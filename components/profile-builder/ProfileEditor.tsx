@@ -1974,6 +1974,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           <div>
             <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
               <span>Edit Profile</span>
+              <Link
+                href="/dashboard/profiles"
+                className="text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
+                title="View and switch between all digital profiles"
+              >
+                <span>All Profiles</span>
+                <ChevronRight className="w-3 h-3" />
+              </Link>
             </h1>
             <p className="text-[11px] text-slate-500 hidden sm:block">
               Manage your mobile-first digital business card content and styling.
@@ -1996,6 +2004,16 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* New Profile Button */}
+          <Link
+            href="/dashboard/profiles/new"
+            className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            title="Create another digital profile under your plan"
+          >
+            <Plus className="w-3.5 h-3.5 text-blue-600" />
+            <span className="hidden sm:inline">New Profile</span>
+          </Link>
+
           {/* View Live Profile Button */}
           <Link
             href={`/p/${profile.slug}`}

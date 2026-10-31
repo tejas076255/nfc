@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Sparkles,
   CheckCircle2,
   Shield,
   ArrowRight,
+  Plus,
+  Smartphone,
   FileText,
   AlertCircle,
   Clock,
@@ -369,6 +372,25 @@ export function BillingClientView({
                   <span>
                     <strong className="text-slate-200">Zero-Data Loss Guarantee:</strong> If your subscription lapses, your customer leads and card data remain intact. Your primary card profile stays active as a fallback.
                   </span>
+                </div>
+
+                {/* Profile Slots Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                  <Link
+                    href="/dashboard/profiles/new"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add New Profile ({Math.max(0, (currentPlan.profileLimit >= 999 ? 999 : currentPlan.profileLimit) - activeProfilesCount)} slots remaining)</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/profiles"
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white border border-white/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Smartphone className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Manage All Profiles ({activeProfilesCount})</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
 
