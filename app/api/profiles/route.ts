@@ -28,6 +28,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Failed to create profile" }, { status: 400 });
+    const isPlanLimit = error.message?.includes("PLAN_LIMIT_REACHED");
+    return NextResponse.json(
+      {
+        error: error.message || "Failed to create profile",
+        code: isPlanLimit ? "PLAN_LIMIT_REACHED" : "CREATE_FAILED",
+      },
+      { status: isPlanLimit ? 403 : 400 }
+    );
   }
 }

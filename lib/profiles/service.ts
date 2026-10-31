@@ -146,6 +146,20 @@ export async function createProfile(workspaceId: string, data: { name: string; i
   const db = await getDb();
   const template = INDUSTRY_TEMPLATES[data.industry] || INDUSTRY_TEMPLATES.professional;
 
+  // Enforce workspace plan profile creation quota
+  const planInfo = await getWorkspaceSubscriptionPlan(workspaceId);
+  const [existingProfiles] = await db
+    .select({ count: count() })
+    .from(schema.profiles)
+    .where(eq(schema.profiles.workspaceId, workspaceId));
+
+  const currentCount = existingProfiles?.count || 0;
+  if (currentCount >= planInfo.profileLimit) {
+    throw new Error(
+      `PLAN_LIMIT_REACHED: Your ${planInfo.planName} allows up to ${planInfo.profileLimit} profile(s). You currently have ${currentCount} profile(s). Please upgrade your plan in Billing to create more profiles.`
+    );
+  }
+
   const profileId = crypto.randomUUID();
   const baseSlug = (data.slug || data.name).toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);

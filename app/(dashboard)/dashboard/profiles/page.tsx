@@ -48,13 +48,23 @@ export default async function ProfilesListPage() {
             </Link>
           )}
 
-          <Link
-            href="/dashboard/profiles/new"
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-1.5"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Profile</span>
-          </Link>
+          {profiles.length >= planInfo.profileLimit ? (
+            <Link
+              href="/dashboard/billing"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-600/20 transition-all flex items-center justify-center gap-1.5"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Upgrade Plan (+ Profiles)</span>
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard/profiles/new"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Profile</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -94,11 +104,17 @@ export default async function ProfilesListPage() {
           <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
           <span className="text-slate-300">
             Published Profiles: <strong className="text-white">{publishedCount}</strong> of{" "}
-            <strong className="text-white">{planInfo.profileLimit}</strong> allowed under {planInfo.planName}
+            <strong className="text-white">{planInfo.profileLimit >= 999 ? "Unlimited" : planInfo.profileLimit}</strong> allowed under {planInfo.planName}
           </span>
+          {profiles.length >= planInfo.profileLimit && (
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              Quota Full
+            </span>
+          )}
         </div>
-        <Link href="/dashboard/billing" className="text-blue-400 hover:underline font-semibold text-xs shrink-0">
-          Manage Plan
+        <Link href="/dashboard/billing" className="text-blue-400 hover:underline font-semibold text-xs shrink-0 flex items-center gap-1">
+          <span>Manage Plan & Quotas</span>
+          <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
 

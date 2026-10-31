@@ -1,9 +1,9 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
-import { getWorkspaceProfiles } from "@/lib/profiles/service";
+import { getWorkspaceProfiles, getWorkspaceSubscriptionPlan } from "@/lib/profiles/service";
 import { ResponsiveSidebar } from "@/components/layout/ResponsiveSidebar";
 import { ShieldCheck, ArrowRight } from "lucide-react";
 
@@ -14,21 +14,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return redirect("/login");
   }
 
-  const [isAdmin, profiles] = await Promise.all([
+  const [isAdmin, profiles, planInfo] = await Promise.all([
     ["ops_staff", "support_staff", "super_admin"].includes(session.user.role),
     getWorkspaceProfiles(session.workspace.id),
+    getWorkspaceSubscriptionPlan(session.workspace.id),
   ]);
 
   const primaryProfileId = profiles.length > 0 ? profiles[0].id : undefined;
 
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col md:flex-row selection:bg-blue-600 selection:text-white">
-      <ResponsiveSidebar
-        session={session}
-        isAdmin={isAdmin}
-        logoutAction={logoutAction}
-        primaryProfileId={primaryProfileId}
-      />
+      <Suspense fallback={<div className="w-64 bg-[#0a0f1d] min-h-screen hidden md:block" />}>
+        <ResponsiveSidebar
+          session={session}
+          isAdmin={isAdmin}
+          logoutAction={logoutAction}
+          primaryProfileId={primaryProfileId}
+          planName={planInfo?.planName}
+        />
+      </Suspense>
 
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">

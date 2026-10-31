@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Edit3,
   Layers,
@@ -39,6 +39,7 @@ interface ResponsiveSidebarProps {
   isAdmin: boolean;
   logoutAction: () => Promise<void>;
   primaryProfileId?: string;
+  planName?: string;
 }
 
 export function ResponsiveSidebar({
@@ -46,10 +47,12 @@ export function ResponsiveSidebar({
   isAdmin,
   logoutAction,
   primaryProfileId,
+  planName,
 }: ResponsiveSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hash, setHash] = useState("");
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Track window hash for sub-sections
   useEffect(() => {
@@ -115,6 +118,8 @@ export function ResponsiveSidebar({
     }
 
     if (pathname.startsWith("/dashboard/analytics")) {
+      const tab = searchParams?.get("tab");
+      if (tab === "views") return item.id === "views";
       return item.id === "analytics";
     }
 
@@ -127,6 +132,9 @@ export function ResponsiveSidebar({
     }
 
     if (pathname.startsWith("/dashboard/billing")) {
+      const tab = searchParams?.get("tab");
+      if (tab === "team") return item.id === "team";
+      if (tab === "integrations") return item.id === "integrations";
       return item.id === "billing";
     }
 
@@ -205,7 +213,7 @@ export function ResponsiveSidebar({
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold text-white truncate">{session.user.name}</p>
             <p className="text-[10px] text-slate-400 truncate">
-              {session.membershipRole === "owner" ? "Individual Plan" : `${session.membershipRole || "Free"} Plan`}
+              {planName ? `${planName}` : session.membershipRole === "owner" ? "Individual Plan" : `${session.membershipRole || "Free"} Plan`}
             </p>
           </div>
         </div>
