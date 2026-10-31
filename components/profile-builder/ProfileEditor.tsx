@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { FullProfileSnapshot, IndustryType, ProfileBlockItem } from "@/lib/profiles/types";
 import { INDUSTRY_TEMPLATES } from "@/lib/profiles/templates";
@@ -73,6 +73,66 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [copiedLink, setCopiedLink] = useState(false);
   const [portfolioTab, setPortfolioTab] = useState<"images" | "videos" | "mix">("images");
 
+  // Smooth scroll to card anchors based on window.location.hash
+  useEffect(() => {
+    const scrollToCurrentHash = () => {
+      if (typeof window !== "undefined" && window.location.hash) {
+        const targetId = window.location.hash.replace("#", "");
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+
+    const timer = setTimeout(scrollToCurrentHash, 150);
+    window.addEventListener("hashchange", scrollToCurrentHash);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", scrollToCurrentHash);
+    };
+  }, []);
+
+  const switchTemplateFamily = (industryKey: IndustryType) => {
+    const tmpl = INDUSTRY_TEMPLATES[industryKey];
+    if (!tmpl) return;
+
+    setProfile((prev: any) => ({
+      ...prev,
+      industry: industryKey,
+      templateId: tmpl.id,
+      themeConfig: {
+        ...(prev.themeConfig || {}),
+        accentColor: tmpl.defaultTheme.accentColor,
+        backgroundColor: tmpl.defaultTheme.backgroundColor,
+        textColor: tmpl.defaultTheme.textColor,
+        avatarShape: tmpl.defaultTheme.avatarShape || prev.themeConfig?.avatarShape || "circle",
+      },
+    }));
+    setSaveMessage(`Applied ${tmpl.name} styling.`);
+    setTimeout(() => setSaveMessage(null), 3000);
+  };
+
+  const updateAccentColor = (hex: string) => {
+    setProfile((prev: any) => ({
+      ...prev,
+      themeConfig: {
+        ...(prev.themeConfig || {}),
+        accentColor: hex,
+      },
+    }));
+  };
+
+  const updateAvatarShape = (shape: "circle" | "rounded" | "square") => {
+    setProfile((prev: any) => ({
+      ...prev,
+      themeConfig: {
+        ...(prev.themeConfig || {}),
+        avatarShape: shape,
+      },
+    }));
+  };
+
   // Inline inputs state
   const [newTagInput, setNewTagInput] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
@@ -83,8 +143,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   // Blocks accessor
   const blocks: ProfileBlockItem[] = profile.blocks || [];
 
-  const getBlock = (type: string) => {
-    return blocks.find((b) => b.type === type) || { isEnabled: true, blockData: {} };
+  const getBlock = (type: string): any => {
+    return blocks.find((b) => b.type === type) || { isEnabled: true, blockData: {} as any };
   };
 
   const isBlockEnabled = (blockType: string): boolean => {
@@ -268,17 +328,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   };
 
   // Block data convenience references
-  const headerBlock: Record<string, any> = getBlock("identity_header").blockData || {};
-  const contactBlock: Record<string, any> = getBlock("contact_actions").blockData || {};
-  const highlightsBlock: Record<string, any> = getBlock("highlights").blockData || {};
-  const aboutBlock: Record<string, any> = getBlock("about").blockData || {};
-  const socialsBlock: Record<string, any> = getBlock("social_links").blockData || {};
-  const servicesBlock: Record<string, any> = getBlock("services").blockData || {};
-  const portfolioBlock: Record<string, any> = getBlock("portfolio_gallery").blockData || {};
-  const testimonialsBlock: Record<string, any> = getBlock("testimonials").blockData || {};
-  const locationBlock: Record<string, any> = getBlock("location").blockData || {};
-  const leadFormBlock: Record<string, any> = getBlock("lead_form").blockData || {};
-  const downloadsBlock: Record<string, any> = getBlock("downloads").blockData || {};
+  const headerBlock: any = getBlock("identity_header").blockData || {};
+  const contactBlock: any = getBlock("contact_actions").blockData || {};
+  const highlightsBlock: any = getBlock("highlights").blockData || {};
+  const aboutBlock: any = getBlock("about").blockData || {};
+  const socialsBlock: any = getBlock("social_links").blockData || {};
+  const servicesBlock: any = getBlock("services").blockData || {};
+  const portfolioBlock: any = getBlock("portfolio_gallery").blockData || {};
+  const testimonialsBlock: any = getBlock("testimonials").blockData || {};
+  const locationBlock: any = getBlock("location").blockData || {};
+  const leadFormBlock: any = getBlock("lead_form").blockData || {};
+  const downloadsBlock: any = getBlock("downloads").blockData || {};
 
   // Resolved social links
   const socialLinks: any[] = socialsBlock.links || [
@@ -457,18 +517,16 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         <button
           type="button"
           onClick={() => setMobileTab("editor")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-            mobileTab === "editor" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
-          }`}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${mobileTab === "editor" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
+            }`}
         >
           Section Editor
         </button>
         <button
           type="button"
           onClick={() => setMobileTab("preview")}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-            mobileTab === "preview" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
-          }`}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${mobileTab === "preview" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600"
+            }`}
         >
           Live Simulator
         </button>
@@ -480,9 +538,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       <div className="flex-1 flex overflow-hidden">
         {/* LEFT/CENTER: 3-COLUMN MASONRY GRID OF CARDS */}
         <div
-          className={`flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto ${
-            mobileTab === "editor" ? "block" : "hidden md:block"
-          }`}
+          className={`flex-1 p-4 sm:p-6 lg:p-7 overflow-y-auto ${mobileTab === "editor" ? "block" : "hidden md:block"
+            }`}
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 items-start">
             {/* ========================================================== */}
@@ -490,7 +547,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             {/* ========================================================== */}
             <div className="space-y-6">
               {/* CARD 1: PROFILE HEADER */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+              <div id="profile-header" className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
@@ -850,9 +907,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                         key={t}
                         type="button"
                         onClick={() => setPortfolioTab(t)}
-                        className={`px-3 py-1 rounded-lg font-semibold capitalize transition-all cursor-pointer ${
-                          portfolioTab === t ? "bg-white text-slate-900 shadow-xs" : "text-slate-500"
-                        }`}
+                        className={`px-3 py-1 rounded-lg font-semibold capitalize transition-all cursor-pointer ${portfolioTab === t ? "bg-white text-slate-900 shadow-xs" : "text-slate-500"
+                          }`}
                       >
                         {t}
                       </button>
@@ -916,7 +972,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             {/* ========================================================== */}
             <div className="space-y-6">
               {/* CARD 2: QUICK INFO / HIGHLIGHTS */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+              <div id="sections" className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
@@ -1418,7 +1474,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               </div>
 
               {/* CARD 12: ADDITIONAL SETTINGS */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+              <div id="settings" className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4 scroll-mt-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
@@ -1465,6 +1521,157 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   })}
                 </div>
               </div>
+
+              {/* APPEARANCE & INDUSTRY TEMPLATES */}
+              <div id="appearance" className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4 scroll-mt-20">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
+                    🎨
+                  </span>
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">Choose Industry Template Family</h2>
+                    <p className="text-[11px] text-slate-500">
+                      Switching template updates visual styling and accents while preserving all your entered content.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 6 Industry Template Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[
+                    { key: "professional", name: "Executive Suite", desc: "Corporate, Legal & Advisory", color: "#2563eb" },
+                    { key: "bridal_beauty", name: "Luxury Atelier", desc: "Bridal, Makeup, Hair & Wellness", color: "#e11d48" },
+                    { key: "real_estate", name: "Architectural Horizon", desc: "Luxury Properties & Developments", color: "#059669" },
+                    { key: "portfolio_agency", name: "Neo Gallery", desc: "Design, Photography & Art Direction", color: "#6366f1" },
+                    { key: "local_biz", name: "Cornerstone Local", desc: "Cafés, Clinics, Boutiques & Services", color: "#d97706" },
+                    { key: "creator", name: "Pulse Creator", desc: "Influencers, Streamers & Podcasters", color: "#a855f7" },
+                  ].map((tmpl) => {
+                    const isSelected = profile.industry === tmpl.key;
+                    return (
+                      <div
+                        key={tmpl.key}
+                        onClick={() => switchTemplateFamily(tmpl.key as IndustryType)}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                          isSelected
+                            ? "bg-slate-900 text-white border-blue-500 shadow-md shadow-blue-500/10 ring-1 ring-blue-500"
+                            : "bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className={`text-xs font-bold truncate ${isSelected ? "text-white" : "text-slate-900"}`}>
+                            {tmpl.name}
+                          </p>
+                          <p className={`text-[10px] truncate ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                            {tmpl.desc}
+                          </p>
+                        </div>
+                        <div
+                          className="w-3.5 h-3.5 rounded-full shrink-0 shadow-xs border border-white/20"
+                          style={{ backgroundColor: tmpl.color }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Visual Customization: Accent Color & Avatar Shape */}
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <h3 className="text-xs font-bold text-slate-800">Visual Customization</h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Accent Color Hex */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-slate-600">Accent Color Hex</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={profile.themeConfig?.accentColor || "#2563eb"}
+                          onChange={(e) => updateAccentColor(e.target.value)}
+                          className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={profile.themeConfig?.accentColor || "#2563eb"}
+                          onChange={(e) => updateAccentColor(e.target.value)}
+                          placeholder="#2563eb"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Avatar Shape */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-slate-600">Avatar Shape</label>
+                      <select
+                        value={profile.themeConfig?.avatarShape || "circle"}
+                        onChange={(e) => updateAvatarShape(e.target.value as any)}
+                        className="w-full px-2.5 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+                      >
+                        <option value="circle">Circle</option>
+                        <option value="rounded">Rounded Square</option>
+                        <option value="square">Sharp Square</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SEO & SHARING */}
+              <div id="seo" className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4 scroll-mt-20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
+                      🔍
+                    </span>
+                    <h2 className="text-sm font-bold text-slate-900">SEO & Social Sharing Preview</h2>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-xs text-slate-500 font-medium">Index on Google</span>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(profile.searchIndexed)}
+                      onChange={(e) => setProfile({ ...profile, searchIndexed: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </label>
+                </div>
+
+                {/* Google Search Result Preview */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Google Search Preview</span>
+                  <p className="text-xs text-emerald-700 font-mono truncate">
+                    https://tapbez.in/p/{profile.slug}
+                  </p>
+                  <p className="text-sm font-semibold text-blue-700 truncate hover:underline cursor-pointer">
+                    {profile.name} — {profile.title || "Digital Business Profile"} | Tapbez
+                  </p>
+                  <p className="text-xs text-slate-600 line-clamp-2">
+                    {profile.bio || `Connect with ${profile.name}. View digital business card, services, social links, portfolio, and contact details on Tapbez.`}
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">Custom Meta Title</label>
+                    <input
+                      type="text"
+                      value={profile.name}
+                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                      className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-slate-700">Custom Meta Description</label>
+                    <textarea
+                      rows={2}
+                      value={profile.bio || ""}
+                      onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                      placeholder="Brief description for search engines and social cards..."
+                      className="w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1473,9 +1680,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {/* RIGHT COLUMN: REALISTIC LIVE PREVIEW (MOBILE SIMULATOR)       */}
         {/* ============================================================== */}
         <div
-          className={`w-full md:w-[410px] lg:w-[440px] shrink-0 bg-[#0d121f] border-l border-slate-800 p-4 sm:p-6 flex flex-col items-center justify-start overflow-y-auto ${
-            mobileTab === "preview" ? "flex" : "hidden md:flex"
-          }`}
+          className={`w-full md:w-[410px] lg:w-[440px] shrink-0 bg-[#0d121f] border-l border-slate-800 p-4 sm:p-6 flex flex-col items-center justify-start overflow-y-auto ${mobileTab === "preview" ? "flex" : "hidden md:flex"
+            }`}
         >
           <div className="w-full max-w-sm sticky top-4">
             {/* Simulator Device Switcher */}
@@ -1487,9 +1693,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 <button
                   type="button"
                   onClick={() => setPreviewDevice("mobile")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                    }`}
                   title="Mobile View"
                 >
                   <Smartphone className="w-3.5 h-3.5" />
@@ -1497,9 +1702,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 <button
                   type="button"
                   onClick={() => setPreviewDevice("tablet")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                    }`}
                   title="Tablet View"
                 >
                   <Tablet className="w-3.5 h-3.5" />
@@ -1507,9 +1711,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 <button
                   type="button"
                   onClick={() => setPreviewDevice("desktop")}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                    }`}
                   title="Desktop View"
                 >
                   <Monitor className="w-3.5 h-3.5" />

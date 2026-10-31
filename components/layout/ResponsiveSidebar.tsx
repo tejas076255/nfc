@@ -38,11 +38,28 @@ interface ResponsiveSidebarProps {
   };
   isAdmin: boolean;
   logoutAction: () => Promise<void>;
+  primaryProfileId?: string;
 }
 
-export function ResponsiveSidebar({ session, isAdmin, logoutAction }: ResponsiveSidebarProps) {
+export function ResponsiveSidebar({
+  session,
+  isAdmin,
+  logoutAction,
+  primaryProfileId,
+}: ResponsiveSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [hash, setHash] = useState("");
   const pathname = usePathname();
+
+  // Track window hash for sub-sections
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHash(window.location.hash);
+      const handleHashChange = () => setHash(window.location.hash);
+      window.addEventListener("hashchange", handleHashChange);
+      return () => window.removeEventListener("hashchange", handleHashChange);
+    }
+  }, [pathname]);
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -61,21 +78,64 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
     };
   }, [isOpen]);
 
+  const profileEditorUrl = primaryProfileId
+    ? `/dashboard/profiles/${primaryProfileId}/edit`
+    : `/dashboard/profiles`;
+
   const navItems = [
-    { label: "Edit Profile", href: "/dashboard/profiles", icon: Edit3 },
-    { label: "Sections", href: "/dashboard/profiles", icon: Layers },
-    { label: "Appearance", href: "/dashboard/profiles", icon: Palette },
-    { label: "Settings", href: "/dashboard/profiles", icon: Sliders },
-    { label: "SEO & Sharing", href: "/dashboard/profiles", icon: Share2 },
-    { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-    { label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
-    { label: "My NFC Cards", href: "/dashboard/cards", icon: CreditCard },
-    { label: "Team (Pro)", href: "/dashboard/billing", icon: Users },
-    { label: "Integrations", href: "/dashboard/billing", icon: Plug },
-    { label: "Billing", href: "/dashboard/billing", icon: ShoppingBag },
-    { label: "Profile Views", href: "/dashboard/analytics", icon: Eye },
-    { label: "Help & Support", href: "/dashboard", icon: HelpCircle },
+    { id: "edit-profile", label: "Edit Profile", href: profileEditorUrl, icon: Edit3 },
+    { id: "sections", label: "Sections", href: `${profileEditorUrl}#sections`, icon: Layers },
+    { id: "appearance", label: "Appearance", href: `${profileEditorUrl}#appearance`, icon: Palette },
+    { id: "settings", label: "Settings", href: `${profileEditorUrl}#settings`, icon: Sliders },
+    { id: "seo", label: "SEO & Sharing", href: `${profileEditorUrl}#seo`, icon: Share2 },
+    { id: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+    { id: "leads", label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
+    { id: "cards", label: "My NFC Cards", href: "/dashboard/cards", icon: CreditCard },
+    { id: "team", label: "Team (Pro)", href: "/dashboard/billing?tab=team", icon: Users },
+    { id: "integrations", label: "Integrations", href: "/dashboard/billing?tab=integrations", icon: Plug },
+    { id: "billing", label: "Billing", href: "/dashboard/billing", icon: ShoppingBag },
+    { id: "views", label: "Profile Views", href: "/dashboard/analytics?tab=views", icon: Eye },
+    { id: "support", label: "Help & Support", href: "/dashboard/support", icon: HelpCircle },
   ];
+
+  const isItemActive = (item: (typeof navItems)[0]) => {
+    if (pathname.includes("/dashboard/profiles")) {
+      if (pathname.includes("/edit")) {
+        if (item.id === "sections") return hash === "#sections";
+        if (item.id === "appearance") return hash === "#appearance";
+        if (item.id === "settings") return hash === "#settings";
+        if (item.id === "seo") return hash === "#seo";
+        if (item.id === "edit-profile") {
+          return !hash || hash === "#profile-header" || hash === "#" || hash === "";
+        }
+        return false;
+      }
+      // On /dashboard/profiles listing
+      return item.id === "edit-profile";
+    }
+
+    if (pathname.startsWith("/dashboard/analytics")) {
+      return item.id === "analytics";
+    }
+
+    if (pathname.startsWith("/dashboard/leads")) {
+      return item.id === "leads";
+    }
+
+    if (pathname.startsWith("/dashboard/cards")) {
+      return item.id === "cards";
+    }
+
+    if (pathname.startsWith("/dashboard/billing")) {
+      return item.id === "billing";
+    }
+
+    if (pathname.startsWith("/dashboard/support")) {
+      return item.id === "support";
+    }
+
+    return pathname === item.href;
+  };
 
   const renderNavContent = () => (
     <div className="flex flex-col justify-between h-full bg-[#0a0f1d] text-slate-300">
@@ -97,19 +157,18 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
 
         {/* Navigation Links */}
         <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-none">
-          {navItems.map((item, idx) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
-            const isEditProfile = item.label === "Edit Profile" && (pathname.includes("/profiles") || pathname === "/dashboard");
-            const isActive = isEditProfile || pathname === item.href;
+            const isActive = isItemActive(item);
 
             return (
               <Link
-                key={idx}
+                key={item.id}
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
                   isActive
                     ? "bg-blue-600/20 text-white border border-blue-500/40 shadow-sm shadow-blue-500/10 font-bold"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                 }`}
               >
                 <Icon
@@ -137,7 +196,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
         </nav>
       </div>
 
-      {/* User Profile Card at Bottom matching screenshot */}
+      {/* User Profile Card at Bottom */}
       <div className="p-3.5 border-t border-white/5 bg-[#070b14]">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-9 h-9 rounded-full bg-teal-500/20 border border-teal-500/30 flex items-center justify-center font-bold text-teal-300 text-xs shrink-0 overflow-hidden shadow-xs">
@@ -152,7 +211,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
         </div>
         <div className="flex items-center justify-between pt-1 text-[11px]">
           <Link
-            href="/dashboard/profiles"
+            href={profileEditorUrl}
             className="font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1"
           >
             <span>View Profile</span>
@@ -161,7 +220,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
           <form action={logoutAction}>
             <button
               type="submit"
-              className="text-slate-500 hover:text-red-400 transition-colors p-1"
+              className="text-slate-500 hover:text-red-400 transition-colors p-1 cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -186,7 +245,7 @@ export function ResponsiveSidebar({ session, isAdmin, logoutAction }: Responsive
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 transition-colors"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
             aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
           >
             {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
