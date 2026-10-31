@@ -16,6 +16,7 @@ import {
   CreditCard,
   Lock,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface SlashNavProps {
   sessionUser?: {
@@ -280,6 +281,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
 
           {/* Right Action Buttons */}
           <div className="hidden sm:flex items-center gap-3">
+            <ThemeToggle size="sm" />
             {sessionUser ? (
               <Link
                 href="/dashboard"
@@ -309,8 +311,9 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             )}
           </div>
 
-          {/* Mobile Hamburger Toggle */}
+          {/* Mobile Hamburger Toggle & Theme Toggle */}
           <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle size="sm" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white"

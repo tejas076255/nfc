@@ -5,6 +5,19 @@
 @tailwind utilities;
 
 :root {
+  --background: #f8fafc;
+  --foreground: #090d16;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --gold-glow: rgba(245, 158, 11, 0.15);
+  color-scheme: light;
+}
+
+html.dark,
+.dark {
   --background: #030508;
   --foreground: #f8fafc;
   --primary: #3b82f6;
@@ -13,6 +26,7 @@
   --card-foreground: #f8fafc;
   --border: #141b2d;
   --gold-glow: rgba(245, 158, 11, 0.2);
+  color-scheme: dark;
 }
 
 html {
@@ -27,47 +41,96 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light / Dark Mode Body Radial Gradients */
+html.dark body {
   background-image: 
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
     radial-gradient(ellipse 60% 40% at 85% 30%, rgba(139, 92, 246, 0.08), transparent);
 }
 
+html:not(.dark) body {
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.05), transparent),
+    radial-gradient(ellipse 60% 40% at 85% 30%, rgba(139, 92, 246, 0.03), transparent);
+}
+
 /* Slash-Style Glassmorphism & Bento Utilities */
 .slash-nav {
-  background: rgba(3, 5, 8, 0.75);
+  transition: all 0.25s ease;
+}
+
+html.dark .slash-nav {
+  background: rgba(3, 5, 8, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+html:not(.dark) .slash-nav {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+}
+
 .glass-panel {
+  transition: all 0.2s ease;
+}
+
+html.dark .glass-panel {
   background: rgba(10, 15, 26, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+html:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
 .glass-card {
-  background: rgba(11, 16, 28, 0.65);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-.glass-card:hover {
+html.dark .glass-card {
+  background: rgba(11, 16, 28, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+}
+
+html.dark .glass-card:hover {
   border-color: rgba(255, 255, 255, 0.16);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 20px -5px rgba(59, 130, 246, 0.1);
+}
+
+html:not(.dark) .glass-card {
+  background: #ffffff;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 18px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+html:not(.dark) .glass-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.08), 0 0 15px -3px rgba(37, 99, 235, 0.08);
 }
 
 /* Slash Bento Card Style */
 .bento-card {
   position: relative;
-  background: linear-gradient(180deg, rgba(16, 22, 36, 0.7) 0%, rgba(8, 12, 20, 0.8) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1.5rem;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -75,13 +138,18 @@ body {
   backface-visibility: hidden;
 }
 
-.bento-card:hover {
+html.dark .bento-card {
+  background: linear-gradient(180deg, rgba(16, 22, 36, 0.7) 0%, rgba(8, 12, 20, 0.8) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+html.dark .bento-card:hover {
   border-color: rgba(255, 255, 255, 0.18);
   transform: translateY(-2px);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
 }
 
-.bento-card::before {
+html.dark .bento-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -91,44 +159,114 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
+html:not(.dark) .bento-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .bento-card:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.08);
+}
+
+html:not(.dark) .bento-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
+}
+
 /* Button & Pill Styles */
 .btn-primary-glow {
-  background: #ffffff;
-  color: #030508;
   font-weight: 600;
-  box-shadow: 0 0 20px -3px rgba(255, 255, 255, 0.25);
   transition: all 0.2s ease;
 }
 
-.btn-primary-glow:hover {
+html.dark .btn-primary-glow {
+  background: #ffffff;
+  color: #030508;
+  box-shadow: 0 0 20px -3px rgba(255, 255, 255, 0.25);
+}
+
+html.dark .btn-primary-glow:hover {
   background: #f1f5f9;
   box-shadow: 0 0 30px 2px rgba(255, 255, 255, 0.4);
   transform: scale(1.02);
 }
 
+html:not(.dark) .btn-primary-glow {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.2);
+}
+
+html:not(.dark) .btn-primary-glow:hover {
+  background: #1e293b;
+  box-shadow: 0 8px 25px -4px rgba(15, 23, 42, 0.3);
+  transform: scale(1.02);
+}
+
 .btn-secondary-glass {
+  transition: all 0.2s ease;
+}
+
+html.dark .btn-secondary-glass {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #e2e8f0;
   backdrop-filter: blur(10px);
-  transition: all 0.2s ease;
 }
 
-.btn-secondary-glass:hover {
+html.dark .btn-secondary-glass:hover {
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.22);
   color: #ffffff;
 }
 
+html:not(.dark) .btn-secondary-glass {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  backdrop-filter: blur(10px);
+}
+
+html:not(.dark) .btn-secondary-glass:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
 .pill-badge {
+  transition: all 0.2s ease;
+}
+
+html.dark .pill-badge {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(8px);
 }
 
+html:not(.dark) .pill-badge {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  backdrop-filter: blur(8px);
+}
+
 /* Gradients */
-.gradient-text-slash {
+html.dark .gradient-text-slash {
   background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html:not(.dark) .gradient-text-slash {
+  background: linear-gradient(135deg, #0f172a 0%, #334155 50%, #64748b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -183,17 +321,30 @@ body {
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+html.dark ::-webkit-scrollbar-track {
   background: #030508;
 }
 
-::-webkit-scrollbar-thumb {
+html.dark ::-webkit-scrollbar-thumb {
   background: #1e293b;
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+html.dark ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Slash Infinite Marquee */
@@ -230,4 +381,161 @@ body {
 
 .animate-specular {
   animation: specular-sweep 6s ease-in-out infinite;
+}
+
+/* =========================================================================
+   LIGHT MODE AUTO-ADAPTERS FOR DASHBOARD & SITE COMPONENTS
+   These ensure existing dashboard pages look crisp and high-contrast in light mode
+   without affecting phone previews or explicit dark containers!
+   ========================================================================= */
+
+/* Main canvas and layout background in light mode */
+html:not(.dark) .dashboard-root,
+html:not(.dark) .bg-\[\#07090e\],
+html:not(.dark) .bg-\[\#030508\],
+html:not(.dark) .bg-\[\#050811\] {
+  background-color: #f8fafc;
+}
+
+/* Sidebar & surface background in light mode */
+html:not(.dark) .sidebar-container,
+html:not(.dark) .bg-\[\#0a0f1d\],
+html:not(.dark) .bg-\[\#070b14\],
+html:not(.dark) .bg-\[\#080b14\],
+html:not(.dark) .bg-\[\#0d1424\],
+html:not(.dark) .bg-\[\#0e1424\] {
+  background-color: #ffffff;
+}
+
+/* Subtle borders in light mode */
+html:not(.dark) .border-white\/5,
+html:not(.dark) .border-white\/10,
+html:not(.dark) .border-white\/15,
+html:not(.dark) .border-white\/20 {
+  border-color: #e2e8f0;
+}
+
+/* High contrast text in light mode */
+html:not(.dark) h1.text-white,
+html:not(.dark) h2.text-white,
+html:not(.dark) h3.text-white,
+html:not(.dark) h4.text-white,
+html:not(.dark) span.text-white:not(.keep-white),
+html:not(.dark) p.text-white:not(.keep-white),
+html:not(.dark) div.text-white:not(.keep-white) {
+  color: #0f172a;
+}
+
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200 {
+  color: #1e293b;
+}
+
+html:not(.dark) .text-slate-300 {
+  color: #334155;
+}
+
+html:not(.dark) .text-slate-400 {
+  color: #64748b;
+}
+
+/* Slate badges and secondary cards in light mode */
+html:not(.dark) .bg-slate-900\/50,
+html:not(.dark) .bg-slate-900\/60,
+html:not(.dark) .bg-slate-900\/80,
+html:not(.dark) .bg-slate-900 {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+html:not(.dark) .bg-slate-950\/60,
+html:not(.dark) .bg-slate-950\/80,
+html:not(.dark) .bg-slate-950 {
+  background-color: #f8fafc;
+}
+
+html:not(.dark) .bg-slate-800 {
+  background-color: #e2e8f0;
+}
+
+/* Preserve bright white text on primary buttons */
+html:not(.dark) button.bg-blue-600,
+html:not(.dark) a.bg-blue-600,
+html:not(.dark) button.bg-blue-500,
+html:not(.dark) a.bg-blue-500,
+html:not(.dark) .bg-blue-600 *,
+html:not(.dark) .bg-blue-500 *,
+html:not(.dark) .bg-emerald-600 *,
+html:not(.dark) .bg-purple-600 *,
+html:not(.dark) .bg-teal-600 *,
+html:not(.dark) .bg-amber-500 *,
+html:not(.dark) .bg-red-600 * {
+  color: #ffffff !important;
+}
+
+/* Keep phone mockups always styled properly */
+.phone-mockup-frame,
+.phone-mockup-frame * {
+  color-scheme: dark !important;
+}
+
+/* Light mode inputs, textareas and selects */
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not(.phone-mockup-frame *),
+html:not(.dark) textarea:not(.phone-mockup-frame *),
+html:not(.dark) select:not(.phone-mockup-frame *) {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+html:not(.dark) input:focus,
+html:not(.dark) textarea:focus,
+html:not(.dark) select:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+html:not(.dark) .hover\:bg-white\/5:hover,
+html:not(.dark) .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+html:not(.dark) .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* Dark mode adapters for editor cards and panels */
+html.dark .rounded-3xl.bg-white {
+  background-color: #0b1222 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .rounded-2xl.bg-slate-50,
+html.dark .rounded-xl.bg-slate-50 {
+  background-color: #080d19 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .rounded-3xl.bg-white .text-slate-900,
+html.dark .rounded-3xl.bg-white h2,
+html.dark .rounded-3xl.bg-white h3,
+html.dark .rounded-3xl.bg-white h4 {
+  color: #f8fafc !important;
+}
+
+html.dark .rounded-3xl.bg-white .text-slate-500,
+html.dark .rounded-3xl.bg-white .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.dark .rounded-3xl.bg-white input:not([type="checkbox"]):not([type="radio"]),
+html.dark .rounded-3xl.bg-white textarea,
+html.dark .rounded-3xl.bg-white select {
+  background-color: #0d1527 !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }

@@ -56,6 +56,7 @@ import {
   CheckSquare,
   Square,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { compressImageFile } from "@/lib/utils/image";
 
 interface ProfileEditorProps {
@@ -1979,32 +1980,32 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       {/* ============================================================== */}
       {/* 1. TOP HEADER BAR (COMPACT & FIXED)                            */}
       {/* ============================================================== */}
-      <header className="shrink-0 bg-white border-b border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs z-30">
+      <header className="shrink-0 bg-white dark:bg-[#0a0f1d] border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs z-30 transition-colors">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span>Edit Profile</span>
               <Link
                 href="/dashboard/profiles"
-                className="text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
                 title="View and switch between all digital profiles"
               >
                 <span>All Profiles</span>
                 <ChevronRight className="w-3 h-3" />
               </Link>
             </h1>
-            <p className="text-[11px] text-slate-500 hidden sm:block">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
               Manage your mobile-first digital business card content and styling.
             </p>
           </div>
 
           {/* Public Profile Link Pill */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono text-slate-700 max-w-[200px] sm:max-w-[240px]">
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-xs font-mono text-slate-700 dark:text-slate-300 max-w-[200px] sm:max-w-[240px]">
             <span className="truncate">{getPublicUrl()}</span>
             <button
               type="button"
               onClick={handleCopyLink}
-              className="p-0.5 rounded-md text-slate-500 hover:text-slate-800 hover:bg-white transition-colors cursor-pointer"
+              className="p-0.5 rounded-md text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Copy link"
             >
               {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -2014,13 +2015,16 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Light / Dark Mode Toggle */}
+          <ThemeToggle size="sm" />
+
           {/* New Profile Button */}
           <Link
             href="/dashboard/profiles/new"
-            className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             title="Create another digital profile under your plan"
           >
-            <Plus className="w-3.5 h-3.5 text-blue-600" />
+            <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden sm:inline">New Profile</span>
           </Link>
 
@@ -2028,9 +2032,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           <Link
             href={`/p/${profile.slug}`}
             target="_blank"
-            className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
-            <Eye className="w-3.5 h-3.5 text-slate-500" />
+            <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span className="hidden sm:inline">View Live</span>
           </Link>
 
@@ -2038,10 +2042,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           <button
             type="button"
             onClick={() => setShowQrModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             title="Scan QR to open profile"
           >
-            <QrCode className="w-3.5 h-3.5 text-blue-600" />
+            <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden sm:inline">QR Code</span>
           </button>
 
@@ -2050,9 +2054,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             type="button"
             onClick={handleSaveDraft}
             disabled={isSaving}
-            className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
           >
-            <Save className="w-3.5 h-3.5 text-slate-500" />
+            <Save className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span>{isSaving ? "Saving..." : "Save Draft"}</span>
           </button>
 
@@ -2244,21 +2248,21 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {/* RIGHT COLUMN: REALISTIC LIVE PREVIEW (MOBILE SIMULATOR)       */}
         {/* ============================================================== */}
         <div
-          className={`w-full md:w-[370px] lg:w-[390px] xl:w-[420px] shrink-0 bg-[#0a0f1d] border-l border-white/5 p-3 flex flex-col items-center justify-center overflow-hidden min-h-0 ${
+          className={`w-full md:w-[370px] lg:w-[390px] xl:w-[420px] shrink-0 bg-slate-100 dark:bg-[#0a0f1d] border-l border-slate-200 dark:border-white/5 p-3 flex flex-col items-center justify-center overflow-hidden min-h-0 transition-colors ${
             mobileTab === "preview" ? "flex" : "hidden md:flex"
           }`}
         >
           {/* Simulator Device Switcher */}
-          <div className="w-full max-w-[320px] flex items-center justify-between text-xs text-slate-300 mb-2 px-1 shrink-0">
-            <span className="flex items-center gap-1.5 font-bold text-white text-xs">
+          <div className="w-full max-w-[320px] flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 mb-2 px-1 shrink-0">
+            <span className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white text-xs">
               <span>Live Preview</span>
             </span>
-            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-900 border border-white/10">
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => setPreviewDevice("mobile")}
                 className={`p-1 rounded-md transition-colors cursor-pointer ${
-                  previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                  previewDevice === "mobile" ? "bg-blue-600 text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
                 title="Mobile View"
               >
@@ -2268,7 +2272,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 type="button"
                 onClick={() => setPreviewDevice("tablet")}
                 className={`p-1 rounded-md transition-colors cursor-pointer ${
-                  previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                  previewDevice === "tablet" ? "bg-blue-600 text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
                 title="Tablet View"
               >
@@ -2278,7 +2282,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 type="button"
                 onClick={() => setPreviewDevice("desktop")}
                 className={`p-1 rounded-md transition-colors cursor-pointer ${
-                  previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
+                  previewDevice === "desktop" ? "bg-blue-600 text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
                 title="Desktop View"
               >
@@ -2288,7 +2292,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
 
           {/* REALISTIC SMARTPHONE BEZEL FRAME (FIT EXACTLY IN VIEWPORT) */}
-          <div className="w-full max-w-[320px] h-full max-h-[calc(100vh-130px)] aspect-[9/18.5] rounded-[38px] p-2 bg-slate-950 border-[5px] border-slate-800 shadow-2xl relative flex flex-col overflow-hidden shrink min-h-0">
+          <div className="phone-mockup-frame w-full max-w-[320px] h-full max-h-[calc(100vh-130px)] aspect-[9/18.5] rounded-[38px] p-2 bg-slate-950 border-[5px] border-slate-800 shadow-2xl relative flex flex-col overflow-hidden shrink min-h-0">
             {/* iPhone Top Notch / Speaker Slit */}
             <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-3.5 rounded-full bg-black z-30 flex items-center justify-center">
               <div className="w-8 h-1 rounded-full bg-slate-800" />
