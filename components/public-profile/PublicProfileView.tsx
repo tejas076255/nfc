@@ -293,6 +293,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const contactBlock = blocks.find((b) => b.type === "contact_actions" && b.isEnabled)?.blockData || {};
   const highlightsBlock = blocks.find((b) => b.type === "highlights" && b.isEnabled)?.blockData || {};
   const aboutBlock = blocks.find((b) => b.type === "about" && b.isEnabled)?.blockData || {};
+  const resolvedAboutBio = (aboutBlock.content !== undefined && typeof aboutBlock.content === "string" && aboutBlock.content.trim() !== "")
+    ? aboutBlock.content
+    : (aboutBlock.bio || profile.bio || "");
+  const rawAboutHeadline = aboutBlock.headline !== undefined ? aboutBlock.headline : (aboutBlock.title || "");
+  const cleanAboutHeadline = (typeof rawAboutHeadline === "string" && rawAboutHeadline.trim().toLowerCase() === "gfgfgf") ? "" : (typeof rawAboutHeadline === "string" ? rawAboutHeadline.trim() : "");
   const servicesBlock = blocks.find((b) => b.type === "services" && b.isEnabled)?.blockData || {};
   const portfolioBlock = blocks.find((b) => b.type === "portfolio_gallery" && b.isEnabled)?.blockData || {};
   const testimonialsBlock = blocks.find((b) => b.type === "testimonials" && b.isEnabled)?.blockData || {};
@@ -323,7 +328,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   const professionalTitle = headerBlock.title || profile.title || "Digital Identity";
   const companyName = headerBlock.company || "";
   const businessCategory = headerBlock.category || profile.industry?.replace("_", " ") || "";
-  const tagline = headerBlock.tagline || aboutBlock.headline || "";
+  const tagline = headerBlock.tagline || cleanAboutHeadline || "";
 
   // 2. Resolve Highlights / Statistics (Only if explicitly configured)
   const statsList = useMemo(() => {
@@ -392,7 +397,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
       whatsapp: contactBlock.whatsapp,
       websiteUrl: contactBlock.websiteUrl,
       address: locationBlock.address || contactBlock.location,
-      bio: aboutBlock.bio || profile.bio,
+      bio: resolvedAboutBio,
     });
 
     const blob = new Blob([vCardData], { type: "text/vcard;charset=utf-8;" });
@@ -1088,14 +1093,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
           {/* ============================================================== */}
           {/* 8. ABOUT ME / ABOUT BUSINESS                                   */}
           {/* ============================================================== */}
-          {aboutBlock.bio && (
+          {(resolvedAboutBio || aboutBlock.imageUrl || (aboutBlock.highlights && aboutBlock.highlights.length > 0)) && (
             <div className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Bookmark className="w-3.5 h-3.5 text-teal-400" />
-                  <span>{aboutBlock.headline || "About Me"}</span>
-                </h3>
-              </div>
+              {cleanAboutHeadline ? (
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <Bookmark className="w-3.5 h-3.5 text-teal-400" />
+                    <span>{cleanAboutHeadline}</span>
+                  </h3>
+                </div>
+              ) : null}
 
               {aboutBlock.imageUrl && (
                 <div className="w-full h-44 rounded-xl overflow-hidden relative border border-white/10">
@@ -1103,13 +1110,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                 </div>
               )}
 
-              <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-line">
-                {readMoreAbout || aboutBlock.bio.length <= 160
-                  ? aboutBlock.bio
-                  : `${aboutBlock.bio.slice(0, 160)}...`}
-              </p>
+              {resolvedAboutBio ? (
+                <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-line">
+                  {readMoreAbout || resolvedAboutBio.length <= 160
+                    ? resolvedAboutBio
+                    : `${resolvedAboutBio.slice(0, 160)}...`}
+                </p>
+              ) : null}
 
-              {aboutBlock.bio.length > 160 && (
+              {resolvedAboutBio && resolvedAboutBio.length > 160 && (
                 <button
                   type="button"
                   onClick={() => setReadMoreAbout(!readMoreAbout)}
