@@ -80,7 +80,7 @@ export function ResponsiveSidebar({
     { id: "analytics", label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { id: "leads", label: "Leads / Enquiries", href: "/dashboard/leads", icon: Users },
     { id: "cards", label: "My NFC Cards", href: "/dashboard/cards", icon: CreditCard },
-    { id: "team", label: "Team (Pro)", href: "/dashboard/billing?tab=team", icon: Users },
+    { id: "team", label: "Team Cards", href: "/dashboard/profiles", icon: Users },
     { id: "integrations", label: "Integrations", href: "/dashboard/billing?tab=integrations", icon: Plug },
     { id: "billing", label: "Billing", href: "/dashboard/billing", icon: ShoppingBag },
     { id: "views", label: "Profile Views", href: "/dashboard/analytics?tab=views", icon: Eye },

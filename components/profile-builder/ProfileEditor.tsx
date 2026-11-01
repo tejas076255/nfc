@@ -55,6 +55,14 @@ import {
   Eye,
   CheckSquare,
   Square,
+  Sun,
+  Moon,
+  Bookmark,
+  Play,
+  FileDown,
+  ArrowUpDown,
+  Sliders,
+  Laptop,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { compressImageFile } from "@/lib/utils/image";
@@ -99,8 +107,218 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     description: "",
   });
 
+  // Theme simulator preview override
+  const [previewThemeOverride, setPreviewThemeOverride] = useState<"dark" | "light" | null>(null);
+
+  // Section Reorder Modal & Drag State
+  const [showReorderModal, setShowReorderModal] = useState(false);
+  const [draggedBlockType, setDraggedBlockType] = useState<string | null>(null);
+
+  // Employee Profile Quick Creation Modal
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false);
+  const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
+  const [employeeFormData, setEmployeeFormData] = useState({
+    name: "",
+    title: "",
+    email: "",
+    phone: "",
+    whatsapp: "",
+    department: "",
+  });
+
   // Blocks accessor
   const blocks: ProfileBlockItem[] = profile.blocks || [];
+
+  const updateColorMode = (colorMode: "dark" | "light" | "auto") => {
+    setProfile((prev: any) => ({
+      ...prev,
+      themeConfig: {
+        ...(prev.themeConfig || {}),
+        colorMode,
+      },
+    }));
+    setPreviewThemeOverride(colorMode === "auto" ? "dark" : colorMode);
+  };
+
+  const SECTION_METADATA: Record<string, { title: string; desc: string; icon: any; step: number }> = {
+    social_links: { title: "Connect With Me & Socials", desc: "WhatsApp, Instagram, LinkedIn, Google Review", icon: Share2, step: 3 },
+    about: { title: "About Me & Bio Narrative", desc: "Bio, story, highlights, and photo", icon: Bookmark, step: 4 },
+    services: { title: "Services & Products", desc: "Offerings, pricing, and fast booking", icon: Briefcase, step: 5 },
+    portfolio_gallery: { title: "Featured Portfolio", desc: "Selected projects & visual showcase", icon: Sparkles, step: 6 },
+    intro_video: { title: "Introduction Video", desc: "Embedded video presentation", icon: Play, step: 4 },
+    testimonials: { title: "Client Testimonials", desc: "Client reviews and ratings", icon: Star, step: 7 },
+    certifications: { title: "Certifications & Awards", desc: "Credentials, licenses, and achievements", icon: Award, step: 7 },
+    downloads: { title: "Downloads & Resources", desc: "PDF brochures, catalogs, and media kits", icon: FileDown, step: 8 },
+    location: { title: "Business Location & Map", desc: "Google map link, address, and hours", icon: MapPin, step: 7 },
+    faq: { title: "Frequently Asked Questions", desc: "Interactive FAQ accordion answers", icon: HelpCircle, step: 7 },
+  };
+
+  const orderedBlockTypes = useMemo(() => {
+    const defaultList = [
+      "social_links",
+      "about",
+      "services",
+      "portfolio_gallery",
+      "intro_video",
+      "testimonials",
+      "certifications",
+      "downloads",
+      "location",
+      "faq",
+    ];
+
+    const existingSorted = [...blocks]
+      .filter((b) => defaultList.includes(b.type))
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+      .map((b) => b.type);
+
+    const result: string[] = [];
+    existingSorted.forEach((t) => {
+      if (!result.includes(t)) result.push(t);
+    });
+    defaultList.forEach((t) => {
+      if (!result.includes(t)) result.push(t);
+    });
+    return result;
+  }, [blocks]);
+
+  const applyNewSectionOrder = (newOrder: string[]) => {
+    const existingBlocks = [...blocks];
+    const updatedBlocks: ProfileBlockItem[] = [];
+
+    newOrder.forEach((type, orderIndex) => {
+      const existing = existingBlocks.find((b) => b.type === type);
+      if (existing) {
+        updatedBlocks.push({
+          ...existing,
+          sortOrder: orderIndex,
+        });
+      } else {
+        updatedBlocks.push({
+          id: `b_${type}_${Date.now()}_${orderIndex}`,
+          type: type as any,
+          isEnabled: true,
+          sortOrder: orderIndex,
+          blockData: {},
+        });
+      }
+    });
+
+    existingBlocks.forEach((b) => {
+      if (!newOrder.includes(b.type)) {
+        updatedBlocks.push(b);
+      }
+    });
+
+    setProfile((prev: any) => ({
+      ...prev,
+      blocks: updatedBlocks,
+    }));
+  };
+
+  const moveSection = (type: string, direction: "up" | "down") => {
+    const currentList = [...orderedBlockTypes];
+    const idx = currentList.indexOf(type);
+    if (idx === -1) return;
+    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= currentList.length) return;
+
+    const swapped = [...currentList];
+    const temp = swapped[idx];
+    swapped[idx] = swapped[targetIdx];
+    swapped[targetIdx] = temp;
+
+    applyNewSectionOrder(swapped);
+  };
+
+  const handleDragStart = (e: React.DragEvent, type: string) => {
+    setDraggedBlockType(type);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetType: string) => {
+    e.preventDefault();
+    if (!draggedBlockType || draggedBlockType === targetType) return;
+    const currentList = [...orderedBlockTypes];
+    const fromIndex = currentList.indexOf(draggedBlockType);
+    const toIndex = currentList.indexOf(targetType);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const reordered = [...currentList];
+    const [removed] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, removed);
+
+    applyNewSectionOrder(reordered);
+    setDraggedBlockType(null);
+  };
+
+  const handleCreateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!employeeFormData.name.trim()) {
+      setErrorMessage("Please enter the employee's full name.");
+      return;
+    }
+    setIsCreatingEmployee(true);
+    try {
+      const res = await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: employeeFormData.name,
+          title: employeeFormData.title,
+          email: employeeFormData.email,
+          phone: employeeFormData.phone,
+          whatsapp: employeeFormData.whatsapp,
+          department: employeeFormData.department,
+          isEmployee: true,
+        }),
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create employee card");
+      }
+      setSaveMessage("Employee card created successfully! Redirecting...");
+      setTimeout(() => {
+        window.location.href = `/dashboard/profiles/${data.profile.id}/edit`;
+      }, 1000);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to create employee profile");
+    } finally {
+      setIsCreatingEmployee(false);
+    }
+  };
+
+  // Step-by-Step Completion Guide calculation
+  const completionStats = useMemo(() => {
+    const contact = getBlock("contact").blockData || {};
+    const about = getBlock("about").blockData || {};
+    const services = (getBlock("services").blockData?.services || []) as any[];
+    const portfolio = (getBlock("portfolio_gallery").blockData?.items || []) as any[];
+    const testimonials = (getBlock("testimonials").blockData?.testimonials || []) as any[];
+    const loc = getBlock("location").blockData || {};
+    const socials = (getBlock("social_links").blockData?.links || []) as any[];
+
+    const stepChecks: Record<number, boolean> = {
+      1: Boolean(profile.name && (profile.title || profile.bio)),
+      2: Boolean(contact.phone || contact.email || contact.whatsapp || contact.websiteUrl),
+      3: Boolean(socials.length > 0),
+      4: Boolean(profile.bio || about.description || about.imageUrl),
+      5: Boolean(services.length > 0),
+      6: Boolean(portfolio.length > 0),
+      7: Boolean(testimonials.length > 0 || loc.address),
+      8: Boolean(profile.templateId || profile.themeConfig?.accentColor),
+    };
+
+    const completedCount = Object.values(stepChecks).filter(Boolean).length;
+    const percent = Math.round((completedCount / 8) * 100);
+
+    return { completedCount, totalSteps: 8, percent, stepChecks };
+  }, [profile, blocks]);
 
   const getBlock = (type: string): any => {
     return blocks.find((b) => b.type === type) || { isEnabled: true, blockData: {} as any };
@@ -691,7 +909,112 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // SECTION 2: QUICK ACTION BUTTONS & CONTACT
   const renderQuickActionsSection = () => (
-    <div id="sections" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+    <div id="sections" className="space-y-6">
+      {/* SECTION ORDER MANAGER CARD (DRAG & DROP / UP-DOWN) */}
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+              <ArrowUpDown className="w-4 h-4" />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-slate-900">Profile Sections Order (Drag & Drop / Up Down)</h2>
+              <p className="text-xs text-slate-500">Reorder sections on your public card. Changes preview in real-time.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowReorderModal(true)}
+            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+          >
+            <span>Full View</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Interactive Order List */}
+        <div className="space-y-2">
+          {orderedBlockTypes.map((type, idx) => {
+            const meta = SECTION_METADATA[type] || { title: type, desc: "", icon: Layers, step: 1 };
+            const Icon = meta.icon;
+            const isEnabled = isBlockEnabled(type);
+
+            return (
+              <div
+                key={type}
+                draggable
+                onDragStart={(e) => handleDragStart(e, type)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, type)}
+                className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                  draggedBlockType === type
+                    ? "opacity-50 border-blue-500 bg-blue-50"
+                    : isEnabled
+                    ? "bg-slate-50/80 hover:bg-slate-50 border-slate-200"
+                    : "bg-slate-100/50 border-dashed border-slate-200 opacity-60"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                  <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{meta.title}</p>
+                    <p className="text-[10px] text-slate-500 truncate">{meta.desc}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    disabled={idx === 0}
+                    onClick={() => moveSection(type, "up")}
+                    className="p-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Move Up"
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={idx === orderedBlockTypes.length - 1}
+                    onClick={() => moveSection(type, "down")}
+                    className="p-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    title="Move Down"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleBlockEnabled(type)}
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors ${
+                      isEnabled
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-200 text-slate-600"
+                    }`}
+                  >
+                    {isEnabled ? "Visible" : "Hidden"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(meta.step)}
+                    className="text-[10px] text-blue-600 font-bold hover:underline px-1 cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -846,6 +1169,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           />
         </div>
       </div>
+    </div>
     </div>
   );
 
@@ -1753,9 +2077,63 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           })}
         </div>
 
+        {/* Card Color Theme Mode (Dark & Light Mode) */}
+        <div className="pt-4 border-t border-slate-100 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <span>Card Color Mode (Dark & Light Mode)</span>
+              </h3>
+              <p className="text-[11px] text-slate-500">Choose default color scheme for your digital card & visitors</p>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Interactive
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {[
+              { id: "dark", label: "Dark Mode", desc: "AMOLED sleek dark (Default)", icon: Moon },
+              { id: "light", label: "Light Mode", desc: "Crisp daytime high-contrast", icon: Sun },
+              { id: "auto", label: "Visitor Auto", desc: "Matches visitor system theme", icon: Laptop },
+            ].map((mode) => {
+              const isSelected = ((profile.themeConfig as any)?.colorMode || "dark") === mode.id;
+              const Icon = mode.icon;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => updateColorMode(mode.id as any)}
+                  className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-blue-600 border-blue-600 bg-blue-50/70 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                        isSelected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-blue-600" />}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-900">{mode.label}</p>
+                    <p className="text-[10px] text-slate-500 leading-tight">{mode.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Visual Customization */}
         <div className="pt-4 border-t border-slate-100 space-y-4">
-          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Visual Customization</h3>
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Accent Color & Avatar</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Accent Color Hex</label>
@@ -1906,6 +2284,17 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           {/* Light / Dark Mode Toggle */}
           <ThemeToggle size="sm" />
 
+          {/* Dedicated Add Employee Profile Button */}
+          <button
+            type="button"
+            onClick={() => setShowEmployeeModal(true)}
+            className="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/40 border border-teal-200 dark:border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            title="Add an employee profile inheriting company branding"
+          >
+            <Users className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+            <span className="hidden sm:inline">+ Employee Card</span>
+          </button>
+
           {/* New Profile Button */}
           <Link
             href="/dashboard/profiles/new"
@@ -1984,7 +2373,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
       {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
       <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
             Step {currentStep} of {STEPS.length}
           </span>
@@ -1993,22 +2382,35 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               {STEPS[currentStep - 1].label}
             </span>
           </div>
-          <div className="w-20 sm:w-28 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0 hidden sm:block">
-            <div
-              className="bg-gradient-to-r from-blue-600 to-teal-500 h-full rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
-            />
+
+          {/* Step Completion Score */}
+          <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+            <span>{completionStats.percent}% Setup Complete</span>
+            <div className="w-12 bg-emerald-200/60 h-1.5 rounded-full overflow-hidden shrink-0">
+              <div
+                className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                style={{ width: `${completionStats.percent}%` }}
+              />
+            </div>
           </div>
-          <span className="text-[10px] font-extrabold text-slate-500 shrink-0 hidden sm:inline">
-            {Math.round((currentStep / STEPS.length) * 100)}%
-          </span>
         </div>
 
-        {/* Stepper Nav Quick Pills */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none py-0.5">
+        {/* Stepper Nav Quick Pills & Reorder Trigger */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+          <button
+            type="button"
+            onClick={() => setShowReorderModal(true)}
+            className="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 cursor-pointer shadow-2xs"
+            title="Reorder profile sections (Drag & Drop or Move Up/Down)"
+          >
+            <ArrowUpDown className="w-3 h-3 text-amber-600" />
+            <span>Reorder Sections</span>
+          </button>
+
           {STEPS.map((s) => {
             const isActive = currentStep === s.id;
-            const isDone = currentStep > s.id;
+            const isCompleted = completionStats.stepChecks[s.id];
             return (
               <button
                 key={s.id}
@@ -2017,12 +2419,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
                   isActive
                     ? "bg-blue-600 text-white shadow-xs"
-                    : isDone
-                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                    : isCompleted
+                    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
+                title={s.label}
               >
-                <span className="text-[10px]">{isDone ? "✓" : s.id}</span>
+                <span className="text-[10px]">{isCompleted ? "✓" : s.id}</span>
                 <span>{s.short}</span>
               </button>
             );
@@ -2110,10 +2513,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 {currentStep < STEPS.length ? (
                   <button
                     type="button"
-                    onClick={() => goToStep(Math.min(STEPS.length, currentStep + 1))}
+                    onClick={() => {
+                      handleSaveDraft();
+                      goToStep(Math.min(STEPS.length, currentStep + 1));
+                    }}
                     className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all"
                   >
-                    <span>Next Step</span>
+                    <span>Save & Next Step</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : (
@@ -2176,6 +2582,36 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               >
                 <Monitor className="w-3 h-3" />
               </button>
+              <div className="h-3.5 w-px bg-slate-300 dark:bg-white/15 mx-0.5" />
+              {/* Simulator Preview Dark / Light Theme Toggle */}
+              <button
+                type="button"
+                onClick={() =>
+                  setPreviewThemeOverride((prev) =>
+                    (prev || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light"
+                      ? "dark"
+                      : "light"
+                  )
+                }
+                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer ${
+                  (previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light"
+                    ? "bg-amber-100 text-amber-900 border border-amber-300"
+                    : "bg-slate-800 text-slate-200 border border-slate-700 hover:text-white"
+                }`}
+                title="Toggle Live Simulator between Dark and Light mode"
+              >
+                {(previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light" ? (
+                  <>
+                    <Sun className="w-3 h-3 text-amber-500" />
+                    <span className="hidden sm:inline">Light</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3 h-3 text-blue-400" />
+                    <span className="hidden sm:inline">Dark</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -2213,6 +2649,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   searchIndexed: Boolean(profile.searchIndexed),
                 }}
                 sourceType="preview"
+                previewTheme={
+                  previewThemeOverride ||
+                  ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")
+                }
               />
             </div>
 
@@ -2221,6 +2661,237 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
         </div>
       </div>
+
+      {/* Modal 1: Reorder Profile Sections (Drag & Drop / Up Down) */}
+      {showReorderModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold">
+                  <ArrowUpDown className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Reorder Profile Sections</h3>
+                  <p className="text-xs text-slate-500">Drag & drop or use ▲ / ▼ to reorder blocks</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReorderModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+              {orderedBlockTypes.map((type, idx) => {
+                const meta = SECTION_METADATA[type] || { title: type, desc: "", icon: Layers, step: 1 };
+                const Icon = meta.icon;
+                const isEnabled = isBlockEnabled(type);
+
+                return (
+                  <div
+                    key={type}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, type)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, type)}
+                    className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                      draggedBlockType === type
+                        ? "opacity-50 border-blue-500 bg-blue-50"
+                        : isEnabled
+                        ? "bg-slate-50 hover:bg-slate-100 border-slate-200"
+                        : "bg-slate-100/50 border-dashed border-slate-200 opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700">
+                        <GripVertical className="w-4 h-4" />
+                      </div>
+                      <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-slate-900 truncate">{meta.title}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{meta.desc}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => moveSection(type, "up")}
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        title="Move Up"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === orderedBlockTypes.length - 1}
+                        onClick={() => moveSection(type, "down")}
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                        title="Move Down"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleBlockEnabled(type)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
+                          isEnabled
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-200 text-slate-600"
+                        }`}
+                      >
+                        {isEnabled ? "Visible" : "Hidden"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  handleSaveDraft();
+                  setShowReorderModal(false);
+                }}
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/20 cursor-pointer"
+              >
+                Apply & Save Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Quick Add Employee Profile Modal */}
+      {showEmployeeModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-teal-500 text-white flex items-center justify-center font-bold">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Add Employee Profile</h3>
+                  <p className="text-xs text-slate-500">Business Pro includes 25 digital profile slots</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmployeeModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-teal-50 border border-teal-200 flex items-center gap-2.5 text-xs text-teal-800">
+              <Building2 className="w-4 h-4 text-teal-600 shrink-0" />
+              <span>Inherits company logo, theme & styling automatically from this card.</span>
+            </div>
+
+            <form onSubmit={handleCreateEmployee} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Rahul Sharma"
+                  value={employeeFormData.name}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Role / Job Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sales Executive"
+                    value={employeeFormData.title}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, title: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Department</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sales / Marketing"
+                    value={employeeFormData.department}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, department: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">Direct Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={employeeFormData.phone}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, phone: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700">WhatsApp</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={employeeFormData.whatsapp}
+                    onChange={(e) => setEmployeeFormData({ ...employeeFormData, whatsapp: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700">Work Email</label>
+                <input
+                  type="email"
+                  placeholder="employee@company.com"
+                  value={employeeFormData.email}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, email: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-slate-900 font-bold focus:outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEmployeeModal(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingEmployee}
+                  className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {isCreatingEmployee ? "Creating..." : "Create Employee Profile"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Quick QR Code Modal */}
       {showQrModal && (

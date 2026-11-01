@@ -22,8 +22,14 @@ export async function POST(req: Request) {
     const body = (await req.json()) as any;
     const result = await createProfile(session.workspace.id, {
       name: body.name,
-      industry: body.industry,
+      industry: body.industry || "professional",
       slug: body.slug,
+      title: body.title,
+      phone: body.phone,
+      email: body.email,
+      whatsapp: body.whatsapp,
+      company: body.company,
+      isEmployee: body.isEmployee,
     });
 
     return NextResponse.json(result, { status: 201 });

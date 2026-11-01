@@ -142,7 +142,20 @@ export async function getProfileById(profileId: string, workspaceId: string) {
   };
 }
 
-export async function createProfile(workspaceId: string, data: { name: string; industry: IndustryType; slug?: string }) {
+export async function createProfile(
+  workspaceId: string,
+  data: {
+    name: string;
+    industry: IndustryType;
+    slug?: string;
+    title?: string;
+    phone?: string;
+    email?: string;
+    whatsapp?: string;
+    company?: string;
+    isEmployee?: boolean;
+  }
+) {
   const db = await getDb();
   const template = INDUSTRY_TEMPLATES[data.industry] || INDUSTRY_TEMPLATES.professional;
 
@@ -160,6 +173,37 @@ export async function createProfile(workspaceId: string, data: { name: string; i
     );
   }
 
+  // If creating an employee/team profile, inherit company details and branding from existing primary profile
+  let inheritedTheme = template.defaultTheme;
+  let inheritedCompany = data.company || "";
+  let inheritedLogo = "";
+
+  const [primaryExisting] = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.workspaceId, workspaceId))
+    .limit(1);
+
+  if (primaryExisting) {
+    try {
+      inheritedTheme = { ...template.defaultTheme, ...(JSON.parse(primaryExisting.themeConfig || "{}")) };
+    } catch {}
+
+    const [headerBlockRow] = await db
+      .select()
+      .from(schema.profileBlocks)
+      .where(and(eq(schema.profileBlocks.profileId, primaryExisting.id), eq(schema.profileBlocks.type, "identity_header")))
+      .limit(1);
+
+    if (headerBlockRow?.blockData) {
+      try {
+        const parsed = JSON.parse(headerBlockRow.blockData);
+        if (!inheritedCompany && parsed.company) inheritedCompany = parsed.company;
+        if (parsed.logoUrl) inheritedLogo = parsed.logoUrl;
+      } catch {}
+    }
+  }
+
   const profileId = crypto.randomUUID();
   const baseSlug = (data.slug || data.name).toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -172,11 +216,11 @@ export async function createProfile(workspaceId: string, data: { name: string; i
     workspaceId,
     slug,
     name: data.name,
-    title: (template.defaultBlocks[0]?.blockData as any)?.title || "",
+    title: data.title || (template.defaultBlocks[0]?.blockData as any)?.title || "",
     bio: (template.defaultBlocks[2]?.blockData as any)?.bio || "",
     industry: data.industry,
     templateId: template.id,
-    themeConfig: JSON.stringify(template.defaultTheme),
+    themeConfig: JSON.stringify(inheritedTheme),
     status: "draft",
     searchIndexed: 0,
     fallbackPreference: 0,
@@ -184,12 +228,20 @@ export async function createProfile(workspaceId: string, data: { name: string; i
     updatedAt: now,
   });
 
-  // Insert default blocks customized with user's name
+  // Insert default blocks customized with user's/employee's details
   for (let i = 0; i < template.defaultBlocks.length; i++) {
     const block = template.defaultBlocks[i];
     const blockData = { ...block.blockData };
     if (block.type === "identity_header") {
-      blockData.name = data.name; // Keep user's chosen name!
+      blockData.name = data.name;
+      if (data.title) blockData.title = data.title;
+      if (inheritedCompany) blockData.company = inheritedCompany;
+      if (inheritedLogo) blockData.logoUrl = inheritedLogo;
+      if (data.isEmployee) blockData.badge = "Team Member";
+    } else if (block.type === "contact_actions") {
+      if (data.phone) blockData.phone = data.phone;
+      if (data.email) blockData.email = data.email;
+      if (data.whatsapp) blockData.whatsapp = data.whatsapp;
     }
     await db.insert(schema.profileBlocks).values({
       id: crypto.randomUUID(),
