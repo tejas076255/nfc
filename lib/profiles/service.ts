@@ -470,6 +470,70 @@ export async function unpublishProfile(profileId: string, workspaceId: string) {
   return { success: true };
 }
 
+export async function deleteProfile(profileId: string, workspaceId: string) {
+  const db = await getDb();
+
+  // Verify profile exists and belongs to workspace
+  const [profile] = await db
+    .select()
+    .from(schema.profiles)
+    .where(and(eq(schema.profiles.id, profileId), eq(schema.profiles.workspaceId, workspaceId)))
+    .limit(1);
+
+  if (!profile) {
+    throw new Error("Profile not found or access denied");
+  }
+
+  // 1. Unset fallback profile in subscription if pointing to this profile
+  await db
+    .update(schema.subscriptions)
+    .set({ fallbackProfileId: null })
+    .where(eq(schema.subscriptions.fallbackProfileId, profileId));
+
+  // 2. Unlink any NFC cards bound to this profile
+  await db
+    .update(schema.cards)
+    .set({ activeProfileId: null, updatedAt: Math.floor(Date.now() / 1000) })
+    .where(eq(schema.cards.activeProfileId, profileId));
+
+  // 3. Delete card assignments
+  await db.delete(schema.cardAssignments).where(eq(schema.cardAssignments.profileId, profileId));
+
+  // 4. Delete QR codes
+  await db.delete(schema.qrCodes).where(eq(schema.qrCodes.profileId, profileId));
+
+  // 5. Delete leads
+  const profileLeads = await db
+    .select({ id: schema.leads.id })
+    .from(schema.leads)
+    .where(eq(schema.leads.profileId, profileId));
+
+  for (const lead of profileLeads) {
+    await db.delete(schema.leadNotes).where(eq(schema.leadNotes.leadId, lead.id));
+    await db.delete(schema.leadStatusHistory).where(eq(schema.leadStatusHistory.leadId, lead.id));
+  }
+  await db.delete(schema.leads).where(eq(schema.leads.profileId, profileId));
+
+  // 6. Delete analytics events and aggregates
+  await db.delete(schema.analyticsEvents).where(eq(schema.analyticsEvents.profileId, profileId));
+  await db.delete(schema.analyticsDailyAggregates).where(eq(schema.analyticsDailyAggregates.profileId, profileId));
+
+  // 7. Delete profile blocks & versions
+  await db.delete(schema.profileBlocks).where(eq(schema.profileBlocks.profileId, profileId));
+  await db.delete(schema.profileVersions).where(eq(schema.profileVersions.profileId, profileId));
+
+  // 8. Delete the profile itself
+  await db
+    .delete(schema.profiles)
+    .where(and(eq(schema.profiles.id, profileId), eq(schema.profiles.workspaceId, workspaceId)));
+
+  // 9. Invalidate caches
+  invalidateProfileCache(profile.slug, profileId);
+  fastCache.delete(`plan:${workspaceId}`);
+
+  return { success: true, deletedId: profileId, name: profile.name };
+}
+
 export async function getPublishedProfileBySlug(slug: string): Promise<FullProfileSnapshot | null> {
   const cleanSlug = slug.toLowerCase();
   const cacheKey = `profile:slug:${cleanSlug}`;
