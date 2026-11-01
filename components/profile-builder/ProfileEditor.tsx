@@ -293,32 +293,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     }
   };
 
-  // Step-by-Step Completion Guide calculation
-  const completionStats = useMemo(() => {
-    const contact = getBlock("contact").blockData || {};
-    const about = getBlock("about").blockData || {};
-    const services = (getBlock("services").blockData?.services || []) as any[];
-    const portfolio = (getBlock("portfolio_gallery").blockData?.items || []) as any[];
-    const testimonials = (getBlock("testimonials").blockData?.testimonials || []) as any[];
-    const loc = getBlock("location").blockData || {};
-    const socials = (getBlock("social_links").blockData?.links || []) as any[];
 
-    const stepChecks: Record<number, boolean> = {
-      1: Boolean(profile.name && (profile.title || profile.bio)),
-      2: Boolean(contact.phone || contact.email || contact.whatsapp || contact.websiteUrl),
-      3: Boolean(socials.length > 0),
-      4: Boolean(profile.bio || about.description || about.imageUrl),
-      5: Boolean(services.length > 0),
-      6: Boolean(portfolio.length > 0),
-      7: Boolean(testimonials.length > 0 || loc.address),
-      8: Boolean(profile.templateId || profile.themeConfig?.accentColor),
-    };
-
-    const completedCount = Object.values(stepChecks).filter(Boolean).length;
-    const percent = Math.round((completedCount / 8) * 100);
-
-    return { completedCount, totalSteps: 8, percent, stepChecks };
-  }, [profile, blocks]);
 
   const getBlock = (type: string): any => {
     return blocks.find((b) => b.type === type) || { isEnabled: true, blockData: {} as any };
@@ -330,45 +305,59 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   };
 
   const toggleBlockEnabled = (blockType: string) => {
-    let exists = false;
-    const updated = blocks.map((b) => {
-      if (b.type === blockType) {
-        exists = true;
-        return { ...b, isEnabled: !b.isEnabled };
-      }
-      return b;
-    });
-    if (!exists) {
-      updated.push({
-        id: `b_${blockType}_${Date.now()}`,
-        type: blockType as any,
-        isEnabled: false,
-        sortOrder: updated.length,
-        blockData: {},
+    setProfile((prev: any) => {
+      let exists = false;
+      const currentBlocks = prev.blocks || [];
+      const updated = currentBlocks.map((b: any) => {
+        if (b.type === blockType) {
+          exists = true;
+          return { ...b, isEnabled: !b.isEnabled };
+        }
+        return b;
       });
-    }
-    setProfile({ ...profile, blocks: updated });
+      if (!exists) {
+        updated.push({
+          id: `b_${blockType}_${Date.now()}`,
+          type: blockType as any,
+          isEnabled: false,
+          sortOrder: updated.length,
+          blockData: {},
+        });
+      }
+      return { ...prev, blocks: updated };
+    });
   };
 
-  const updateBlockData = (blockType: string, newBlockData: Record<string, any>) => {
-    let exists = false;
-    const updated = blocks.map((b) => {
-      if (b.type === blockType) {
-        exists = true;
-        return { ...b, blockData: { ...b.blockData, ...newBlockData } };
-      }
-      return b;
-    });
-    if (!exists) {
-      updated.push({
-        id: `b_${blockType}_${Date.now()}`,
-        type: blockType as any,
-        isEnabled: true,
-        sortOrder: updated.length,
-        blockData: newBlockData,
+  const updateBlockData = (
+    blockType: string,
+    newBlockData: Record<string, any>,
+    extraProfileFields?: Record<string, any>
+  ) => {
+    setProfile((prev: any) => {
+      let exists = false;
+      const currentBlocks = prev.blocks || [];
+      const updated = currentBlocks.map((b: any) => {
+        if (b.type === blockType) {
+          exists = true;
+          return { ...b, blockData: { ...b.blockData, ...newBlockData } };
+        }
+        return b;
       });
-    }
-    setProfile({ ...profile, blocks: updated });
+      if (!exists) {
+        updated.push({
+          id: `b_${blockType}_${Date.now()}`,
+          type: blockType as any,
+          isEnabled: true,
+          sortOrder: updated.length,
+          blockData: newBlockData,
+        });
+      }
+      return {
+        ...prev,
+        ...(extraProfileFields || {}),
+        blocks: updated,
+      };
+    });
   };
 
   // Sync hash to onboarding steps
@@ -648,6 +637,33 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const downloadsBlock: any = getBlock("downloads").blockData || {};
   const faqBlock: any = getBlock("faq").blockData || {};
 
+  // Step-by-Step Completion Guide calculation (Safely defined after block references)
+  const completionStats = useMemo(() => {
+    const contact = contactBlock || {};
+    const about = aboutBlock || {};
+    const services = (servicesBlock?.services || servicesBlock?.items || []) as any[];
+    const portfolio = (portfolioBlock?.items || []) as any[];
+    const testimonials = (testimonialsBlock?.testimonials || testimonialsBlock?.items || []) as any[];
+    const loc = locationBlock || {};
+    const socials = (socialsBlock?.links || []) as any[];
+
+    const stepChecks: Record<number, boolean> = {
+      1: Boolean(profile.name && (profile.title || profile.bio)),
+      2: Boolean(contact.phone || contact.email || contact.whatsapp || contact.websiteUrl),
+      3: Boolean(socials.length > 0),
+      4: Boolean(profile.bio || about.description || about.bio || about.content || about.imageUrl),
+      5: Boolean(services.length > 0),
+      6: Boolean(portfolio.length > 0),
+      7: Boolean(testimonials.length > 0 || loc.address),
+      8: Boolean(profile.templateId || profile.themeConfig?.accentColor),
+    };
+
+    const completedCount = Object.values(stepChecks).filter(Boolean).length;
+    const percent = Math.round((completedCount / 8) * 100);
+
+    return { completedCount, totalSteps: 8, percent, stepChecks };
+  }, [profile, blocks, contactBlock, aboutBlock, servicesBlock, portfolioBlock, testimonialsBlock, locationBlock, socialsBlock]);
+
   // Resolved experience timeline
   const experienceTimeline: any[] = highlightsBlock.experienceTimeline || [
     { id: "exp1", role: "Founder & Lead Consultant", company: "Upmark Digital", period: "2018 - Present", description: "Leading digital strategy, AI-driven solutions and growth frameworks for 500+ clients." },
@@ -682,9 +698,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const rawAboutHeadline = aboutBlock.headline !== undefined ? aboutBlock.headline : (aboutBlock.title || "");
   const aboutHeadline = typeof rawAboutHeadline === "string" && rawAboutHeadline.trim().toLowerCase() === "gfgfgf" ? "" : (typeof rawAboutHeadline === "string" ? rawAboutHeadline : "");
 
-  const aboutBio = (aboutBlock.content !== undefined && typeof aboutBlock.content === "string" && aboutBlock.content.trim() !== "")
-    ? aboutBlock.content
-    : (aboutBlock.bio !== undefined ? aboutBlock.bio : profile.bio || "");
+  const rawAboutBio =
+    aboutBlock.bio !== undefined
+      ? aboutBlock.bio
+      : aboutBlock.description !== undefined
+      ? aboutBlock.description
+      : aboutBlock.content !== undefined
+      ? aboutBlock.content
+      : profile.bio || "";
+  const aboutBio = typeof rawAboutBio === "string" ? rawAboutBio : "";
 
   // Resolved services
   const servicesList: any[] = servicesBlock.items || [
@@ -833,8 +855,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             required
             value={headerBlock.name !== undefined ? headerBlock.name : profile.name}
             onChange={(e) => {
-              updateBlockData("identity_header", { name: e.target.value });
-              setProfile({ ...profile, name: e.target.value });
+              const val = e.target.value;
+              updateBlockData("identity_header", { name: val }, { name: val });
             }}
             placeholder="e.g. Rikesh Panchal"
             className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
@@ -847,8 +869,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             type="text"
             value={headerBlock.title !== undefined ? headerBlock.title : profile.title || ""}
             onChange={(e) => {
-              updateBlockData("identity_header", { title: e.target.value });
-              setProfile({ ...profile, title: e.target.value });
+              const val = e.target.value;
+              updateBlockData("identity_header", { title: val }, { title: val });
             }}
             placeholder="e.g. Founder • Trainer • Consultant"
             className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
@@ -1382,8 +1404,11 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               value={aboutBio}
               onChange={(e) => {
                 const val = e.target.value;
-                updateBlockData("about", { bio: val, content: val });
-                setProfile({ ...profile, bio: val });
+                updateBlockData(
+                  "about",
+                  { bio: val, description: val, content: val },
+                  { bio: val }
+                );
               }}
               placeholder="I'm a Digital Marketing Trainer, Consultant and Founder. I help businesses grow with practical digital strategies, AI tools and real-world implementation..."
               className="w-full p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium resize-none leading-relaxed"
