@@ -445,12 +445,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // Resolved social links
   const socialLinks: any[] = socialsBlock.links || [
-    { id: "s1", platform: "instagram", url: "https://instagram.com/rikesh.jp", isEnabled: true },
-    { id: "s2", platform: "facebook", url: "https://facebook.com/rikesh.jp", isEnabled: true },
-    { id: "s3", platform: "youtube", url: "https://youtube.com/@rikesh.jp", isEnabled: true },
-    { id: "s4", platform: "linkedin", url: "https://www.linkedin.com/in/rikesh.jp", isEnabled: true },
-    { id: "s5", platform: "google_review", url: "https://g.page/r/your-google-review", isEnabled: true },
-    { id: "s6", platform: "website", url: "https://upmark.in", isEnabled: true },
+    { id: "s1", platform: "website", url: "https://upmark.in", isEnabled: true },
+    { id: "s2", platform: "instagram", url: "https://instagram.com/upmark.in", isEnabled: true },
+    { id: "s3", platform: "linkedin", url: "https://www.linkedin.com/in/upmark", isEnabled: true },
   ];
 
   // Resolved stats
@@ -460,9 +457,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: "st3", label: "Title / Founder Year", value: "2018", icon: "calendar" },
   ];
 
-
   // Resolved about tags
-  const aboutTags: string[] = aboutBlock.highlights || ["Training", "Consulting", "AI Solutions", "Business Growth"];
+  const aboutTags: string[] = Array.isArray(aboutBlock.highlights) ? aboutBlock.highlights : [];
 
   // Resolved services
   const servicesList: any[] = servicesBlock.items || [
@@ -504,7 +500,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: 1, label: "Header & Identity", short: "Header", icon: "👤", desc: "Avatar, banner, name, role & brand logo" },
     { id: 2, label: "Action Buttons", short: "Actions", icon: "⚡", desc: "Direct call, WhatsApp, email & map directions" },
     { id: 3, label: "Social Links", short: "Socials", icon: "🔗", desc: "Instagram, YouTube, LinkedIn & web channels" },
-    { id: 4, label: "About & Experience", short: "About", icon: "📝", desc: "Bio narrative, skill tags & career timeline" },
+    { id: 4, label: "About & Story", short: "About", icon: "📝", desc: "Bio narrative, headline & key highlights" },
     { id: 5, label: "Services & Products", short: "Services", icon: "💼", desc: "Service packages, pricing & descriptions" },
     { id: 6, label: "Featured Portfolio", short: "Portfolio", icon: "🎨", desc: "Project gallery, photos & video media" },
     { id: 7, label: "Reviews, FAQ & Map", short: "Reviews & FAQ", icon: "⭐", desc: "Client testimonials, FAQs & Google Map location" },
@@ -1094,150 +1090,6 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               </button>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Card 4C: Work Experience & Career Timeline */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-              💼
-            </span>
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Work Experience & Career Timeline</h2>
-              <p className="text-xs text-slate-500">Add your professional career history, job titles, and achievements.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              const newExp = {
-                id: `exp_${Date.now()}`,
-                role: "Job Title / Role",
-                company: "Company Name",
-                period: "2022 - Present",
-                description: "Describe key responsibilities and accomplishments...",
-              };
-              const updated = [...experienceTimeline, newExp];
-              updateBlockData("highlights", { experienceTimeline: updated });
-              setSaveMessage("Experience entry added!");
-              setTimeout(() => setSaveMessage(null), 2000);
-            }}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Experience</span>
-          </button>
-        </div>
-
-        <div className="space-y-3 pt-1">
-          {experienceTimeline.length === 0 ? (
-            <div className="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
-              <Briefcase className="w-8 h-8 text-slate-400 mx-auto" />
-              <p className="text-xs text-slate-600 font-medium">No career experiences added yet.</p>
-              <button
-                type="button"
-                onClick={() => {
-                  const newExp = {
-                    id: `exp_${Date.now()}`,
-                    role: "Founder & Lead Consultant",
-                    company: "Upmark Digital",
-                    period: "2018 - Present",
-                    description: "Spearheaded brand strategy, AI implementations and digital marketing for clients.",
-                  };
-                  updateBlockData("highlights", { experienceTimeline: [newExp] });
-                }}
-                className="text-xs text-blue-600 font-bold hover:underline cursor-pointer"
-              >
-                + Add your first experience
-              </button>
-            </div>
-          ) : (
-            experienceTimeline.map((exp: any, idx: number) => (
-              <div
-                key={exp.id || idx}
-                className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 relative group"
-              >
-                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="text-xs font-bold text-slate-700">Role #{idx + 1}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = experienceTimeline.filter((_: any, i: number) => i !== idx);
-                      updateBlockData("highlights", { experienceTimeline: updated });
-                    }}
-                    className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                    title="Delete experience"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-600">Role / Designation *</label>
-                    <input
-                      type="text"
-                      value={exp.role || exp.title || ""}
-                      onChange={(e) => {
-                        const updated = [...experienceTimeline];
-                        updated[idx] = { ...updated[idx], role: e.target.value, title: e.target.value };
-                        updateBlockData("highlights", { experienceTimeline: updated });
-                      }}
-                      placeholder="e.g. Senior Consultant"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-600">Company / Organization *</label>
-                    <input
-                      type="text"
-                      value={exp.company || ""}
-                      onChange={(e) => {
-                        const updated = [...experienceTimeline];
-                        updated[idx] = { ...updated[idx], company: e.target.value };
-                        updateBlockData("highlights", { experienceTimeline: updated });
-                      }}
-                      placeholder="e.g. Upmark Digital"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-600">Duration / Period</label>
-                    <input
-                      type="text"
-                      value={exp.period || ""}
-                      onChange={(e) => {
-                        const updated = [...experienceTimeline];
-                        updated[idx] = { ...updated[idx], period: e.target.value };
-                        updateBlockData("highlights", { experienceTimeline: updated });
-                      }}
-                      placeholder="e.g. 2021 - Present"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-slate-600">Description & Key Achievements</label>
-                  <textarea
-                    rows={2}
-                    value={exp.description || ""}
-                    onChange={(e) => {
-                      const updated = [...experienceTimeline];
-                      updated[idx] = { ...updated[idx], description: e.target.value };
-                      updateBlockData("highlights", { experienceTimeline: updated });
-                    }}
-                    placeholder="Briefly describe responsibilities, projects, and impact..."
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
-                  />
-                </div>
-              </div>
-            ))
-          )}
         </div>
       </div>
     </div>

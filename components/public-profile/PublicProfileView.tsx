@@ -336,10 +336,19 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
   // Socials and Links
   const socialLinks: any[] = socialsBlock.links || [];
   const googleReviewLink = socialLinks.find(
-    (s) => s.platform === "google_review" || s.platform === "google" || s.platform?.includes("review")
+    (s) =>
+      (s.platform === "google_review" || s.platform === "google" || s.platform?.includes("review")) &&
+      s.isEnabled !== false &&
+      s.url &&
+      !s.url.includes("your-google-review") &&
+      s.url.trim() !== ""
   );
   const regularLinks = socialLinks.filter(
-    (s) => s.platform !== "google_review" && s.platform !== "google" && !s.platform?.includes("review")
+    (s) =>
+      s.isEnabled !== false &&
+      s.url &&
+      s.url.trim() !== "" &&
+      s.id !== googleReviewLink?.id
   );
 
   // Theme Config
@@ -528,6 +537,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
         return <TwitterIcon className="w-5 h-5 shrink-0" />;
       case "telegram":
         return <TelegramIcon className="w-5 h-5 shrink-0" />;
+      case "website":
+      case "web":
+      case "site":
+        return <Globe className="w-5 h-5 text-blue-400 shrink-0" />;
       default:
         return <Globe className="w-5 h-5 text-blue-400 shrink-0" />;
     }
@@ -717,11 +730,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             {/* Bottom vignette overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/40 to-transparent pointer-events-none" />
 
-            {/* Brand Logo Watermark on Top Left */}
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white font-extrabold text-xs tracking-tight shadow-md">
-              <span className="text-white">tap</span><span className="text-teal-400">bez</span>
-            </div>
-
             {/* Quick Share Floating Button */}
             <button
               onClick={handleShareProfile}
@@ -783,6 +791,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
             <p className="text-sm font-semibold tracking-wide" style={{ color: theme.accentColor || "#14b8a6" }}>
               {professionalTitle}
             </p>
+
+            {/* Company / Brand Name Badge */}
+            {companyName && (
+              <div className="flex justify-center pt-0.5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-slate-100 shadow-xs">
+                  <Building2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <span>{companyName}</span>
+                </span>
+              </div>
+            )}
 
             {/* Short Value Proposition / Personal Quote */}
             {(headerBlock.valueProposition || (!companyName && tagline)) && (
@@ -1114,53 +1132,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken 
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* ============================================================== */}
-          {/* CAREER EXPERIENCE & WORK HISTORY                               */}
-          {/* ============================================================== */}
-          {experienceList && experienceList.length > 0 && (
-            <div className="p-5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-3.5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-teal-400" />
-                  <span>Work Experience & Career</span>
-                </h3>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {experienceList.length} {experienceList.length === 1 ? "Role" : "Roles"}
-                </span>
-              </div>
-
-              <div className="space-y-2.5">
-                {experienceList.map((exp: any, idx: number) => (
-                  <div
-                    key={exp.id || idx}
-                    className="p-3.5 rounded-xl bg-slate-950/60 border border-white/10 space-y-1 hover:border-teal-500/30 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-bold text-white truncate">
-                          {exp.role || exp.title}
-                        </h4>
-                        <p className="text-xs text-teal-400 font-medium truncate mt-0.5">
-                          {exp.company}
-                        </p>
-                      </div>
-                      {exp.period && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono shrink-0">
-                          {exp.period}
-                        </span>
-                      )}
-                    </div>
-                    {exp.description && (
-                      <p className="text-xs text-slate-400 leading-relaxed pt-1 whitespace-pre-line">
-                        {exp.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
