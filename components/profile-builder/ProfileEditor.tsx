@@ -785,15 +785,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // SECTION 1: PROFILE HEADER & IDENTITY
   const renderHeaderSection = (isFullWidth = false) => (
-    <div id="profile-header" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+    <div id="profile-header" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             1
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Profile Header & Branding</h2>
-            <p className="text-xs text-slate-500">Upload your banner, photo, and set your identity.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Profile Header & Branding</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Upload your banner, photo, and set your identity.</p>
           </div>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -810,10 +810,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       {/* Hero Profile Photo & Centered Company Logo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Hero Profile Photo (Appears in background) */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="block text-xs font-bold text-slate-900">Hero Profile Photo</span>
+              <span className="block text-xs font-bold text-slate-900 dark:text-white">Hero Profile Photo</span>
               <p className="text-[11px] text-slate-500">Appears in background as main hero portrait</p>
             </div>
             <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold cursor-pointer transition-colors shadow-xs active:scale-95">
@@ -839,13 +839,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </div>
 
         {/* Brand / Company Logo (Appears centered over portrait) */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="block text-xs font-bold text-slate-900">Company / Brand Logo</span>
+              <span className="block text-xs font-bold text-slate-900 dark:text-white">Company / Brand Logo</span>
               <p className="text-[11px] text-slate-500">Appears in center circular badge over portrait</p>
             </div>
-            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800 cursor-pointer transition-colors shadow-xs active:scale-95">
+            <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer transition-colors shadow-xs active:scale-95">
               <Upload className="w-3.5 h-3.5 text-blue-600" />
               <span>{uploadingField === "companyLogoUrl" ? "Uploading..." : "Upload Logo"}</span>
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "companyLogoUrl")} />
@@ -873,7 +873,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       {/* Form Fields: Spacious 2-Column Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Full Name *</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Full Name *</label>
           <input
             type="text"
             required
@@ -883,12 +883,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               updateBlockData("identity_header", { name: val }, { name: val });
             }}
             placeholder="e.g. Rikesh Panchal"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Designation / Role *</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Designation / Role *</label>
           <input
             type="text"
             value={headerBlock.title !== undefined ? headerBlock.title : profile.title || ""}
@@ -897,45 +897,45 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               updateBlockData("identity_header", { title: val }, { title: val });
             }}
             placeholder="e.g. Founder • Trainer • Consultant"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Company / Brand Name</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Company / Brand Name</label>
           <input
             type="text"
             value={headerBlock.company || ""}
             onChange={(e) => updateBlockData("identity_header", { company: e.target.value })}
             placeholder="e.g. Upmark Digital"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Company Tagline / Subtitle</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Company Tagline / Subtitle</label>
           <input
             type="text"
             value={headerBlock.badge || ""}
             onChange={(e) => updateBlockData("identity_header", { badge: e.target.value })}
             placeholder="e.g. Digital Marketing | Training | Consulting"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
           />
         </div>
 
         <div className="sm:col-span-2 space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Short Value Proposition / Bio Quote</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Short Value Proposition / Bio Quote</label>
           <textarea
             rows={2}
             value={headerBlock.valueProposition || ""}
             onChange={(e) => updateBlockData("identity_header", { valueProposition: e.target.value })}
             placeholder="Helping businesses grow with Digital Marketing, AI and practical training..."
-            className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium resize-none"
+            className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium resize-none"
           />
         </div>
 
         <div className="sm:col-span-2 space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">Public Profile Link Slug</label>
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Public Profile Link Slug</label>
           <div className="flex items-center gap-2">
             <span className="px-3 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono text-slate-500 shrink-0">
               tapbez.in/p/
@@ -945,7 +945,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               value={profile.slug || ""}
               onChange={(e) => setProfile({ ...profile, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, "") })}
               placeholder="your-unique-slug"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-sm font-mono focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-all font-medium"
             />
           </div>
         </div>
@@ -957,15 +957,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const renderQuickActionsSection = () => (
     <div id="sections" className="space-y-6">
       {/* SECTION ORDER MANAGER CARD (DRAG & DROP / UP-DOWN) */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
               <ArrowUpDown className="w-4 h-4" />
             </span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Profile Sections Order (Drag & Drop / Up Down)</h2>
-              <p className="text-xs text-slate-500">Reorder sections on your public card. Changes preview in real-time.</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Profile Sections Order (Drag & Drop / Up Down)</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Reorder sections on your public card. Changes preview in real-time.</p>
             </div>
           </div>
           <button
@@ -1004,7 +1004,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700">
                     <GripVertical className="w-4 h-4" />
                   </div>
-                  <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
                   <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -1021,7 +1021,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     type="button"
                     disabled={idx === 0}
                     onClick={() => moveSection(type, "up")}
-                    className="p-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    className="p-1 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
                     title="Move Up"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -1030,7 +1030,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     type="button"
                     disabled={idx === orderedBlockTypes.length - 1}
                     onClick={() => moveSection(type, "down")}
-                    className="p-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                    className="p-1 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
                     title="Move Down"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
@@ -1060,15 +1060,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             2
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Quick Action Buttons & Contact Info</h2>
-            <p className="text-xs text-slate-500">Configure phone call, WhatsApp, email, map, and meeting booking links.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Quick Action Buttons & Contact Info</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Configure phone call, WhatsApp, email, map, and meeting booking links.</p>
           </div>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -1084,7 +1084,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Direct Call Phone */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
@@ -1104,12 +1104,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.phone || ""}
             onChange={(e) => updateBlockData("contact_actions", { phone: e.target.value })}
             placeholder="+91 98250 12345"
-            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
         </div>
 
         {/* WhatsApp Chat */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1129,12 +1129,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.whatsapp || ""}
             onChange={(e) => updateBlockData("contact_actions", { whatsapp: e.target.value })}
             placeholder="+91 98250 12345 or full URL"
-            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
         </div>
 
         {/* Email */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-600 flex items-center justify-center shrink-0">
@@ -1154,12 +1154,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.email || ""}
             onChange={(e) => updateBlockData("contact_actions", { email: e.target.value })}
             placeholder="hello@yourbrand.com"
-            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
         </div>
 
         {/* Map / Location */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0">
@@ -1186,12 +1186,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               updateBlockData("contact_actions", { location: e.target.value });
             }}
             placeholder="e.g. Ring Road, Surat, Gujarat"
-            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
         </div>
 
         {/* Book Appointment */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 sm:col-span-2">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5 sm:col-span-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-teal-500/15 text-teal-600 flex items-center justify-center shrink-0">
@@ -1211,7 +1211,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={contactBlock.bookingUrl || ""}
             onChange={(e) => updateBlockData("contact_actions", { bookingUrl: e.target.value })}
             placeholder="https://calendly.com/your-username"
-            className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
         </div>
       </div>
@@ -1221,15 +1221,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // SECTION 3: SOCIAL MEDIA LINKS
   const renderSocialsSection = () => (
-    <div id="socials" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+    <div id="socials" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             3
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Social Media & Important Links</h2>
-            <p className="text-xs text-slate-500">Add verified handles for Instagram, YouTube, LinkedIn, Google Review, etc.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Social Media & Important Links</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Add verified handles for Instagram, YouTube, LinkedIn, Google Review, etc.</p>
           </div>
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -1244,13 +1244,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* Quick Add Social Row */}
-      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-        <span className="block text-xs font-bold text-slate-800">Add New Social or Custom Link</span>
+      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-3">
+        <span className="block text-xs font-bold text-slate-900 dark:text-white">Add New Social or Custom Link</span>
         <div className="flex flex-col sm:flex-row items-center gap-2">
           <select
             value={selectedSocialPlatform}
             onChange={(e) => setSelectedSocialPlatform(e.target.value)}
-            className="w-full sm:w-44 px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+            className="w-full sm:w-44 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
           >
             <option value="instagram">Instagram</option>
             <option value="facebook">Facebook</option>
@@ -1267,7 +1267,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             value={newSocialUrl}
             onChange={(e) => setNewSocialUrl(e.target.value)}
             placeholder="https://instagram.com/your-username"
-            className="w-full flex-1 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-blue-500"
+            className="w-full flex-1 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
           />
           <button
             type="button"
@@ -1297,10 +1297,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {socialLinks.map((link, idx) => (
           <div
             key={link.id || idx}
-            className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3"
+            className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <span className="text-xs font-bold text-slate-700 capitalize shrink-0 w-24 truncate">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 capitalize shrink-0 w-24 truncate">
                 {link.platform.replace("_", " ")}
               </span>
               <input
@@ -1311,7 +1311,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   updated[idx] = { ...updated[idx], url: e.target.value };
                   updateBlockData("social_links", { links: updated });
                 }}
-                className="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 font-mono focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
               />
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -1506,15 +1506,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // SECTION 5: SERVICES & PRODUCTS
   const renderServicesSection = () => (
-    <div id="services" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+    <div id="services" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             5
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Services & Products</h2>
-            <p className="text-xs text-slate-500">Showcase your offerings, consulting packages, and digital solutions.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Services & Products</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Showcase your offerings, consulting packages, and digital solutions.</p>
           </div>
         </div>
         <button
@@ -1557,7 +1557,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     updated[idx] = { ...updated[idx], title: e.target.value };
                     updateBlockData("services", { items: updated });
                   }}
-                  className="w-full text-sm font-bold text-slate-900 bg-transparent focus:outline-none focus:bg-white rounded-md px-1"
+                  className="w-full text-sm font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 rounded-md px-1 transition-colors"
                 />
                 <input
                   type="text"
@@ -1567,7 +1567,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     updated[idx] = { ...updated[idx], description: e.target.value };
                     updateBlockData("services", { items: updated });
                   }}
-                  className="w-full text-xs text-slate-500 bg-transparent focus:outline-none focus:bg-white rounded-md px-1"
+                  className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 rounded-md px-1 transition-colors"
                 />
               </div>
             </div>
@@ -1581,7 +1581,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   updated[idx] = { ...updated[idx], price: e.target.value };
                   updateBlockData("services", { items: updated });
                 }}
-                className="w-28 text-right font-black text-blue-600 text-sm bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-blue-500"
+                className="w-28 text-right font-black text-blue-600 dark:text-blue-400 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
               />
               <input
                 type="checkbox"
@@ -1614,15 +1614,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // SECTION 6: FEATURED WORK & PORTFOLIO
   const renderPortfolioSection = () => (
-    <div id="portfolio" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-6">
+    <div id="portfolio" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             6
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Featured Work & Portfolio Gallery</h2>
-            <p className="text-xs text-slate-500">Display project images, case studies, or campaign designs.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Featured Work & Portfolio Gallery</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Display project images, case studies, or campaign designs.</p>
           </div>
         </div>
         <button
@@ -1724,14 +1724,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 <h3 className="text-base font-bold text-slate-900">
                   {editingProjectIndex !== null ? "Edit Project" : "Add New Project"}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Enter project details, upload an image or paste a link.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowProjectModal(false)}
-                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1740,20 +1740,20 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
               {/* Project Title */}
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Project Title *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Project Title *</label>
                 <input
                   type="text"
                   required
                   value={projectFormData.title}
                   onChange={(e) => setProjectFormData({ ...projectFormData, title: e.target.value })}
                   placeholder="e.g. Modern E-Commerce Platform"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
                 />
               </div>
 
               {/* Category */}
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Category / Tag</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Category / Tag</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {["Web Design", "Branding", "Social Media", "App Development", "Photography", "Case Study"].map((cat) => (
                     <button
@@ -1775,13 +1775,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   value={projectFormData.category}
                   onChange={(e) => setProjectFormData({ ...projectFormData, category: e.target.value })}
                   placeholder="Or type custom category tag"
-                  className="w-full mt-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full mt-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
                 />
               </div>
 
               {/* Project Image */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">Project Image *</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Project Image *</label>
                 
                 {/* Image Preview */}
                 <div className="h-36 w-full rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden relative flex items-center justify-center">
@@ -1817,32 +1817,32 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     value={projectFormData.imageUrl}
                     onChange={(e) => setProjectFormData({ ...projectFormData, imageUrl: e.target.value })}
                     placeholder="https://images.unsplash.com/..."
-                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500"
+                    className="flex-1 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
                   />
                 </div>
               </div>
 
               {/* Project URL */}
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Live Project URL (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Live Project URL (Optional)</label>
                 <input
                   type="url"
                   value={projectFormData.linkUrl}
                   onChange={(e) => setProjectFormData({ ...projectFormData, linkUrl: e.target.value })}
                   placeholder="https://example.com/project"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
                 />
               </div>
 
               {/* Project Description */}
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700">Short Summary / Description</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Short Summary / Description</label>
                 <textarea
                   rows={2}
                   value={projectFormData.description}
                   onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
                   placeholder="Briefly describe what this project was and results achieved..."
-                  className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none"
                 />
               </div>
             </div>
@@ -1851,7 +1851,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               <button
                 type="button"
                 onClick={() => setShowProjectModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1873,15 +1873,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const renderTestimonialsAndMapSection = () => (
     <div id="testimonials" className="space-y-6">
       {/* Testimonials */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
               7
             </span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Client Testimonials & Reviews</h2>
-              <p className="text-xs text-slate-500">Build social proof with authentic client reviews and 5-star ratings.</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Client Testimonials & Reviews</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Build social proof with authentic client reviews and 5-star ratings.</p>
             </div>
           </div>
           <button
@@ -1905,7 +1905,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
         <div className="space-y-3">
           {testimonialsList.map((t, idx) => (
-            <div key={t.id || idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+            <div key={t.id || idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-700 font-bold text-xs flex items-center justify-center">
@@ -1920,7 +1920,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                         updated[idx] = { ...updated[idx], clientName: e.target.value };
                         updateBlockData("testimonials", { items: updated });
                       }}
-                      className="text-xs font-bold text-slate-900 bg-transparent focus:outline-none"
+                      className="text-xs font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none"
                     />
                     <input
                       type="text"
@@ -1953,7 +1953,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   updated[idx] = { ...updated[idx], content: e.target.value };
                   updateBlockData("testimonials", { items: updated });
                 }}
-                className="w-full text-xs text-slate-700 bg-transparent border-t border-slate-200/80 pt-2 focus:outline-none resize-none"
+                className="w-full text-xs text-slate-700 dark:text-slate-300 bg-transparent border-t border-slate-200/80 dark:border-white/10 pt-2 focus:outline-none resize-none"
               />
             </div>
           ))}
@@ -1961,15 +1961,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* Frequently Asked Questions (FAQ) Card */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
               ❓
             </span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Frequently Asked Questions (FAQ)</h2>
-              <p className="text-xs text-slate-500">Provide direct answers to frequent client questions, booking terms & inquiries.</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Frequently Asked Questions (FAQ)</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Provide direct answers to frequent client questions, booking terms & inquiries.</p>
             </div>
           </div>
           <button
@@ -1996,10 +1996,10 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           {faqList.map((faq: any, idx: number) => (
             <div
               key={faq.id || idx}
-              className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 relative group"
+              className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-2.5 relative group"
             >
               <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                <span className="text-xs font-bold text-slate-700">Question #{idx + 1}</span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Question #{idx + 1}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -2014,7 +2014,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               </div>
 
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-slate-600">Question *</label>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">Question *</label>
                 <input
                   type="text"
                   value={faq.question || ""}
@@ -2024,12 +2024,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     updateBlockData("faq", { items: updated });
                   }}
                   placeholder="e.g. How does your consulting process work?"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-[11px] font-bold text-slate-600">Answer *</label>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400">Answer *</label>
                 <textarea
                   rows={2}
                   value={faq.answer || ""}
@@ -2039,7 +2039,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                     updateBlockData("faq", { items: updated });
                   }}
                   placeholder="Type the detailed answer here..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
             </div>
@@ -2048,7 +2048,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* Google Map & Contact Form */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <h3 className="text-sm font-bold text-slate-900">Google Map Location & Direction Card</h3>
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -2077,14 +2077,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const renderAppearanceAndSeoSection = () => (
     <div id="appearance" className="space-y-6">
       {/* 6 Industry Template Families */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-5">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
             🎨
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900">Choose Industry Template Family</h2>
-            <p className="text-xs text-slate-500">Switching template updates visual styling and accents while preserving all your content.</p>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Choose Industry Template Family</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Switching template updates visual styling and accents while preserving all your content.</p>
           </div>
         </div>
 
@@ -2105,15 +2105,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 onClick={() => switchTemplateFamily(tmpl.key as IndustryType)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                   isSelected
-                    ? "bg-slate-900 text-white border-blue-500 shadow-md ring-2 ring-blue-500"
-                    : "bg-slate-50 text-slate-800 border-slate-200 hover:bg-slate-100"
+                    ? "bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-white border-2 border-blue-600 dark:border-blue-500 shadow-md ring-2 ring-blue-500/20"
+                    : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <div className="min-w-0 pr-3">
-                  <p className={`text-sm font-bold truncate ${isSelected ? "text-white" : "text-slate-900"}`}>
+                  <p className={`text-sm font-bold truncate ${isSelected ? "text-blue-950 dark:text-white" : "text-slate-900 dark:text-white"}`}>
                     {tmpl.name}
                   </p>
-                  <p className={`text-xs truncate ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                  <p className={`text-xs truncate ${isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-slate-400"}`}>
                     {tmpl.desc}
                   </p>
                 </div>
@@ -2220,15 +2220,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* SEO & Search Engine Preview */}
-      <div id="seo" className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div id="seo" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
               🔍
             </span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">SEO & Google Search Preview</h2>
-              <p className="text-xs text-slate-500">Control how your digital card appears when shared on WhatsApp and Google.</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">SEO & Google Search Preview</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Control how your digital card appears when shared on WhatsApp and Google.</p>
             </div>
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
@@ -2252,22 +2252,22 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* Downloads / Resources */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-7 space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
               📁
             </span>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Downloads & PDF Documents</h2>
-              <p className="text-xs text-slate-500">Allow visitors to download your catalog, menu or corporate profile.</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Downloads & PDF Documents</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Allow visitors to download your catalog, menu or corporate profile.</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
           {downloadsList.map((dl, i) => (
-            <div key={dl.id || i} className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+            <div key={dl.id || i} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <FileText className="w-4 h-4 text-red-500 shrink-0" />
                 <span className="text-xs font-bold text-slate-800">{dl.title}</span>
@@ -2319,7 +2319,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full max-h-screen overflow-hidden bg-[#f4f7fc] text-slate-800">
+    <div className="flex-1 flex flex-col h-full max-h-screen overflow-hidden bg-slate-50 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 transition-colors">
       {/* ============================================================== */}
       {/* 1. TOP HEADER BAR (COMPACT & FIXED)                            */}
       {/* ============================================================== */}
@@ -2449,13 +2449,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       )}
 
       {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
-      <div className="shrink-0 bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs">
+      <div className="shrink-0 bg-white/95 dark:bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs transition-colors">
         <div className="flex items-center gap-2.5 flex-wrap">
           <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
             Step {currentStep} of {STEPS.length}
           </span>
           <div className="min-w-0">
-            <span className="text-xs font-black text-slate-900 block truncate">
+            <span className="text-xs font-black text-slate-900 dark:text-white block truncate">
               {STEPS[currentStep - 1].label}
             </span>
           </div>
@@ -2478,7 +2478,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           <button
             type="button"
             onClick={() => setShowReorderModal(true)}
-            className="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 cursor-pointer shadow-2xs"
+            className="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer shadow-2xs"
             title="Reorder profile sections (Drag & Drop or Move Up/Down)"
           >
             <ArrowUpDown className="w-3 h-3 text-amber-600" />
@@ -2497,8 +2497,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   isActive
                     ? "bg-blue-600 text-white shadow-xs"
                     : isCompleted
-                    ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-500/30"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                 }`}
                 title={s.label}
               >
@@ -2511,7 +2511,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* MOBILE SWITCHER TAB */}
-      <div className="md:hidden shrink-0 flex border-b border-slate-200 bg-white p-1">
+      <div className="md:hidden shrink-0 flex border-b border-slate-200 dark:border-white/10 bg-white dark:bg-[#0a0f1d] p-1">
         <button
           type="button"
           onClick={() => setMobileTab("editor")}
@@ -2545,7 +2545,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           {/* ============================================================ */}
           {/* ONBOARDING STEP-BY-STEP DESKTOP EXPERIENCE                   */}
           {/* ============================================================ */}
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-[#f4f7fc]">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-50 dark:bg-[#07090e] transition-colors">
             {/* Active Step Form: Scrollable inside only */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 scrollbar-thin">
               <div className="max-w-2xl mx-auto space-y-4">
@@ -2561,18 +2561,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             </div>
 
             {/* PINNED BOTTOM STEPPER CONTROLS BAR: ALWAYS IN SIGHT! */}
-            <div className="shrink-0 bg-white border-t border-slate-200/90 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20">
+            <div className="shrink-0 bg-white dark:bg-[#0a0f1d] border-t border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20 transition-colors">
               <button
                 type="button"
                 disabled={currentStep === 1}
                 onClick={() => goToStep(Math.max(1, currentStep - 1))}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
               </button>
 
-              <div className="text-[11px] font-bold text-slate-500 hidden sm:block">
+              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 hidden sm:block">
                 Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
               </div>
 
@@ -2581,7 +2581,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSaving}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Save className="w-3.5 h-3.5 text-slate-600" />
                   <span>{isSaving ? "Saving..." : "Save Draft"}</span>
@@ -2750,7 +2750,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Reorder Profile Sections</h3>
-                  <p className="text-xs text-slate-500">Drag & drop or use ▲ / ▼ to reorder blocks</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Drag & drop or use ▲ / ▼ to reorder blocks</p>
                 </div>
               </div>
               <button
@@ -2779,7 +2779,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       draggedBlockType === type
                         ? "opacity-50 border-blue-500 bg-blue-50"
                         : isEnabled
-                        ? "bg-slate-50 hover:bg-slate-100 border-slate-200"
+                        ? "bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white"
                         : "bg-slate-100/50 border-dashed border-slate-200 opacity-60"
                     }`}
                   >
@@ -2787,7 +2787,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700">
                         <GripVertical className="w-4 h-4" />
                       </div>
-                      <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                      <span className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
@@ -2862,7 +2862,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">Add Employee Profile</h3>
-                  <p className="text-xs text-slate-500">Business Pro includes 25 digital profile slots</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Business Pro includes 25 digital profile slots</p>
                 </div>
               </div>
               <button
@@ -2973,7 +2973,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       {/* Quick QR Code Modal */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#0c1222] border border-slate-200 dark:border-white/10 shadow-2xl p-6 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200 text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="text-left">
                 <h3 className="text-base font-bold text-slate-900">Profile QR Code</h3>
@@ -3016,7 +3016,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               <button
                 type="button"
                 onClick={() => setShowQrModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

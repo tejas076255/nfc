@@ -62,7 +62,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
       <nav
         className={`sticky top-0 z-40 w-full transition-all duration-300 ${
           isScrolled
-            ? "bg-[#030508]/85 backdrop-blur-xl border-b border-white/[0.08] shadow-2xl py-3"
+            ? "bg-white/95 dark:bg-[#030508]/85 backdrop-blur-xl border-b border-slate-200/90 dark:border-white/[0.08] shadow-xs dark:shadow-2xl py-3"
             : "bg-transparent py-4 border-b border-transparent"
         }`}
       >
@@ -77,7 +77,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
               <Wifi className="w-4 h-4 text-slate-950 rotate-90 stroke-[2.5]" />
             </motion.div>
             <div className="flex items-baseline gap-1">
-              <span className="text-base font-bold tracking-tight text-white group-hover:text-amber-100 transition-colors">
+              <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-100 transition-colors">
                 TapSync
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -85,7 +85,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
+          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-600 dark:text-slate-300">
             {/* Platform Mega Menu */}
             <div
               className="relative"
@@ -94,7 +94,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             >
               <button
                 className={`flex items-center gap-1.5 py-2 transition-colors ${
-                  platformOpen ? "text-white" : "hover:text-white"
+                  platformOpen ? "text-slate-900 dark:text-white" : "hover:text-slate-900 dark:hover:text-white"
                 }`}
                 type="button"
               >
@@ -115,20 +115,20 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                     transition={{ duration: 0.18, ease: "easeOut" }}
                     className="absolute top-full -left-6 w-80 pt-2 z-50"
                   >
-                    <div className="p-3.5 rounded-2xl bg-[#080c16]/95 border border-white/10 shadow-2xl backdrop-blur-2xl space-y-1">
+                    <div className="p-3.5 rounded-2xl bg-white/95 dark:bg-[#080c16]/95 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-2xl space-y-1">
                       <a
                         href="#features"
                         onClick={() => setPlatformOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5 group-hover/item:bg-amber-500/20 transition-colors">
                           <Zap className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-white group-hover/item:text-amber-400 transition-colors">
+                          <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover/item:text-amber-600 dark:group-hover/item:text-amber-400 transition-colors">
                             Instant vCard Engine
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             Beam full address book info to iPhone/Android in 0.4s
                           </div>
                         </div>
@@ -137,7 +137,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                       <a
                         href="#features"
                         onClick={() => setPlatformOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 mt-0.5 group-hover/item:bg-blue-500/20 transition-colors">
                           <BarChart3 className="w-4 h-4" />
@@ -146,7 +146,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                           <div className="text-xs font-semibold text-white group-hover/item:text-blue-400 transition-colors">
                             Scan & Tap Telemetry
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             Real-time analytics comparing NFC taps vs QR scans
                           </div>
                         </div>
@@ -155,7 +155,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                       <a
                         href="#features"
                         onClick={() => setPlatformOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400 mt-0.5 group-hover/item:bg-purple-500/20 transition-colors">
                           <Layers className="w-4 h-4" />
@@ -164,7 +164,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                           <div className="text-xs font-semibold text-white group-hover/item:text-purple-400 transition-colors">
                             Dynamic Multi-Profile
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             Route 1 physical card to multiple role identities
                           </div>
                         </div>
@@ -173,7 +173,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                       <a
                         href="#features"
                         onClick={() => setPlatformOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 mt-0.5 group-hover/item:bg-emerald-500/20 transition-colors">
                           <Lock className="w-4 h-4" />
@@ -182,7 +182,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                           <div className="text-xs font-semibold text-white group-hover/item:text-emerald-400 transition-colors">
                             Remote Fleet Lock
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             Instant freeze lock switch for lost or reassigned cards
                           </div>
                         </div>
@@ -201,7 +201,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             >
               <button
                 className={`flex items-center gap-1.5 py-2 transition-colors ${
-                  hardwareOpen ? "text-white" : "hover:text-white"
+                  hardwareOpen ? "text-slate-900 dark:text-white" : "hover:text-slate-900 dark:hover:text-white"
                 }`}
                 type="button"
               >
@@ -222,20 +222,20 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                     transition={{ duration: 0.18, ease: "easeOut" }}
                     className="absolute top-full -left-6 w-72 pt-2 z-50"
                   >
-                    <div className="p-3.5 rounded-2xl bg-[#080c16]/95 border border-white/10 shadow-2xl backdrop-blur-2xl space-y-1">
+                    <div className="p-3.5 rounded-2xl bg-white/95 dark:bg-[#080c16]/95 border border-slate-200 dark:border-white/10 shadow-xl backdrop-blur-2xl space-y-1">
                       <a
                         href="#hardware"
                         onClick={() => setHardwareOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 mt-0.5 group-hover/item:bg-amber-500/20 transition-colors">
                           <CreditCard className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-white group-hover/item:text-amber-400 transition-colors">
+                          <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover/item:text-amber-600 dark:group-hover/item:text-amber-400 transition-colors">
                             Velvet Matte PVC (₹999)
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             Flagship soft-touch finish with NXP NTAG216 chip
                           </div>
                         </div>
@@ -244,16 +244,16 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
                       <a
                         href="#hardware"
                         onClick={() => setHardwareOpen(false)}
-                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group/item"
+                        className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors group/item"
                       >
                         <div className="p-2 rounded-lg bg-slate-500/10 text-slate-300 mt-0.5 group-hover/item:bg-slate-500/20 transition-colors">
                           <CreditCard className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="text-xs font-semibold text-white group-hover/item:text-slate-200 transition-colors">
+                          <div className="text-xs font-semibold text-slate-900 dark:text-white group-hover/item:text-blue-600 dark:group-hover/item:text-slate-200 transition-colors">
                             Gloss Core PVC (₹499)
                           </div>
-                          <div className="text-[11px] text-slate-400 leading-snug">
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                             High-density 0.76mm composite with NTAG213
                           </div>
                         </div>
@@ -265,16 +265,16 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             </div>
 
             {/* Direct Section Links */}
-            <a href="#templates" className="hover:text-white transition-colors">
+            <a href="#templates" className="hover:text-slate-900 dark:hover:text-white transition-colors">
               Templates
             </a>
-            <a href="#compare" className="hover:text-white transition-colors">
+            <a href="#compare" className="hover:text-slate-900 dark:hover:text-white transition-colors">
               Why Switch
             </a>
-            <a href="#pricing" className="hover:text-white transition-colors">
+            <a href="#pricing" className="hover:text-slate-900 dark:hover:text-white transition-colors">
               Pricing
             </a>
-            <a href="#faq" className="hover:text-white transition-colors">
+            <a href="#faq" className="hover:text-slate-900 dark:hover:text-white transition-colors">
               FAQ
             </a>
           </div>
@@ -285,7 +285,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             {sessionUser ? (
               <Link
                 href="/dashboard"
-                className="px-4 py-2 rounded-full border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-xs font-medium text-white transition-all flex items-center gap-1.5"
+                className="px-4 py-2 rounded-full border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-800 dark:text-white transition-all flex items-center gap-1.5"
               >
                 <span>Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
@@ -294,7 +294,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 rounded-full text-xs font-medium text-slate-300 hover:text-white transition-colors"
+                  className="px-4 py-2 rounded-full text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   Log in
                 </Link>
@@ -316,7 +316,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
             <ThemeToggle size="sm" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white"
+              className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -332,7 +332,7 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="md:hidden border-b border-white/10 bg-[#060a12]/98 backdrop-blur-2xl overflow-hidden"
+              className="md:hidden border-b border-slate-200 dark:border-white/10 bg-white/98 dark:bg-[#060a12]/98 backdrop-blur-2xl overflow-hidden"
             >
               <div className="px-4 pt-4 pb-6 space-y-3 text-sm">
                 <a

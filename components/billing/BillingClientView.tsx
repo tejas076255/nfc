@@ -211,18 +211,18 @@ export function BillingClientView({
   return (
     <div className="space-y-8">
       {/* TOP TABS NAVIGATION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/10 pb-5">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-blue-400 mb-1">
             <Sparkles className="w-4 h-4" />
             Workspace Entitlements & Features
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             {activeTab === "billing" && "Subscription & Billing"}
             {activeTab === "team" && "Team Members & Permissions (Pro)"}
             {activeTab === "integrations" && "CRM, Webhooks & Automated Integrations"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             {activeTab === "billing" && "Manage your annual plan, profile quotas, and view verified tax receipts."}
             {activeTab === "team" && "Invite colleagues, assign Editor/Admin roles, and manage digital NFC cards collaboratively."}
             {activeTab === "integrations" && "Automatically forward leads and card tap events into Zapier, Google Sheets, HubSpot, or Slack."}
@@ -230,13 +230,13 @@ export function BillingClientView({
         </div>
 
         {/* Tab Pills */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900 border border-white/10 self-start sm:self-auto shrink-0">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 self-start sm:self-auto shrink-0">
           <button
             onClick={() => handleTabChange("billing")}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "billing"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export function BillingClientView({
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative ${
               activeTab === "team"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -263,7 +263,7 @@ export function BillingClientView({
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative ${
               activeTab === "integrations"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                : "text-slate-400 hover:text-white hover:bg-white/5"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
             <Plug className="w-3.5 h-3.5" />
@@ -314,7 +314,7 @@ export function BillingClientView({
       {activeTab === "billing" && (
         <div className="space-y-10 animate-in fade-in duration-200">
           {/* CURRENT SUBSCRIPTION CARD */}
-          <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-blue-950/40 via-slate-900/60 to-purple-950/30 border border-blue-500/30 shadow-2xl relative overflow-hidden">
+          <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/40 dark:via-slate-900/60 dark:to-purple-950/30 border border-blue-200 dark:border-blue-500/30 shadow-xs shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -328,13 +328,13 @@ export function BillingClientView({
                   </span>
                 </div>
 
-                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                   {currentPlan.name}
                 </h2>
 
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
                   Annual SaaS subscription for your NFC digital cards and lead management CRM. You are currently using{" "}
-                  <span className="font-bold text-white">{activeProfilesCount}</span> of{" "}
+                  <span className="font-bold text-slate-900 dark:text-white">{activeProfilesCount}</span> of{" "}
                   <span className="font-bold text-white">
                     {currentPlan.profileLimit >= 999 ? "Unlimited" : currentPlan.profileLimit}
                   </span>{" "}
@@ -343,13 +343,13 @@ export function BillingClientView({
 
                 {/* Profile Quota Progress Bar */}
                 <div className="max-w-xl space-y-1.5 pt-1">
-                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>Profile Quota Utilization</span>
-                    <span className="font-mono font-bold text-white">
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">
                       {activeProfilesCount} / {currentPlan.profileLimit >= 999 ? "∞" : currentPlan.profileLimit} Slots
                     </span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-blue-500 to-teal-400 transition-all duration-500"
                       style={{
@@ -397,7 +397,7 @@ export function BillingClientView({
               <div className="p-6 rounded-2xl bg-slate-950/80 border border-white/10 space-y-4 shrink-0 lg:min-w-[240px]">
                 <div>
                   <div className="text-xs text-slate-400 font-medium">Billed Annually</div>
-                  <div className="text-2xl font-black text-white mt-0.5">
+                  <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
                     {currentPlan.priceAnnualInr === 0
                       ? "₹0 Free"
                       : `₹${currentPlan.priceAnnualInr.toLocaleString("en-IN")}/yr`}
@@ -423,7 +423,7 @@ export function BillingClientView({
           {/* PLANS SELECTION */}
           <div className="space-y-6">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-white">Available Plans & Upgrades</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Available Plans & Upgrades</h2>
               <p className="text-sm text-slate-400">
                 Switch plans anytime with instant entitlement updates across your workspace.
               </p>
@@ -459,9 +459,9 @@ export function BillingClientView({
 
                     <div className="space-y-4">
                       <div>
-                        <h3 className="text-base font-bold text-white">{plan.name}</h3>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{plan.name}</h3>
                         <div className="mt-2 flex items-baseline gap-1">
-                          <span className="text-2xl font-black text-white">
+                          <span className="text-2xl font-black text-slate-900 dark:text-white">
                             {plan.priceAnnualInr === 0
                               ? "₹0"
                               : `₹${plan.priceAnnualInr.toLocaleString("en-IN")}`}
@@ -523,7 +523,7 @@ export function BillingClientView({
           {/* INVOICES & BILLING HISTORY */}
           <div className="space-y-4">
             <div className="space-y-1">
-              <h2 className="text-xl font-bold text-white">Invoices & Receipts</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Invoices & Receipts</h2>
               <p className="text-sm text-slate-400">
                 Download your tax invoices for card orders and subscription payments.
               </p>
@@ -558,7 +558,7 @@ export function BillingClientView({
 
                         return (
                           <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-white">
+                            <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                               {inv.invoiceNumber}
                             </td>
                             <td className="py-3.5 px-4 text-slate-400">
@@ -571,7 +571,7 @@ export function BillingClientView({
                             <td className="py-3.5 px-4 text-slate-200">
                               {items.length > 0 ? items.map((i) => i.name).join(", ") : "TapSync Services"}
                             </td>
-                            <td className="py-3.5 px-4 font-bold text-white">
+                            <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
                               ₹{inv.amountInr.toLocaleString("en-IN")}
                             </td>
                             <td className="py-3.5 px-4">
@@ -615,7 +615,7 @@ export function BillingClientView({
                   </span>
                   <span className="text-xs text-slate-400">Team Seats: 1 (Owner Only)</span>
                 </div>
-                <h3 className="text-xl md:text-2xl font-black text-white tracking-tight">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   Unlock Team Collaboration with Business Pro
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -645,7 +645,7 @@ export function BillingClientView({
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>Business Pro Workspace Active</span>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
                       5 Team Seats Included
@@ -667,7 +667,7 @@ export function BillingClientView({
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-bold text-white">Workspace Teammates</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Workspace Teammates</h3>
                 <p className="text-xs text-slate-400">
                   People who currently have access to {workspaceName}.
                 </p>
@@ -686,7 +686,7 @@ export function BillingClientView({
             {showInviteModal && (
               <div className="p-5 rounded-2xl bg-slate-900 border border-blue-500/40 space-y-4 shadow-xl animate-in fade-in">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Mail className="w-4 h-4 text-blue-400" />
                     <span>Invite Teammate by Email</span>
                   </h4>
@@ -709,7 +709,7 @@ export function BillingClientView({
                       placeholder="colleague@yourcompany.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500"
                     />
                   </div>
 
@@ -720,7 +720,7 @@ export function BillingClientView({
                     <select
                       value={inviteRole}
                       onChange={(e) => setInviteRole(e.target.value as any)}
-                      className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-blue-500"
+                      className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500"
                     >
                       <option value="editor">Editor (Can edit profiles & view leads)</option>
                       <option value="admin">Admin (Full profile & billing control)</option>
@@ -770,7 +770,7 @@ export function BillingClientView({
                           </div>
                           <div>
                             <div className="font-bold text-white">{m.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">{m.email}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{m.email}</div>
                           </div>
                         </div>
                       </td>
@@ -820,10 +820,10 @@ export function BillingClientView({
       {activeTab === "integrations" && (
         <div className="space-y-8 animate-in fade-in duration-200">
           {/* WEBHOOK CONFIGURATION CARD */}
-          <div className="p-6 md:p-8 rounded-3xl bg-slate-900/60 border border-white/10 space-y-6">
+          <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Plug className="w-5 h-5 text-teal-400" />
                   <span>Real-Time Lead Webhook Destination</span>
                 </h3>
@@ -850,7 +850,7 @@ export function BillingClientView({
                     value={webhookUrl}
                     onChange={(e) => setWebhookUrl(e.target.value)}
                     placeholder="https://your-crm.com/api/webhooks/tapbez"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:border-blue-500"
                   />
                   <button
                     onClick={handleSaveWebhook}
@@ -931,7 +931,7 @@ export function BillingClientView({
 
           {/* POPULAR APPS GRID */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-white">Direct Ecosystem Integrations</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Direct Ecosystem Integrations</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Google Sheets */}
               <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/40 space-y-3 flex flex-col justify-between">
@@ -941,7 +941,7 @@ export function BillingClientView({
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
                         📊
                       </div>
-                      <h4 className="text-sm font-bold text-white">Google Sheets Sync</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Google Sheets Sync</h4>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
                       Supported
@@ -969,7 +969,7 @@ export function BillingClientView({
                       <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-sm">
                         ⚡
                       </div>
-                      <h4 className="text-sm font-bold text-white">Zapier & Make.com</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Zapier & Make.com</h4>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
                       5,000+ Apps
@@ -997,7 +997,7 @@ export function BillingClientView({
                       <div className="w-8 h-8 rounded-xl bg-orange-600/20 text-orange-400 flex items-center justify-center font-bold text-sm">
                         💼
                       </div>
-                      <h4 className="text-sm font-bold text-white">HubSpot CRM</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">HubSpot CRM</h4>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
                       Pro CRM
@@ -1033,7 +1033,7 @@ export function BillingClientView({
                       <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
                         💬
                       </div>
-                      <h4 className="text-sm font-bold text-white">Slack & WhatsApp Alerts</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Slack & WhatsApp Alerts</h4>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
                       Instant Ping
