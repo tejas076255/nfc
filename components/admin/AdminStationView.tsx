@@ -20,6 +20,11 @@ import {
   QrCode,
   MapPin,
   ExternalLink,
+  Smartphone,
+  Users,
+  CreditCard,
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
 
 interface AdminOrder {
@@ -61,13 +66,24 @@ export function AdminStationView({
   orders: initialOrders,
   cards: initialCards,
   auditLogs,
+  profiles: initialProfiles = [],
+  stats,
 }: {
   orders: AdminOrder[];
   cards: AdminCard[];
   auditLogs: AuditLogItem[];
+  profiles?: any[];
+  stats?: {
+    totalProfiles: number;
+    totalUsers: number;
+    totalWorkspaces: number;
+    totalCards: number;
+    totalOrders: number;
+  };
 }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"orders" | "inventory" | "qa" | "logs">("orders");
+  const [activeTab, setActiveTab] = useState<"overview" | "profiles" | "orders" | "inventory" | "qa" | "logs">("overview");
+  const [profileSearch, setProfileSearch] = useState("");
 
   // Orders State
   const [orders, setOrders] = useState(initialOrders);
@@ -253,7 +269,31 @@ export function AdminStationView({
       )}
 
       {/* ADMIN TABS NAVIGATION */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-2 border-b border-white/10 pb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 border-b border-white/10 pb-4">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === "overview"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30 font-bold"
+              : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>System Overview</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("profiles")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            activeTab === "profiles"
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30 font-bold"
+              : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/5"
+          }`}
+        >
+          <Smartphone className="w-4 h-4" />
+          <span>Profiles ({initialProfiles.length})</span>
+        </button>
+
         <button
           onClick={() => setActiveTab("orders")}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${

@@ -37,6 +37,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${profile.name} | ${profile.title || "Digital Business Card"}`;
   const description = profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
 
+  // WhatsApp & OpenGraph scrapers cannot fetch data:base64 URIs; provide binary API endpoint
+  const publicAvatarUrl = photoUrl
+    ? `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/profiles/${slug}/avatar`
+    : undefined;
+
   return {
     title,
     description,
@@ -44,20 +49,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       index: profile.searchIndexed,
       follow: profile.searchIndexed,
     },
-    icons: photoUrl
+    icons: publicAvatarUrl
       ? {
-          icon: photoUrl,
-          shortcut: photoUrl,
-          apple: photoUrl,
+          icon: publicAvatarUrl,
+          shortcut: publicAvatarUrl,
+          apple: publicAvatarUrl,
         }
       : undefined,
     openGraph: {
       title: `${profile.name} | TapSync NFC`,
       description,
-      images: photoUrl
+      images: publicAvatarUrl
         ? [
             {
-              url: photoUrl,
+              url: publicAvatarUrl,
               width: 800,
               height: 800,
               alt: profile.name,
@@ -66,10 +71,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         : undefined,
     },
     twitter: {
-      card: photoUrl ? "summary_large_image" : "summary",
+      card: publicAvatarUrl ? "summary_large_image" : "summary",
       title: `${profile.name} | TapSync NFC`,
       description,
-      images: photoUrl ? [photoUrl] : undefined,
+      images: publicAvatarUrl ? [publicAvatarUrl] : undefined,
     },
   };
 }
@@ -82,11 +87,9 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500 mb-4">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+      <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500 mb-4 shadow-xl">
+          <span className="text-2xl font-bold">404</span>
         </div>
         <h1 className="text-xl font-bold text-white mb-1">Profile Unavailable</h1>
         <p className="text-sm text-slate-400 max-w-sm mb-6">
@@ -117,13 +120,11 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
     ipHash: ip.slice(0, 8),
   });
 
-  const blocks = profile.blocks || [];
-  const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
-  const photoUrl = headerBlock.avatarUrl || headerBlock.photoUrl || headerBlock.coverUrl || headerBlock.logoUrl || null;
+  const publicAvatarUrl = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/profiles/${slug}/avatar`;
 
   return (
     <>
-      {photoUrl && <link rel="icon" href={photoUrl} />}
+      <link rel="icon" href={publicAvatarUrl} />
       <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />
     </>
   );

@@ -83,6 +83,7 @@ export function ResponsiveSidebar({
     { id: "team", label: "Team Cards", href: "/dashboard/profiles", icon: Users },
     { id: "integrations", label: "Integrations", href: "/dashboard/billing?tab=integrations", icon: Plug },
     { id: "billing", label: "Billing", href: "/dashboard/billing", icon: ShoppingBag },
+    ...(isAdmin ? [{ id: "admin", label: "Admin Console", href: "/admin", icon: ShieldCheck }] : []),
     { id: "views", label: "Profile Views", href: "/dashboard/analytics?tab=views", icon: Eye },
     { id: "support", label: "Help & Support", href: "/dashboard/support", icon: HelpCircle },
   ];

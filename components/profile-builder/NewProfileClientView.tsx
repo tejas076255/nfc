@@ -1,5 +1,7 @@
 "use client";
 
+import { UpgradePlanModal } from "@/components/modals/UpgradePlanModal";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -176,6 +178,13 @@ export function NewProfileClientView({
   if (isQuotaReached) {
     return (
       <div className="p-6 sm:p-10 max-w-3xl mx-auto w-full space-y-8 animate-in fade-in">
+        <UpgradePlanModal
+          isOpen={true}
+          onClose={() => router.push("/dashboard/profiles")}
+          planName={planName}
+          currentCount={totalProfiles}
+          profileLimit={profileLimit}
+        />
         {/* Breadcrumb / Back */}
         <Link
           href="/dashboard/profiles"

@@ -934,20 +934,20 @@ export function BillingClientView({
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Direct Ecosystem Integrations</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Google Sheets */}
-              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border-2 border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-md hover:border-emerald-500/50 transition-all space-y-4 flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent flex items-center justify-center font-bold text-base shadow-xs">
                         📊
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Google Sheets Sync</h4>
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Google Sheets Sync</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
                       Supported
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Instantly sync every new business lead and visitor detail directly into a live Google Sheet in real time.
                   </p>
                 </div>
@@ -955,27 +955,27 @@ export function BillingClientView({
                   onClick={() => {
                     alert("To connect Google Sheets, use your Webhook URL above with Zapier or Google App Script webhook endpoint.");
                   }}
-                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Configure Sheet Sync
                 </button>
               </div>
 
               {/* Zapier / Make */}
-              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border-2 border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-md hover:border-blue-500/50 transition-all space-y-4 flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 border border-orange-200/70 dark:bg-orange-500/20 dark:text-orange-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-700 border border-orange-300 dark:bg-orange-500/20 dark:text-orange-300 dark:border-transparent flex items-center justify-center font-bold text-base shadow-xs">
                         ⚡
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Zapier & Make.com</h4>
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Zapier & Make.com</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-transparent">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-300 dark:bg-blue-500/20 dark:text-blue-300 dark:border-transparent">
                       5,000+ Apps
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Trigger custom automations across Salesforce, Mailchimp, Slack, Notion, and Airtable whenever your card is tapped.
                   </p>
                 </div>
@@ -983,27 +983,27 @@ export function BillingClientView({
                   onClick={() => {
                     alert("Copy your webhook target URL above and paste it into Zapier 'Webhooks by Zapier' trigger.");
                   }}
-                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Connect via Zapier
                 </button>
               </div>
 
               {/* HubSpot CRM */}
-              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border-2 border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-md hover:border-purple-500/50 transition-all space-y-4 flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/70 dark:bg-orange-600/20 dark:text-orange-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-transparent flex items-center justify-center font-bold text-base shadow-xs">
                         💼
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">HubSpot CRM</h4>
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">HubSpot CRM</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-transparent">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-300 dark:bg-purple-500/20 dark:text-purple-300 dark:border-transparent">
                       Pro CRM
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Automatically create HubSpot contacts and deal stages when clients submit contact exchange details on your profile.
                   </p>
                 </div>
@@ -1019,27 +1019,27 @@ export function BillingClientView({
                       alert("HubSpot CRM connection is enabled for your Business Pro workspace.");
                     }
                   }}
-                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Connect HubSpot
                 </button>
               </div>
 
               {/* Slack & WhatsApp Alerts */}
-              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border-2 border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-md hover:border-teal-500/50 transition-all space-y-4 flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/70 dark:bg-emerald-600/20 dark:text-emerald-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
+                      <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 border border-teal-300 dark:bg-teal-500/20 dark:text-teal-300 dark:border-transparent flex items-center justify-center font-bold text-base shadow-xs">
                         💬
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">Slack & WhatsApp Alerts</h4>
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Slack & WhatsApp Alerts</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 border border-teal-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
                       Instant Ping
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Receive instant push notifications on your phone or team Slack channel whenever a high-intent client scans your card.
                   </p>
                 </div>
@@ -1047,7 +1047,7 @@ export function BillingClientView({
                   onClick={() => {
                     alert("Slack notifications can be sent directly by directing your Webhook URL to a Slack incoming webhook channel.");
                   }}
-                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs hover:shadow transition-all active:scale-[0.98] cursor-pointer"
                 >
                   Configure Slack Webhook
                 </button>

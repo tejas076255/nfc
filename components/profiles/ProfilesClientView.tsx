@@ -26,6 +26,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+import { UpgradePlanModal } from "@/components/modals/UpgradePlanModal";
+
 interface ProfileItem {
   id: string;
   slug: string;
@@ -69,6 +71,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
   const [profiles, setProfiles] = useState<ProfileItem[]>(initialProfiles);
   const [filterTab, setFilterTab] = useState<"all" | "primary" | "employee">("all");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -125,6 +128,11 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
 
       const data = (await res.json()) as any;
       if (!res.ok) {
+        if (data.code === "PLAN_LIMIT_REACHED" || res.status === 403) {
+          setShowAddModal(false);
+          setShowUpgradeModal(true);
+          return;
+        }
         throw new Error(data.error || "Failed to create employee profile");
       }
 
@@ -177,26 +185,31 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto flex-wrap">
           {/* Add Employee Profile Button */}
-          {!isLimitReached && (
+          <button
+            type="button"
+            onClick={() => {
+              if (isLimitReached) {
+                setShowUpgradeModal(true);
+              } else {
+                setShowAddModal(true);
+              }
+            }}
+            className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+          >
+            <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span>+ Add Employee Profile</span>
+          </button>
+
+          {/* New Profile Button - triggers Upgrade Modal if limit reached */}
+          {isLimitReached ? (
             <button
               type="button"
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-            >
-              <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-              <span>+ Add Employee Profile</span>
-            </button>
-          )}
-
-          {/* New Profile Standard Link */}
-          {isLimitReached ? (
-            <Link
-              href="/dashboard/billing"
+              onClick={() => setShowUpgradeModal(true)}
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
             >
               <Sparkles className="w-4 h-4" />
               <span>Upgrade Plan (+ Slots)</span>
-            </Link>
+            </button>
           ) : (
             <Link
               href="/dashboard/profiles/new"
@@ -259,7 +272,16 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
         </div>
 
         <div className="flex items-center gap-2">
-          {!isLimitReached ? (
+          {isLimitReached ? (
+            <button
+              type="button"
+              onClick={() => setShowUpgradeModal(true)}
+              className="text-purple-600 dark:text-purple-400 hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Upgrade Plan Quota</span>
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
@@ -268,14 +290,6 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
               <Plus className="w-3.5 h-3.5" />
               <span>Add Employee Profile</span>
             </button>
-          ) : (
-            <Link
-              href="/dashboard/billing"
-              className="text-blue-600 dark:text-blue-400 hover:underline font-bold text-xs flex items-center gap-1"
-            >
-              <span>Manage Quotas in Billing</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
           )}
         </div>
       </div>

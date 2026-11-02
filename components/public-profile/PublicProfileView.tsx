@@ -185,7 +185,8 @@ export function resolveValidUrl(url?: string, label?: string, platform?: string)
     }
     if (platform === "whatsapp") {
       const cleanDigits = raw.replace(/[^\d]/g, "");
-      return `https://wa.me/${cleanDigits}`;
+      const phone = cleanDigits.length === 10 ? `91${cleanDigits}` : cleanDigits;
+      return `https://wa.me/${phone}`;
     }
     if (raw.startsWith("@")) {
       const handle = raw.slice(1);
@@ -444,6 +445,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       });
     } catch { }
 
+    showToast("Opening contact card in your phone address book...");
+
+    // Trigger direct endpoint download (first choice for iOS Safari native contacts sheet)
+    if (typeof window !== "undefined") {
+      const vcardUrl = `/api/profiles/${profile.id}/vcard`;
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        window.location.href = vcardUrl;
+        return;
+      }
+    }
+
     const vCardData = generateVCardString({
       name: personName,
       title: professionalTitle,
@@ -465,7 +478,6 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    showToast("Contact card (.vcf) downloaded to your phone!");
   };
 
   const handleShareProfile = async () => {
@@ -911,7 +923,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               });
             }
             if (contactBlock.whatsapp) {
-              const waUrl = resolveValidUrl(contactBlock.whatsapp, "", "whatsapp");
+              let waUrl = resolveValidUrl(contactBlock.whatsapp, "", "whatsapp");
+              if (waUrl && !waUrl.includes("text=")) {
+                const greeting = encodeURIComponent(`Hi ${personName}, I visited your digital card.`);
+                waUrl = waUrl.includes("?") ? `${waUrl}&text=${greeting}` : `${waUrl}?text=${greeting}`;
+              }
               actions.push({
                 type: "whatsapp",
                 label: "WhatsApp",
@@ -1179,8 +1195,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     key="about"
                     className={`p-5 rounded-2xl space-y-3 ${
                       isLightMode
-                        ? "bg-slate-50/70 border border-slate-200/90 shadow-xs"
-                        : "bg-slate-900/70 border border-white/10"
+                        ? "bg-slate-50 border border-slate-200/90 shadow-xs text-slate-800"
+                        : "bg-slate-900/90 border border-white/10 text-white"
                     }`}
                   >
                     {cleanAboutHeadline ? (
@@ -1555,8 +1571,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <p
                         className={`text-xs italic leading-relaxed ${
-                          isLightMode ? "text-slate-700 font-medium" : "text-slate-200"
+                          isLightMode ? "text-slate-800 font-medium" : "text-slate-100"
                         }`}
+                        style={{ color: isLightMode ? "#1e293b" : "#f1f5f9" }}
                       >
                         &ldquo;{t.content}&rdquo;
                       </p>

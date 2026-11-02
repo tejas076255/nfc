@@ -12,7 +12,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return redirect("/login");
   }
 
-  const isStaff = ["ops_staff", "support_staff", "super_admin"].includes(session.user.role);
+  const isStaff =
+    ["ops_staff", "support_staff", "super_admin"].includes(session.user.role) ||
+    session.user.role === "owner" ||
+    session.membershipRole === "owner";
+
   if (!isStaff) {
     return redirect("/dashboard");
   }

@@ -4,12 +4,13 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getAllOrders } from "@/lib/billing/service";
 import { getAllCardsForAdmin, getAuditLogs } from "@/lib/cards/service";
+import { getAllProfilesForAdmin, getAdminSystemStats } from "@/lib/profiles/service";
 import { AdminStationView } from "@/components/admin/AdminStationView";
 import { ShieldCheck, ArrowRight, LayoutDashboard } from "lucide-react";
 
 export const metadata = {
-  title: "Super Admin Control Center | TapSync Operations",
-  description: "Operations, hardware QA inspection, card provisioning, and order fulfillment management.",
+  title: "Admin Control Center | TapSync Operations",
+  description: "Operations, hardware QA inspection, card provisioning, profile management, and order fulfillment.",
 };
 
 export default async function AdminPage() {
@@ -19,15 +20,21 @@ export default async function AdminPage() {
     redirect("/login");
   }
 
-  const isStaff = ["ops_staff", "support_staff", "super_admin"].includes(session.user.role);
+  const isStaff =
+    ["ops_staff", "support_staff", "super_admin"].includes(session.user.role) ||
+    session.user.role === "owner" ||
+    session.membershipRole === "owner";
+
   if (!isStaff) {
     redirect("/dashboard");
   }
 
-  const [orders, cards, auditLogs] = await Promise.all([
+  const [orders, cards, auditLogs, allProfiles, systemStats] = await Promise.all([
     getAllOrders(),
     getAllCardsForAdmin(100),
     getAuditLogs(50),
+    getAllProfilesForAdmin(100),
+    getAdminSystemStats(),
   ]);
 
   return (
@@ -65,6 +72,8 @@ export default async function AdminPage() {
           orders={orders as any}
           cards={cards as any}
           auditLogs={auditLogs as any}
+          profiles={allProfiles as any}
+          stats={systemStats}
         />
       </div>
     </div>

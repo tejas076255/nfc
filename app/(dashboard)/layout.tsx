@@ -14,8 +14,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return redirect("/login");
   }
 
-  const [isAdmin, profiles, planInfo] = await Promise.all([
-    ["ops_staff", "support_staff", "super_admin"].includes(session.user.role),
+  const isAdmin =
+    ["ops_staff", "support_staff", "super_admin"].includes(session.user.role) ||
+    session.user.role === "owner" ||
+    session.membershipRole === "owner";
+
+  const [profiles, planInfo] = await Promise.all([
     getWorkspaceProfiles(session.workspace.id),
     getWorkspaceSubscriptionPlan(session.workspace.id),
   ]);

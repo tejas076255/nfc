@@ -1,5 +1,5 @@
 import { getDb, schema } from "../db";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, desc } from "drizzle-orm";
 import { FullProfileSnapshot, IndustryType } from "./types";
 import { INDUSTRY_TEMPLATES } from "./templates";
 import { fastCache, invalidateProfileCache } from "../cache";
@@ -566,5 +566,51 @@ export async function getPublishedProfileBySlug(slug: string): Promise<FullProfi
   } catch (err) {
     console.error("Failed to parse published profile snapshot:", err);
     return null;
+  }
+}
+
+
+export async function getAllProfilesForAdmin(limit = 100) {
+  const db = await getDb();
+  return db
+    .select({
+      id: schema.profiles.id,
+      name: schema.profiles.name,
+      slug: schema.profiles.slug,
+      title: schema.profiles.title,
+      status: schema.profiles.status,
+      workspaceId: schema.profiles.workspaceId,
+      createdAt: schema.profiles.createdAt,
+      updatedAt: schema.profiles.updatedAt,
+    })
+    .from(schema.profiles)
+    .orderBy(desc(schema.profiles.createdAt))
+    .limit(limit);
+}
+
+export async function getAdminSystemStats() {
+  const db = await getDb();
+  try {
+    const [profileCount] = await db.select({ count: count() }).from(schema.profiles);
+    const [userCount] = await db.select({ count: count() }).from(schema.users);
+    const [workspaceCount] = await db.select({ count: count() }).from(schema.workspaces);
+    const [cardCount] = await db.select({ count: count() }).from(schema.cards);
+    const [orderCount] = await db.select({ count: count() }).from(schema.orders);
+
+    return {
+      totalProfiles: profileCount?.count || 0,
+      totalUsers: userCount?.count || 0,
+      totalWorkspaces: workspaceCount?.count || 0,
+      totalCards: cardCount?.count || 0,
+      totalOrders: orderCount?.count || 0,
+    };
+  } catch (e) {
+    return {
+      totalProfiles: 0,
+      totalUsers: 0,
+      totalWorkspaces: 0,
+      totalCards: 0,
+      totalOrders: 0,
+    };
   }
 }
