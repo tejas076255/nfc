@@ -43,6 +43,8 @@ import {
   Bookmark,
   CheckCircle,
   Tag,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -227,11 +229,19 @@ function getAvatarRadiusClass(shape?: string) {
 }
 
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken, previewTheme }: PublicProfileViewProps) {
-  // Theme resolution (Dark / Light / Visitor Auto Mode)
-  const configuredColorMode = (profile.themeConfig as any)?.colorMode || "dark";
+  // Theme resolution (Dark / Light / Visitor Auto Mode + Visitor Switcher)
+  const configuredColorMode = (profile.themeConfig as any)?.colorMode || "auto";
   const [systemIsLight, setSystemIsLight] = useState(false);
+  const [visitorThemeOverride, setVisitorThemeOverride] = useState<"light" | "dark" | null>(null);
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("profile_visitor_theme");
+      if (saved === "light" || saved === "dark") {
+        setVisitorThemeOverride(saved);
+      }
+    } catch {}
+
     if (typeof window !== "undefined" && window.matchMedia) {
       const mq = window.matchMedia("(prefers-color-scheme: light)");
       setSystemIsLight(mq.matches);
@@ -243,7 +253,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const isLightMode = previewTheme
     ? previewTheme === "light"
+    : visitorThemeOverride !== null
+    ? visitorThemeOverride === "light"
     : configuredColorMode === "light" || (configuredColorMode === "auto" && systemIsLight);
+
+  const toggleVisitorTheme = () => {
+    const next = isLightMode ? "dark" : "light";
+    setVisitorThemeOverride(next);
+    try {
+      localStorage.setItem("profile_visitor_theme", next);
+    } catch {}
+  };
   // Modal states
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -733,10 +753,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   return (
     <div
-      className={`flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-200 ${
-        isLightMode ? "text-slate-900 bg-slate-100" : "text-slate-100"
+      className={`flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-300 ${
+        isLightMode
+          ? "text-slate-900 bg-gradient-to-br from-slate-100 via-[#f8fafc] to-slate-200"
+          : "text-slate-100"
       } ${sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"}`}
-      style={{ backgroundColor: isLightMode ? "#f8fafc" : (theme.backgroundColor || "#07090e") }}
+      style={{
+        backgroundColor: isLightMode ? undefined : (theme.backgroundColor || "#07090e"),
+      }}
     >
       {/* Toast Notification Banner */}
       <AnimatePresence>
@@ -757,14 +781,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
       {/* Main Mobile Card Container */}
       <div
-        className={`w-full max-w-md shadow-2xl overflow-hidden relative flex flex-col transition-colors duration-200 ${
+        className={`w-full max-w-md overflow-hidden relative flex flex-col transition-colors duration-300 ${
           isLightMode
-            ? "bg-white text-slate-900 border-slate-200/90 shadow-xl"
-            : "bg-slate-950/80 text-white backdrop-blur-xl border-white/10"
+            ? "bg-white text-slate-900 border border-slate-200/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)]"
+            : "bg-slate-950/85 text-white backdrop-blur-xl border border-white/10 shadow-2xl"
         } ${
           sourceType === "preview"
             ? "border-0 my-0 rounded-2xl"
-            : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl border"
+            : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl"
         }`}
       >
         {/* ============================================================== */}
@@ -797,17 +821,36 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
             {/* Bottom vignette overlay */}
             <div className={`absolute inset-0 bg-gradient-to-t ${isLightMode ? "from-white via-white/40 to-transparent" : "from-[#07090e] via-[#07090e]/40 to-transparent"} pointer-events-none`} />
 
-            {/* Quick Share Floating Button */}
-            <button
-              onClick={handleShareProfile}
-              className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md transition-all shadow-lg active:scale-95 cursor-pointer ${
-                isLightMode ? "bg-white/80 hover:bg-white border border-slate-200 text-slate-800" : "bg-black/50 hover:bg-black/70 border border-white/20 text-white"
-              }`}
-              aria-label="Share profile"
-              title="Share profile"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+            {/* Quick Share & Theme Switcher Floating Buttons */}
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleVisitorTheme}
+                className={`p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
+                  isLightMode
+                    ? "bg-white/90 hover:bg-white border border-slate-200/90 text-amber-500 hover:text-amber-600 shadow-sm"
+                    : "bg-black/60 hover:bg-black/80 border border-white/20 text-blue-400 hover:text-blue-300 shadow-sm"
+                }`}
+                aria-label={isLightMode ? "Switch to dark mode" : "Switch to light mode"}
+                title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              >
+                {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleShareProfile}
+                className={`p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
+                  isLightMode
+                    ? "bg-white/90 hover:bg-white border border-slate-200/90 text-slate-800 shadow-sm"
+                    : "bg-black/60 hover:bg-black/80 border border-white/20 text-white shadow-sm"
+                }`}
+                aria-label="Share profile"
+                title="Share profile"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Centered Logo Badge Overlapping Hero Portrait */}
@@ -894,9 +937,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 label: "Call",
                 href: `tel:${contactBlock.phone}`,
                 icon: Phone,
-                colorBg: "bg-blue-500/15",
-                colorBorder: "border-blue-500/30",
-                colorText: "text-blue-400",
+                colorBg: isLightMode ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-blue-500/15 text-blue-400 border border-blue-500/30",
                 onClick: (e: any) => {
                   handleTrackAction("phone_click");
                   handleOpenExternal(e, `tel:${contactBlock.phone}`);
@@ -911,9 +952,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 href: waUrl || "#",
                 isExternal: true,
                 icon: WhatsAppIcon,
-                colorBg: "bg-emerald-500/15",
-                colorBorder: "border-emerald-500/30",
-                colorText: "text-emerald-400",
+                colorBg: isLightMode ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
                 onClick: (e: any) => {
                   handleTrackAction("whatsapp_click");
                   handleOpenExternal(e, waUrl);
@@ -926,9 +965,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 label: "Email",
                 href: `mailto:${contactBlock.email}`,
                 icon: Mail,
-                colorBg: "bg-purple-500/15",
-                colorBorder: "border-purple-500/30",
-                colorText: "text-purple-400",
+                colorBg: isLightMode ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-purple-500/15 text-purple-400 border border-purple-500/30",
                 onClick: (e: any) => {
                   handleTrackAction("email_click");
                   handleOpenExternal(e, `mailto:${contactBlock.email}`);
@@ -947,9 +984,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 href: mapUrl || "#",
                 isExternal: true,
                 icon: MapPin,
-                colorBg: "bg-amber-500/15",
-                colorBorder: "border-amber-500/30",
-                colorText: "text-amber-400",
+                colorBg: isLightMode ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-amber-500/15 text-amber-400 border border-amber-500/30",
                 onClick: (e: any) => {
                   handleTrackAction("map_click");
                   handleOpenExternal(e, mapUrl);
@@ -964,9 +999,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 href: bUrl || "#",
                 isExternal: true,
                 icon: Calendar,
-                colorBg: "bg-teal-500/15",
-                colorBorder: "border-teal-500/30",
-                colorText: "text-teal-400",
+                colorBg: isLightMode ? "bg-teal-50 text-teal-600 border border-teal-200" : "bg-teal-500/15 text-teal-400 border border-teal-500/30",
                 onClick: (e: any) => {
                   handleTrackAction("booking_click");
                   handleOpenExternal(e, bUrl);
@@ -1016,15 +1049,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         target={act.isExternal ? "_blank" : undefined}
                         rel={act.isExternal ? "noopener noreferrer" : undefined}
                         onClick={act.onClick}
-                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl shadow-md active:scale-95 transition-all group cursor-pointer ${
+                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl shadow-xs hover:shadow-md active:scale-95 transition-all group cursor-pointer ${
                           isLightMode
-                            ? "bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800"
+                            ? "bg-slate-50/90 hover:bg-slate-100 border border-slate-200/90 text-slate-800"
                             : "bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 text-white"
                         }`}
                         title={act.label}
                       >
                         <div
-                          className={`${iconCircleSize} rounded-full ${act.colorBg} border ${act.colorBorder} flex items-center justify-center ${act.colorText} shadow-xs group-hover:scale-105 transition-transform shrink-0`}
+                          className={`${iconCircleSize} rounded-full ${act.colorBg} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0`}
                         >
                           <Icon className={`${iconSize} shrink-0`} />
                         </div>
@@ -1217,7 +1250,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     key="about"
                     className={`p-5 rounded-2xl space-y-3 ${
                       isLightMode
-                        ? "bg-white border border-slate-200/90 shadow-sm"
+                        ? "bg-slate-50/70 border border-slate-200/90 shadow-xs"
                         : "bg-slate-900/70 border border-white/10"
                     }`}
                   >
@@ -1565,22 +1598,22 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 return (
                   <div
                     key="testimonials"
-                    className={`p-5 rounded-2xl space-y-3 ${
+                    className={`p-5 rounded-2xl space-y-3.5 ${
                       isLightMode
-                        ? "bg-gradient-to-br from-white to-slate-50 border border-slate-200/90 shadow-sm"
+                        ? "bg-white border border-slate-200/90 shadow-sm"
                         : "bg-gradient-to-br from-slate-900/90 to-slate-950 border border-white/10"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <h3
                         className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                          isLightMode ? "text-slate-700" : "text-slate-400"
+                          isLightMode ? "text-slate-800" : "text-slate-400"
                         }`}
                       >
                         <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                         <span>Client Testimonials</span>
                       </h3>
-                      <span className="text-[10px] text-teal-600 font-medium">Verified Feedback</span>
+                      <span className={`text-[10px] font-semibold ${isLightMode ? "text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full" : "text-teal-400"}`}>Verified Feedback</span>
                     </div>
 
                     {/* Active Testimonial Card */}
@@ -1593,14 +1626,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <p
                         className={`text-xs italic leading-relaxed ${
-                          isLightMode ? "text-slate-700" : "text-slate-200"
+                          isLightMode ? "text-slate-700 font-medium" : "text-slate-200"
                         }`}
                       >
                         &ldquo;{t.content}&rdquo;
                       </p>
 
                       <div className="pt-1 flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-teal-500/20 text-teal-500 font-bold text-xs flex items-center justify-center border border-teal-500/30">
+                        <div className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center border ${
+                          isLightMode
+                            ? "bg-teal-50 text-teal-700 border-teal-200"
+                            : "bg-teal-500/20 text-teal-400 border-teal-500/30"
+                        }`}>
                           {t.clientName.charAt(0)}
                         </div>
                         <div>
@@ -1608,7 +1645,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                             {t.clientName}
                           </p>
                           {t.clientTitle && (
-                            <p className={`text-[10px] ${isLightMode ? "text-slate-500" : "text-slate-400"}`}>
+                            <p className={`text-[10px] ${isLightMode ? "text-slate-500 font-medium" : "text-slate-400"}`}>
                               {t.clientTitle}
                             </p>
                           )}
@@ -2037,14 +2074,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               handleTrackAction("sticky_inquiry_click");
               setLeadModalOpen(true);
             }}
-            className={`py-2.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
+            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
               isLightMode
                 ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
             }`}
             title="Open contact exchange form"
           >
-            <Mail className="w-3.5 h-3.5 shrink-0 text-teal-500" />
+            <Mail className="w-3.5 h-3.5 shrink-0 text-teal-600" />
             <span className="truncate">Inquiry Form</span>
           </button>
 
@@ -2052,14 +2089,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           <button
             type="button"
             onClick={handleInstallClick}
-            className={`py-2.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
+            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
               isLightMode
                 ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
             }`}
             title="Install Web App on Home Screen"
           >
-            <Smartphone className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+            <Smartphone className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
             <span className="truncate">Install App</span>
           </button>
         </div>
@@ -2075,7 +2112,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative space-y-4"
+              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
             >
               <button
                 onClick={() => setShareModalOpen(false)}
@@ -2085,19 +2122,20 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               </button>
 
               <div className="text-center">
-                <h3 className="text-base font-bold text-white">Share Profile</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <h3 className={`text-base font-bold ${isLightMode ? "text-slate-900" : "text-white"}`}>Share Profile</h3>
+                <p className={`text-xs mt-1 ${isLightMode ? "text-slate-500" : "text-slate-400"}`}>
+
                   Share {personName}&apos;s verified digital card
                 </p>
               </div>
 
               {/* Direct Link Copy Box */}
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-950 border border-white/10">
+              <div className={`flex items-center gap-2 p-2 rounded-xl border ${isLightMode ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-white/10"}`}>
                 <input
                   type="text"
                   readOnly
                   value={getPublicUrl()}
-                  className="bg-transparent text-xs text-slate-300 flex-1 outline-none font-mono truncate px-1"
+                  className={`bg-transparent text-xs flex-1 outline-none font-mono truncate px-1 ${isLightMode ? "text-slate-800" : "text-slate-300"}`}
                 />
                 <button
                   type="button"
@@ -2151,7 +2189,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative text-center space-y-4"
+              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative text-center space-y-4 ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
             >
               <button
                 onClick={() => setInstallModalOpen(false)}
@@ -2169,25 +2207,26 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-white">Add Web App to Home Screen</h3>
-                <p className="text-xs text-slate-400 mt-1">
+                <h3 className={`text-base font-bold ${isLightMode ? "text-slate-900" : "text-white"}`}>Add Web App to Home Screen</h3>
+                <p className={`text-xs mt-1 ${isLightMode ? "text-slate-500" : "text-slate-400"}`}>
+
                   Access {personName}&apos;s digital card instantly like a native app.
                 </p>
               </div>
 
-              <div className="text-left space-y-2 text-xs text-slate-300 bg-slate-950/70 p-3.5 rounded-xl border border-white/10">
-                <p className="font-semibold text-white">On iPhone (Safari):</p>
-                <p className="text-slate-400">1. Tap the Share button in Safari bottom bar.</p>
-                <p className="text-slate-400">2. Scroll down and tap &quot;Add to Home Screen&quot;.</p>
-                <p className="font-semibold text-white pt-1">On Android (Chrome):</p>
-                <p className="text-slate-400">1. Tap the three dots (menu) in top right.</p>
-                <p className="text-slate-400">2. Tap &quot;Install app&quot; or &quot;Add to Home screen&quot;.</p>
+              <div className={`text-left space-y-2 text-xs p-3.5 rounded-xl border ${isLightMode ? "bg-slate-50 border-slate-200" : "bg-slate-950 border-white/10"}`}>
+                <p className={`font-semibold ${isLightMode ? "text-slate-900" : "text-white"}`}>On iPhone (Safari):</p>
+                <p className={`${isLightMode ? "text-slate-600" : "text-slate-400"}`}>1. Tap the Share button in Safari bottom bar.</p>
+                <p className={`${isLightMode ? "text-slate-600" : "text-slate-400"}`}>2. Scroll down and tap &quot;Add to Home Screen&quot;.</p>
+                <p className={`font-semibold pt-1 ${isLightMode ? "text-slate-900" : "text-white"}`}>On Android (Chrome):</p>
+                <p className={`${isLightMode ? "text-slate-600" : "text-slate-400"}`}>1. Tap the three dots (menu) in top right.</p>
+                <p className={`${isLightMode ? "text-slate-600" : "text-slate-400"}`}>2. Tap &quot;Install app&quot; or &quot;Add to Home screen&quot;.</p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setInstallModalOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+                className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white"}`}
               >
                 Got It
               </button>
@@ -2206,7 +2245,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
             >
               <button
                 onClick={() => setLeadModalOpen(false)}
@@ -2242,10 +2281,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               ) : (
                 <form onSubmit={handleSubmitLead} className="space-y-3.5">
                   <div>
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className={`text-base font-bold ${isLightMode ? "text-slate-900" : "text-white"}`}>
                       {leadFormBlock.title || "Exchange Contact Details"}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className={`text-xs mt-0.5 ${isLightMode ? "text-slate-500" : "text-slate-400"}`}>
                       {leadFormBlock.subtitle || "Share your details to connect directly."}
                     </p>
                   </div>
@@ -2258,7 +2297,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                   <div className="space-y-2.5">
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      <label className={`block text-[11px] font-semibold mb-1 ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+
                         Your Full Name *
                       </label>
                       <input
@@ -2267,12 +2307,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         value={visitorName}
                         onChange={(e) => setVisitorName(e.target.value)}
                         placeholder="e.g. Rahul Sharma"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-teal-500 transition-colors ${isLightMode ? "bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white" : "bg-slate-950 border border-white/10 text-white"}`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      <label className={`block text-[11px] font-semibold mb-1 ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+
                         Phone Number *
                       </label>
                       <input
@@ -2281,12 +2322,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="e.g. +91 98765 43210"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-teal-500 transition-colors ${isLightMode ? "bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white" : "bg-slate-950 border border-white/10 text-white"}`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      <label className={`block text-[11px] font-semibold mb-1 ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+
                         Email Address (Optional)
                       </label>
                       <input
@@ -2294,19 +2336,20 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="e.g. rahul@example.com"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-teal-500 transition-colors ${isLightMode ? "bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white" : "bg-slate-950 border border-white/10 text-white"}`}
                       />
                     </div>
 
                     {allServices.length > 0 && (
                       <div>
-                        <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                        <label className={`block text-[11px] font-semibold mb-1 ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+
                           Service of Interest
                         </label>
                         <select
                           value={serviceInterest}
                           onChange={(e) => setServiceInterest(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500"
+                          className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-teal-500 transition-colors ${isLightMode ? "bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white" : "bg-slate-950 border border-white/10 text-white"}`}
                         >
                           <option value="">General Inquiry / Networking</option>
                           {allServices.map((svc: any) => (
@@ -2319,7 +2362,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     )}
 
                     <div>
-                      <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      <label className={`block text-[11px] font-semibold mb-1 ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+
                         Message (Optional)
                       </label>
                       <textarea
@@ -2327,7 +2371,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Brief note or inquiry..."
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-teal-500 resize-none"
+                        className={`w-full px-3 py-2 rounded-xl text-xs focus:outline-none focus:border-teal-500 resize-none transition-colors ${isLightMode ? "bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white" : "bg-slate-950 border border-white/10 text-white"}`}
                       />
                     </div>
 
@@ -2441,7 +2485,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-6 shadow-2xl relative space-y-4"
+              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
             >
               <button
                 onClick={() => setReportModalOpen(false)}
