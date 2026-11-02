@@ -1,12 +1,12 @@
 /**
- * Compresses an image file client-side to an optimized data URL (WebP or JPEG).
- * Keeps database records lightweight (<100KB) while maintaining high DPI clarity.
+ * Compresses an image file client-side to an optimized data URL (JPEG).
+ * JPEG ensures 100% compatibility with WhatsApp link preview scrapers, OpenGraph, and all mobile OS.
  */
 export function compressImageFile(
   file: File,
   options: { maxWidth?: number; maxHeight?: number; quality?: number } = {}
 ): Promise<string> {
-  const { maxWidth = 800, maxHeight = 800, quality = 0.82 } = options;
+  const { maxWidth = 800, maxHeight = 800, quality = 0.85 } = options;
 
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) {
@@ -50,16 +50,13 @@ export function compressImageFile(
         ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Try exporting as webp; fallback to jpeg if not supported
+        // Export as pure JPEG for 100% WhatsApp, iMessage & OpenGraph compatibility
         try {
-          const webpData = canvas.toDataURL("image/webp", quality);
-          if (webpData.startsWith("data:image/webp")) {
-            resolve(webpData);
-            return;
-          }
-        } catch {}
-
-        resolve(canvas.toDataURL("image/jpeg", quality));
+          const jpegData = canvas.toDataURL("image/jpeg", quality);
+          resolve(jpegData);
+        } catch {
+          resolve(canvas.toDataURL("image/png"));
+        }
       };
 
       img.src = event.target?.result as string;

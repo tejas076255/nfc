@@ -6,15 +6,13 @@ import { PublicProfileView } from "@/components/public-profile/PublicProfileView
 import { Metadata } from "next";
 import { headers } from "next/headers";
 
-// Edge Cache: Revalidate at edge every 60 seconds (sub-15ms response from edge CDN)
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ src?: string; token?: string }>;
 }
 
-// React request deduplication: ensures metadata + page only query once per render
 const getCachedProfile = cache(async (slug: string) => {
   return getPublishedProfileBySlug(slug);
 });
@@ -32,15 +30,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const blocks = profile.blocks || [];
   const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
-  const photoUrl = headerBlock.avatarUrl || headerBlock.photoUrl || headerBlock.coverUrl || headerBlock.logoUrl || null;
 
-  const title = `${profile.name} | ${profile.title || "Digital Business Card"}`;
+  const title = `${profile.name} | TapSync NFC`;
   const description = profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
 
-  // WhatsApp & OpenGraph scrapers cannot fetch data:base64 URIs; provide binary API endpoint
-  const publicAvatarUrl = photoUrl
-    ? `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/profiles/${slug}/avatar`
-    : undefined;
+  // Provide high-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
+  const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
 
   return {
     title,
@@ -49,32 +44,32 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       index: profile.searchIndexed,
       follow: profile.searchIndexed,
     },
-    icons: publicAvatarUrl
-      ? {
-          icon: publicAvatarUrl,
-          shortcut: publicAvatarUrl,
-          apple: publicAvatarUrl,
-        }
-      : undefined,
+    icons: {
+      icon: avatarEndpoint,
+      shortcut: avatarEndpoint,
+      apple: avatarEndpoint,
+    },
     openGraph: {
-      title: `${profile.name} | TapSync NFC`,
+      title,
       description,
-      images: publicAvatarUrl
-        ? [
-            {
-              url: publicAvatarUrl,
-              width: 800,
-              height: 800,
-              alt: profile.name,
-            },
-          ]
-        : undefined,
+      type: "profile",
+      siteName: "TapSync NFC",
+      images: [
+        {
+          url: avatarEndpoint,
+          secureUrl: avatarEndpoint,
+          width: 300,
+          height: 300,
+          type: "image/jpeg",
+          alt: profile.name,
+        },
+      ],
     },
     twitter: {
-      card: publicAvatarUrl ? "summary_large_image" : "summary",
-      title: `${profile.name} | TapSync NFC`,
+      card: "summary", // "summary" renders the square image on the LEFT side of text
+      title,
       description,
-      images: publicAvatarUrl ? [publicAvatarUrl] : undefined,
+      images: [avatarEndpoint],
     },
   };
 }
@@ -105,26 +100,32 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
     );
   }
 
-  // Non-blocking analytics logging
-  const headerList = await headers();
-  const userAgent = headerList.get("user-agent") || "";
-  const ip = headerList.get("x-forwarded-for") || headerList.get("cf-connecting-ip") || "";
+  // Non-blocking analytics logging (fail-safe)
+  try {
+    const headerList = await headers();
+    const userAgent = headerList.get("user-agent") || "";
+    const ip = headerList.get("x-forwarded-for") || headerList.get("cf-connecting-ip") || "";
 
-  logAnalyticsEvent({
-    workspaceId: profile.id, // profile id or workspace
-    profileId: profile.id,
-    eventType: "profile_view",
-    sourceToken: token,
-    sourceType: src,
-    userAgent,
-    ipHash: ip.slice(0, 8),
-  });
+    logAnalyticsEvent({
+      workspaceId: (profile as any).workspaceId || profile.id,
+      profileId: profile.id,
+      eventType: "profile_view",
+      sourceToken: token,
+      sourceType: src,
+      userAgent,
+      ipHash: ip.slice(0, 8),
+    });
+  } catch {
+    // Analytics should never crash public profile rendering
+  }
 
-  const publicAvatarUrl = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/profiles/${slug}/avatar`;
+  const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
 
   return (
     <>
-      <link rel="icon" href={publicAvatarUrl} />
+      <link rel="icon" href={avatarEndpoint} />
+      <link rel="apple-touch-icon" href={avatarEndpoint} />
+      <link rel="image_src" href={avatarEndpoint} />
       <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />
     </>
   );

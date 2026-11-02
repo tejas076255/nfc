@@ -1,19 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getPublishedProfileBySlug } from "@/lib/profiles/service";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = await params;
+    const rawSlug = (await params).slug || "";
+    const slug = rawSlug.replace(/\.(jpg|jpeg|png|webp|svg)$/i, "").trim().toLowerCase();
+
     if (!slug) {
-      return new NextResponse("Profile slug required", { status: 400 });
+      return new Response("Profile slug required", { status: 400 });
     }
 
     const profile = await getPublishedProfileBySlug(slug);
     if (!profile) {
-      return new NextResponse("Profile not found", { status: 404 });
+      return new Response("Profile not found", { status: 404 });
     }
 
     const blocks = profile.blocks || [];
@@ -26,15 +30,14 @@ export async function GET(
       null;
 
     if (!photoUrl) {
-      // Return dynamic branded SVG with initials
       const initial = (profile.name || "T").charAt(0).toUpperCase();
-      const svg = `<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-        <rect width="400" height="400" fill="#2563eb" />
-        <circle cx="200" cy="200" r="160" fill="rgba(255,255,255,0.15)" />
-        <text x="200" y="235" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="140" font-weight="bold" fill="#ffffff" text-anchor="middle">${initial}</text>
+      const svg = `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="300" height="300" fill="#2563eb" />
+        <circle cx="150" cy="150" r="110" fill="rgba(255,255,255,0.18)" />
+        <text x="150" y="185" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="110" font-weight="bold" fill="#ffffff" text-anchor="middle">${initial}</text>
       </svg>`;
 
-      return new NextResponse(svg, {
+      return new Response(svg, {
         status: 200,
         headers: {
           "Content-Type": "image/svg+xml",
@@ -49,31 +52,27 @@ export async function GET(
       if (match) {
         const mimeType = match[1] || "image/jpeg";
         const base64Data = match[2];
-        const binaryStr = atob(base64Data);
-        const len = binaryStr.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryStr.charCodeAt(i);
-        }
+        const buffer = Buffer.from(base64Data, "base64");
 
-        return new NextResponse(bytes, {
+        return new Response(buffer, {
           status: 200,
           headers: {
             "Content-Type": mimeType,
+            "Content-Length": buffer.length.toString(),
             "Cache-Control": "public, max-age=86400, s-maxage=86400",
           },
         });
       }
     }
 
-    // Handle standard HTTP/HTTPS URLs
+    // Handle external URL
     if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
-      return NextResponse.redirect(photoUrl, 302);
+      return Response.redirect(photoUrl, 302);
     }
 
-    return new NextResponse("Invalid avatar format", { status: 400 });
+    return new Response("Invalid avatar format", { status: 400 });
   } catch (err: any) {
-    return new NextResponse(err.message || "Internal server error", { status: 500 });
+    return new Response(err.message || "Internal server error", { status: 500 });
   }
 }
 

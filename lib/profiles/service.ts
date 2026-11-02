@@ -560,6 +560,7 @@ export async function getPublishedProfileBySlug(slug: string): Promise<FullProfi
   try {
     const snapshot = JSON.parse(version.content) as FullProfileSnapshot;
     snapshot.slug = profile.slug;
+    (snapshot as any).workspaceId = profile.workspaceId;
     // Cache for 300 seconds (5 mins) in fast worker memory
     fastCache.set(cacheKey, snapshot, 300);
     return snapshot;
