@@ -18,10 +18,12 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export async function registerAction(prevState: any, formData: FormData) {
-  const name = formData.get("name") as string;
-  const email = (formData.get("email") as string)?.toLowerCase().trim();
-  const password = formData.get("password") as string;
+export async function registerAction(prevState: any, formData?: FormData) {
+  const data = (formData instanceof FormData ? formData : prevState instanceof FormData ? prevState : null);
+  if (!data) return { error: "Invalid form submission" };
+  const name = data.get("name") as string;
+  const email = (data.get("email") as string)?.toLowerCase().trim();
+  const password = data.get("password") as string;
 
   const result = registerSchema.safeParse({ name, email, password });
   if (!result.success) {
@@ -104,11 +106,13 @@ export async function registerAction(prevState: any, formData: FormData) {
   return redirect("/dashboard");
 }
 
-export async function loginAction(prevState: any, formData: FormData) {
-  const email = (formData.get("email") as string)?.toLowerCase().trim();
-  const password = formData.get("password") as string;
+export async function loginAction(prevState: any, formData?: FormData) {
+  const data = (formData instanceof FormData ? formData : prevState instanceof FormData ? prevState : null);
+  if (!data) return { error: "Invalid form submission" };
+  const email = (data.get("email") as string)?.toLowerCase().trim();
+  const password = data.get("password") as string;
 
-  const returnTo = (formData.get("returnTo") as string) || "/dashboard";
+  const returnTo = (data.get("returnTo") as string) || "/dashboard";
 
   const result = loginSchema.safeParse({ email, password });
   if (!result.success) {
