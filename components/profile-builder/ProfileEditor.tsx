@@ -423,7 +423,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   };
 
   // Industry Template & Appearance helpers
-  const switchTemplateFamily = (industryKey: IndustryType) => {
+  const switchTemplateFamily = (rawKey: string) => {
+    const normalizeIndustryKey = (key: string): IndustryType => {
+      if (key === "bridal_beauty") return "beauty";
+      if (key === "portfolio_agency") return "creative";
+      if (key === "local_biz") return "local_business";
+      return key as IndustryType;
+    };
+    const industryKey = normalizeIndustryKey(rawKey);
     const tmpl = INDUSTRY_TEMPLATES[industryKey];
     if (!tmpl) return;
 
@@ -433,10 +440,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       templateId: tmpl.id,
       themeConfig: {
         ...(prev.themeConfig || {}),
+        primaryColor: tmpl.defaultTheme.primaryColor,
         accentColor: tmpl.defaultTheme.accentColor,
         backgroundColor: tmpl.defaultTheme.backgroundColor,
         textColor: tmpl.defaultTheme.textColor,
         avatarShape: tmpl.defaultTheme.avatarShape || prev.themeConfig?.avatarShape || "circle",
+        cardStyle: tmpl.defaultTheme.cardStyle || prev.themeConfig?.cardStyle || "glass",
+        fontFamily: tmpl.defaultTheme.fontFamily || prev.themeConfig?.fontFamily || "outfit",
       },
     }));
     setSaveMessage(`Applied ${tmpl.name} styling.`);
@@ -2092,17 +2102,21 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { key: "professional", name: "Executive Suite", desc: "Corporate, Legal & Advisory", color: "#2563eb" },
-            { key: "bridal_beauty", name: "Luxury Atelier", desc: "Bridal, Makeup, Hair & Wellness", color: "#e11d48" },
+            { key: "beauty", name: "Luxury Atelier", desc: "Bridal, Makeup, Hair & Wellness", color: "#e11d48" },
             { key: "real_estate", name: "Architectural Horizon", desc: "Luxury Properties & Developments", color: "#059669" },
-            { key: "portfolio_agency", name: "Neo Gallery", desc: "Design, Photography & Art Direction", color: "#6366f1" },
-            { key: "local_biz", name: "Cornerstone Local", desc: "Cafés, Clinics, Boutiques & Services", color: "#d97706" },
+            { key: "creative", name: "Neo Gallery", desc: "Design, Photography & Art Direction", color: "#6366f1" },
+            { key: "local_business", name: "Cornerstone Local", desc: "Cafés, Clinics, Boutiques & Services", color: "#d97706" },
             { key: "creator", name: "Pulse Creator", desc: "Influencers, Streamers & Podcasters", color: "#a855f7" },
           ].map((tmpl) => {
-            const isSelected = profile.industry === tmpl.key;
+            const isSelected = profile.industry === tmpl.key || (
+              (profile.industry === "bridal_beauty" && tmpl.key === "beauty") ||
+              (profile.industry === "portfolio_agency" && tmpl.key === "creative") ||
+              (profile.industry === "local_biz" && tmpl.key === "local_business")
+            );
             return (
               <div
                 key={tmpl.key}
-                onClick={() => switchTemplateFamily(tmpl.key as IndustryType)}
+                onClick={() => switchTemplateFamily(tmpl.key)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
                   isSelected
                     ? "bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-white border-2 border-blue-600 dark:border-blue-500 shadow-md ring-2 ring-blue-500/20"
@@ -2186,20 +2200,48 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-700">Accent Color Hex</label>
-              <div className="flex items-center gap-2.5">
-                <input
-                  type="color"
-                  value={profile.themeConfig?.accentColor || "#2563eb"}
-                  onChange={(e) => updateAccentColor(e.target.value)}
-                  className="w-10 h-10 rounded-xl border border-slate-200 p-0.5 cursor-pointer bg-transparent"
-                />
-                <input
-                  type="text"
-                  value={profile.themeConfig?.accentColor || "#2563eb"}
-                  onChange={(e) => updateAccentColor(e.target.value)}
-                  placeholder="#2563eb"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-mono text-slate-800 font-bold focus:outline-none focus:border-blue-500"
-                />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="color"
+                    value={profile.themeConfig?.accentColor || "#2563eb"}
+                    onChange={(e) => updateAccentColor(e.target.value)}
+                    className="w-10 h-10 rounded-xl border border-slate-200 p-0.5 cursor-pointer bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={profile.themeConfig?.accentColor || "#2563eb"}
+                    onChange={(e) => updateAccentColor(e.target.value)}
+                    placeholder="#2563eb"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-mono text-slate-800 font-bold focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                {/* 8 Instant Luxury Color Swatches */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  {[
+                    { label: "Royal Blue", hex: "#2563eb" },
+                    { label: "Rose Crimson", hex: "#e11d48" },
+                    { label: "Emerald Green", hex: "#059669" },
+                    { label: "Indigo Iris", hex: "#6366f1" },
+                    { label: "Purple Pulse", hex: "#a855f7" },
+                    { label: "Amber Gold", hex: "#d97706" },
+                    { label: "Ocean Teal", hex: "#0d9488" },
+                    { label: "AMOLED Slate", hex: "#0f172a" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.hex}
+                      type="button"
+                      onClick={() => updateAccentColor(preset.hex)}
+                      title={preset.label}
+                      className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                        (profile.themeConfig?.accentColor || "").toLowerCase() === preset.hex.toLowerCase()
+                          ? "ring-2 ring-blue-500 ring-offset-1 border-white"
+                          : "border-white/50"
+                      }`}
+                      style={{ backgroundColor: preset.hex }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 

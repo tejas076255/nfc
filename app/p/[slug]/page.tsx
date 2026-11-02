@@ -30,16 +30,46 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const blocks = profile.blocks || [];
+  const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
+  const photoUrl = headerBlock.avatarUrl || headerBlock.photoUrl || headerBlock.coverUrl || headerBlock.logoUrl || null;
+
+  const title = `${profile.name} | ${profile.title || "Digital Business Card"}`;
+  const description = profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
+
   return {
-    title: `${profile.name} | ${profile.title || "Digital Business Card"}`,
-    description: profile.bio || `Connect with ${profile.name} on TapSync NFC.`,
+    title,
+    description,
     robots: {
       index: profile.searchIndexed,
       follow: profile.searchIndexed,
     },
+    icons: photoUrl
+      ? {
+          icon: photoUrl,
+          shortcut: photoUrl,
+          apple: photoUrl,
+        }
+      : undefined,
     openGraph: {
       title: `${profile.name} | TapSync NFC`,
-      description: profile.bio || `Digital business card for ${profile.name}`,
+      description,
+      images: photoUrl
+        ? [
+            {
+              url: photoUrl,
+              width: 800,
+              height: 800,
+              alt: profile.name,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: photoUrl ? "summary_large_image" : "summary",
+      title: `${profile.name} | TapSync NFC`,
+      description,
+      images: photoUrl ? [photoUrl] : undefined,
     },
   };
 }
@@ -87,5 +117,14 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
     ipHash: ip.slice(0, 8),
   });
 
-  return <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />;
+  const blocks = profile.blocks || [];
+  const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
+  const photoUrl = headerBlock.avatarUrl || headerBlock.photoUrl || headerBlock.coverUrl || headerBlock.logoUrl || null;
+
+  return (
+    <>
+      {photoUrl && <link rel="icon" href={photoUrl} />}
+      <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />
+    </>
+  );
 }

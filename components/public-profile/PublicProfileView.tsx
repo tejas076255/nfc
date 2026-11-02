@@ -229,19 +229,11 @@ function getAvatarRadiusClass(shape?: string) {
 }
 
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken, previewTheme }: PublicProfileViewProps) {
-  // Theme resolution (Dark / Light / Visitor Auto Mode + Visitor Switcher)
+  // Theme resolution (Dark / Light / Visitor Auto Mode)
   const configuredColorMode = (profile.themeConfig as any)?.colorMode || "auto";
   const [systemIsLight, setSystemIsLight] = useState(false);
-  const [visitorThemeOverride, setVisitorThemeOverride] = useState<"light" | "dark" | null>(null);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("profile_visitor_theme");
-      if (saved === "light" || saved === "dark") {
-        setVisitorThemeOverride(saved);
-      }
-    } catch {}
-
     if (typeof window !== "undefined" && window.matchMedia) {
       const mq = window.matchMedia("(prefers-color-scheme: light)");
       setSystemIsLight(mq.matches);
@@ -253,17 +245,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const isLightMode = previewTheme
     ? previewTheme === "light"
-    : visitorThemeOverride !== null
-    ? visitorThemeOverride === "light"
     : configuredColorMode === "light" || (configuredColorMode === "auto" && systemIsLight);
-
-  const toggleVisitorTheme = () => {
-    const next = isLightMode ? "dark" : "light";
-    setVisitorThemeOverride(next);
-    try {
-      localStorage.setItem("profile_visitor_theme", next);
-    } catch {}
-  };
   // Modal states
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -821,36 +803,20 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
             {/* Bottom vignette overlay */}
             <div className={`absolute inset-0 bg-gradient-to-t ${isLightMode ? "from-white via-white/40 to-transparent" : "from-[#07090e] via-[#07090e]/40 to-transparent"} pointer-events-none`} />
 
-            {/* Quick Share & Theme Switcher Floating Buttons */}
-            <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={toggleVisitorTheme}
-                className={`p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
-                  isLightMode
-                    ? "bg-white/90 hover:bg-white border border-slate-200/90 text-amber-500 hover:text-amber-600 shadow-sm"
-                    : "bg-black/60 hover:bg-black/80 border border-white/20 text-blue-400 hover:text-blue-300 shadow-sm"
-                }`}
-                aria-label={isLightMode ? "Switch to dark mode" : "Switch to light mode"}
-                title={isLightMode ? "Switch to Dark Mode" : "Switch to Light Mode"}
-              >
-                {isLightMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleShareProfile}
-                className={`p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
-                  isLightMode
-                    ? "bg-white/90 hover:bg-white border border-slate-200/90 text-slate-800 shadow-sm"
-                    : "bg-black/60 hover:bg-black/80 border border-white/20 text-white shadow-sm"
-                }`}
-                aria-label="Share profile"
-                title="Share profile"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Quick Share Floating Button */}
+            <button
+              type="button"
+              onClick={handleShareProfile}
+              className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
+                isLightMode
+                  ? "bg-white/90 hover:bg-white border border-slate-200/90 text-slate-800 shadow-sm"
+                  : "bg-black/60 hover:bg-black/80 border border-white/20 text-white shadow-sm"
+              }`}
+              aria-label="Share profile"
+              title="Share profile"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Centered Logo Badge Overlapping Hero Portrait */}
@@ -1084,7 +1050,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           {bodyBlockTypesInOrder.map((blockType) => {
             switch (blockType) {
               case "social_links": {
-                if (socialLinks.length === 0 && !contactBlock.websiteUrl) return null;
+                if (socialLinks.length === 0) return null;
                 return (
                   <div key="social_links" className="space-y-3">
                     <div className="flex items-center justify-between px-1">
@@ -1198,44 +1164,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         );
                       })}
 
-                      {contactBlock.websiteUrl &&
-                        !socialLinks.some((l) => l.url === contactBlock.websiteUrl) && (() => {
-                          const webUrl = resolveValidUrl(contactBlock.websiteUrl);
-                          return (
-                            <a
-                              href={webUrl || "#"}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => {
-                                handleTrackAction("website_click");
-                                handleOpenExternal(e, webUrl);
-                              }}
-                              className={`p-3 rounded-xl flex items-center justify-between transition-all group cursor-pointer ${
-                                isLightMode
-                                  ? "bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
-                                  : "bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/25"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                                  <Globe className="w-4 h-4 text-blue-500" />
-                                </div>
-                                <span
-                                  className={`text-xs font-semibold truncate ${
-                                    isLightMode ? "text-slate-800 group-hover:text-slate-950 font-medium" : "text-slate-200 group-hover:text-white"
-                                  }`}
-                                >
-                                  Official Website
-                                </span>
-                              </div>
-                              <ExternalLink
-                                className={`w-3.5 h-3.5 shrink-0 ml-1.5 ${
-                                  isLightMode ? "text-slate-400 group-hover:text-slate-600" : "text-slate-500 group-hover:text-slate-300"
-                                }`}
-                              />
-                            </a>
-                          );
-                        })()}
+
                     </div>
                   </div>
                 );
