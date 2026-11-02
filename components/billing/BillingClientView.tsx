@@ -367,10 +367,10 @@ export function BillingClientView({
                 </div>
 
                 {/* Fallback Protection Guarantee */}
-                <div className="flex items-start gap-2.5 pt-2 text-xs text-slate-400 bg-white/5 p-3 rounded-xl border border-white/5 max-w-xl">
+                <div className="flex items-start gap-2.5 pt-2 text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5 max-w-xl">
                   <Shield className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-slate-200">Zero-Data Loss Guarantee:</strong> If your subscription lapses, your customer leads and card data remain intact. Your primary card profile stays active as a fallback.
+                    <strong className="text-slate-800 dark:text-slate-200">Zero-Data Loss Guarantee:</strong> If your subscription lapses, your customer leads and card data remain intact. Your primary card profile stays active as a fallback.
                   </span>
                 </div>
 
@@ -385,7 +385,7 @@ export function BillingClientView({
                   </Link>
                   <Link
                     href="/dashboard/profiles"
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white border border-white/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <Smartphone className="w-3.5 h-3.5 text-teal-400" />
                     <span>Manage All Profiles ({activeProfilesCount})</span>
@@ -394,9 +394,9 @@ export function BillingClientView({
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-950/80 border border-white/10 space-y-4 shrink-0 lg:min-w-[240px]">
+              <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 space-y-4 shrink-0 lg:min-w-[240px]">
                 <div>
-                  <div className="text-xs text-slate-400 font-medium">Billed Annually</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Billed Annually</div>
                   <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
                     {currentPlan.priceAnnualInr === 0
                       ? "₹0 Free"
@@ -405,9 +405,9 @@ export function BillingClientView({
                 </div>
 
                 {subscription?.currentPeriodEnd && (
-                  <div className="pt-2 border-t border-white/5 text-xs text-slate-400 flex items-center justify-between">
+                  <div className="pt-2 border-t border-slate-200 dark:border-white/5 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
                     <span>Renews on:</span>
-                    <span className="text-slate-200 font-mono font-medium">
+                    <span className="text-slate-800 dark:text-slate-200 font-mono font-medium">
                       {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
@@ -445,10 +445,10 @@ export function BillingClientView({
                     key={plan.id}
                     className={`rounded-3xl p-6 flex flex-col justify-between border transition-all relative ${
                       isCurrent
-                        ? "bg-slate-900/90 border-blue-500/60 shadow-xl shadow-blue-500/10 ring-1 ring-blue-500/50"
+                        ? "bg-white dark:bg-slate-900/90 border-blue-500 shadow-xl shadow-blue-500/10 ring-1 ring-blue-500/50"
                         : isPopular
-                        ? "bg-slate-900/60 border-purple-500/40 hover:border-purple-500/80"
-                        : "bg-slate-900/40 border-white/10 hover:border-white/20"
+                        ? "bg-white dark:bg-slate-900/60 border-purple-500/50 hover:border-purple-500 shadow-sm hover:shadow-md"
+                        : "bg-white dark:bg-slate-900/40 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 shadow-xs hover:shadow-sm"
                     }`}
                   >
                     {isPopular && (
@@ -466,19 +466,19 @@ export function BillingClientView({
                               ? "₹0"
                               : `₹${plan.priceAnnualInr.toLocaleString("en-IN")}`}
                           </span>
-                          <span className="text-xs text-slate-400">/year</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">/year</span>
                         </div>
                       </div>
 
-                      <div className="space-y-2 pt-2 border-t border-white/10">
-                        <div className="text-xs font-semibold text-slate-300">
+                      <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10">
+                        <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                           Profile Quota:{" "}
                           <span className="text-blue-400 font-bold">
                             {plan.profileLimit >= 999 ? "Unlimited" : plan.profileLimit} Cards
                           </span>
                         </div>
 
-                        <ul className="space-y-2 text-xs text-slate-300 pt-2">
+                        <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300 pt-2">
                           {featuresList.map((feat, idx) => (
                             <li key={idx} className="flex items-start gap-2">
                               <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
@@ -493,7 +493,7 @@ export function BillingClientView({
                       {isCurrent ? (
                         <button
                           disabled
-                          className="w-full py-2.5 rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-300 text-xs font-bold cursor-default"
+                          className="w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-600/20 dark:border-blue-500/40 dark:text-blue-300 text-xs font-bold cursor-default"
                         >
                           Current Plan
                         </button>
@@ -501,7 +501,7 @@ export function BillingClientView({
                         <button
                           onClick={() => handleUpgrade(plan.code)}
                           disabled={loadingCode !== null}
-                          className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                          className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                         >
                           {loadingCode === plan.code ? (
                             <Clock className="w-3.5 h-3.5 animate-spin" />
@@ -530,14 +530,14 @@ export function BillingClientView({
             </div>
 
             {invoices.length === 0 ? (
-              <div className="p-8 rounded-2xl border border-white/10 bg-slate-900/30 text-center text-sm text-slate-400">
+              <div className="p-8 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/30 text-center text-sm text-slate-500 dark:text-slate-400">
                 No invoices generated yet. Invoices appear here once you purchase a card or upgrade a plan.
               </div>
             ) : (
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+              <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950/80 border-b border-white/10 text-slate-400 font-semibold uppercase tracking-wider">
+                    <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">
                       <tr>
                         <th className="py-3 px-4">Invoice #</th>
                         <th className="py-3 px-4">Date</th>
@@ -547,7 +547,7 @@ export function BillingClientView({
                         <th className="py-3 px-4 text-right">Receipt</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                       {invoices.map((inv) => {
                         let items: any[] = [];
                         try {
@@ -557,7 +557,7 @@ export function BillingClientView({
                         }
 
                         return (
-                          <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
+                          <tr key={inv.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                             <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                               {inv.invoiceNumber}
                             </td>
@@ -684,15 +684,15 @@ export function BillingClientView({
 
             {/* Invite Modal / Box */}
             {showInviteModal && (
-              <div className="p-5 rounded-2xl bg-slate-900 border border-blue-500/40 space-y-4 shadow-xl animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-blue-500/40 space-y-4 shadow-xl animate-in fade-in">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <Mail className="w-4 h-4 text-blue-400" />
                     <span>Invite Teammate by Email</span>
                   </h4>
                   <button
                     onClick={() => setShowInviteModal(false)}
-                    className="text-slate-400 hover:text-white text-xs"
+                    className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white text-xs cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -700,7 +700,7 @@ export function BillingClientView({
 
                 <form onSubmit={handleSendInvite} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="sm:col-span-2">
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Email Address
                     </label>
                     <input
@@ -714,7 +714,7 @@ export function BillingClientView({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       Assigned Role
                     </label>
                     <select
@@ -732,7 +732,7 @@ export function BillingClientView({
                     <button
                       type="button"
                       onClick={() => setShowInviteModal(false)}
-                      className="px-4 py-2 rounded-xl border border-white/10 text-slate-300 text-xs font-semibold hover:bg-white/5"
+                      className="px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer"
                     >
                       Close
                     </button>
@@ -749,9 +749,9 @@ export function BillingClientView({
             )}
 
             {/* Table */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+            <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 border-b border-white/10 text-slate-400 font-semibold uppercase tracking-wider">
+                <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">Member</th>
                     <th className="py-3 px-4">Role</th>
@@ -760,9 +760,9 @@ export function BillingClientView({
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                   {teamMembers.map((m) => (
-                    <tr key={m.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-300 text-xs shrink-0">
@@ -821,19 +821,19 @@ export function BillingClientView({
         <div className="space-y-8 animate-in fade-in duration-200">
           {/* WEBHOOK CONFIGURATION CARD */}
           <div className="p-6 md:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Plug className="w-5 h-5 text-teal-400" />
+                  <Plug className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                   <span>Real-Time Lead Webhook Destination</span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   Automatically forward leads, vCard downloads, and card tap events to any custom URL or Zapier webhook.
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                <span className="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-500/20 dark:text-teal-300 dark:border-teal-500/30">
                   Live Stream Active
                 </span>
               </div>
@@ -841,7 +841,7 @@ export function BillingClientView({
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Webhook Target Endpoint URL
                 </label>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -850,18 +850,18 @@ export function BillingClientView({
                     value={webhookUrl}
                     onChange={(e) => setWebhookUrl(e.target.value)}
                     placeholder="https://your-crm.com/api/webhooks/tapbez"
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:border-blue-500"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   <button
                     onClick={handleSaveWebhook}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shrink-0"
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 shrink-0 cursor-pointer"
                   >
                     Save URL
                   </button>
                   <button
                     onClick={handleTestWebhook}
                     disabled={testingWebhook}
-                    className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1.5"
+                    className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-200 dark:border-transparent text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                   >
                     {testingWebhook ? (
                       <Clock className="w-3.5 h-3.5 animate-spin" />
@@ -874,33 +874,33 @@ export function BillingClientView({
               </div>
 
               {savedWebhookToast && (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400" />
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Webhook URL successfully updated!</span>
                 </div>
               )}
 
               {webhookTestResult && (
-                <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs flex items-center gap-2 font-mono">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0" />
+                <div className="p-3 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-200 dark:border-teal-500/30 text-teal-800 dark:text-teal-300 text-xs flex items-center gap-2 font-mono">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
                   <span>{webhookTestResult}</span>
                 </div>
               )}
 
               {/* Secret Key */}
               <div className="pt-2">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Signing Secret (HMAC SHA-256)
                 </label>
                 <div className="flex items-center gap-2 max-w-md">
-                  <div className="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-slate-400 text-xs font-mono truncate">
+                  <div className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-400 text-xs font-mono truncate">
                     {webhookSecret}
                   </div>
                   <button
                     onClick={copySecretToClipboard}
-                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all flex items-center gap-1"
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white dark:border-transparent text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
                   >
-                    {copiedSecret ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedSecret ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedSecret ? "Copied" : "Copy"}</span>
                   </button>
                 </div>
@@ -908,20 +908,20 @@ export function BillingClientView({
 
               {/* Event Triggers */}
               <div className="pt-2 space-y-2">
-                <label className="block text-xs font-semibold text-slate-300">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Subscribed Event Triggers
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-300 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-0" />
+                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer transition-colors">
+                    <input type="checkbox" defaultChecked className="rounded text-blue-600 focus:ring-0" />
                     <span>lead.created (Contact exchanged)</span>
                   </label>
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-300 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-0" />
+                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer transition-colors">
+                    <input type="checkbox" defaultChecked className="rounded text-blue-600 focus:ring-0" />
                     <span>card.tapped (NFC scan event)</span>
                   </label>
-                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-300 cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded text-blue-500 focus:ring-0" />
+                  <label className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer transition-colors">
+                    <input type="checkbox" defaultChecked className="rounded text-blue-600 focus:ring-0" />
                     <span>vcard.downloaded (Address book save)</span>
                   </label>
                 </div>
@@ -934,20 +934,20 @@ export function BillingClientView({
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Direct Ecosystem Integrations</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Google Sheets */}
-              <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/70 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
                         📊
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white">Google Sheets Sync</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
                       Supported
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Instantly sync every new business lead and visitor detail directly into a live Google Sheet in real time.
                   </p>
                 </div>
@@ -955,27 +955,27 @@ export function BillingClientView({
                   onClick={() => {
                     alert("To connect Google Sheets, use your Webhook URL above with Zapier or Google App Script webhook endpoint.");
                   }}
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold border border-white/10 transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
                 >
                   Configure Sheet Sync
                 </button>
               </div>
 
               {/* Zapier / Make */}
-              <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 border border-orange-200/70 dark:bg-orange-500/20 dark:text-orange-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
                         ⚡
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white">Zapier & Make.com</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-transparent">
                       5,000+ Apps
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Trigger custom automations across Salesforce, Mailchimp, Slack, Notion, and Airtable whenever your card is tapped.
                   </p>
                 </div>
@@ -983,27 +983,27 @@ export function BillingClientView({
                   onClick={() => {
                     alert("Copy your webhook target URL above and paste it into Zapier 'Webhooks by Zapier' trigger.");
                   }}
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold border border-white/10 transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
                 >
                   Connect via Zapier
                 </button>
               </div>
 
               {/* HubSpot CRM */}
-              <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-orange-600/20 text-orange-400 flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/70 dark:bg-orange-600/20 dark:text-orange-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
                         💼
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white">HubSpot CRM</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-transparent">
                       Pro CRM
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Automatically create HubSpot contacts and deal stages when clients submit contact exchange details on your profile.
                   </p>
                 </div>
@@ -1019,27 +1019,27 @@ export function BillingClientView({
                       alert("HubSpot CRM connection is enabled for your Business Pro workspace.");
                     }
                   }}
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold border border-white/10 transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
                 >
                   Connect HubSpot
                 </button>
               </div>
 
               {/* Slack & WhatsApp Alerts */}
-              <div className="p-5 rounded-2xl border border-white/10 bg-slate-900/40 space-y-3 flex flex-col justify-between">
-                <div className="space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/60 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between">
+                <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                      <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/70 dark:bg-emerald-600/20 dark:text-emerald-400 dark:border-transparent flex items-center justify-center font-bold text-sm shadow-xs">
                         💬
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 dark:text-white">Slack & WhatsApp Alerts</h4>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-transparent">
                       Instant Ping
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Receive instant push notifications on your phone or team Slack channel whenever a high-intent client scans your card.
                   </p>
                 </div>
@@ -1047,7 +1047,7 @@ export function BillingClientView({
                   onClick={() => {
                     alert("Slack notifications can be sent directly by directing your Webhook URL to a Slack incoming webhook channel.");
                   }}
-                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold border border-white/10 transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-200 text-xs font-bold border border-slate-200/90 dark:border-white/10 transition-colors shadow-xs active:scale-[0.98] cursor-pointer"
                 >
                   Configure Slack Webhook
                 </button>
