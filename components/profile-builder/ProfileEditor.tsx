@@ -96,6 +96,27 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [selectedSocialPlatform, setSelectedSocialPlatform] = useState("instagram");
   const [newSocialUrl, setNewSocialUrl] = useState("");
 
+  // Service modal state for adding / editing services
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
+  const [serviceFormData, setServiceFormData] = useState({
+    title: "",
+    description: "",
+    price: "",
+    duration: "",
+    isEnabled: true,
+  });
+
+  // Testimonial modal state for adding / editing testimonials
+  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
+  const [editingTestimonialIndex, setEditingTestimonialIndex] = useState<number | null>(null);
+  const [testimonialFormData, setTestimonialFormData] = useState({
+    clientName: "",
+    clientTitle: "",
+    rating: 5,
+    content: "",
+  });
+
   // Portfolio modal state for manual project addition
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -511,6 +532,125 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     } catch (err: any) {
       setErrorMessage("Failed to process project image.");
     }
+  };
+
+  const handleOpenAddService = () => {
+    setEditingServiceIndex(null);
+    setServiceFormData({
+      title: "",
+      description: "",
+      price: "",
+      duration: "",
+      isEnabled: true,
+    });
+    setShowServiceModal(true);
+  };
+
+  const handleOpenEditService = (idx: number) => {
+    const srv = servicesList[idx];
+    if (!srv) return;
+    setEditingServiceIndex(idx);
+    setServiceFormData({
+      title: srv.title || "",
+      description: srv.description || "",
+      price: srv.price || "",
+      duration: srv.duration || "",
+      isEnabled: srv.isEnabled !== false,
+    });
+    setShowServiceModal(true);
+  };
+
+  const handleSaveService = () => {
+    if (!serviceFormData.title.trim()) {
+      setErrorMessage("Please enter a service or product title.");
+      return;
+    }
+    let updated: any[];
+    if (editingServiceIndex !== null && editingServiceIndex >= 0) {
+      updated = [...servicesList];
+      updated[editingServiceIndex] = {
+        ...updated[editingServiceIndex],
+        ...serviceFormData,
+      };
+    } else {
+      updated = [
+        ...servicesList,
+        {
+          id: `srv_${Date.now()}`,
+          ...serviceFormData,
+        },
+      ];
+    }
+    updateBlockData("services", { items: updated });
+    setShowServiceModal(false);
+    setEditingServiceIndex(null);
+    setServiceFormData({
+      title: "",
+      description: "",
+      price: "",
+      duration: "",
+      isEnabled: true,
+    });
+    setSaveMessage("Service saved successfully!");
+    setTimeout(() => setSaveMessage(null), 2500);
+  };
+
+  const handleOpenAddTestimonial = () => {
+    setEditingTestimonialIndex(null);
+    setTestimonialFormData({
+      clientName: "",
+      clientTitle: "",
+      rating: 5,
+      content: "",
+    });
+    setShowTestimonialModal(true);
+  };
+
+  const handleOpenEditTestimonial = (idx: number) => {
+    const t = testimonialsList[idx];
+    if (!t) return;
+    setEditingTestimonialIndex(idx);
+    setTestimonialFormData({
+      clientName: t.clientName || "",
+      clientTitle: t.clientTitle || "",
+      rating: t.rating || 5,
+      content: t.content || "",
+    });
+    setShowTestimonialModal(true);
+  };
+
+  const handleSaveTestimonial = () => {
+    if (!testimonialFormData.clientName.trim()) {
+      setErrorMessage("Please enter the client's name.");
+      return;
+    }
+    let updated: any[];
+    if (editingTestimonialIndex !== null && editingTestimonialIndex >= 0) {
+      updated = [...testimonialsList];
+      updated[editingTestimonialIndex] = {
+        ...updated[editingTestimonialIndex],
+        ...testimonialFormData,
+      };
+    } else {
+      updated = [
+        ...testimonialsList,
+        {
+          id: `t_${Date.now()}`,
+          ...testimonialFormData,
+        },
+      ];
+    }
+    updateBlockData("testimonials", { items: updated });
+    setShowTestimonialModal(false);
+    setEditingTestimonialIndex(null);
+    setTestimonialFormData({
+      clientName: "",
+      clientTitle: "",
+      rating: 5,
+      content: "",
+    });
+    setSaveMessage("Testimonial saved successfully!");
+    setTimeout(() => setSaveMessage(null), 2500);
   };
 
   const handleSaveProject = () => {
@@ -1530,19 +1670,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </div>
         <button
           type="button"
-          onClick={() => {
-            const newItem = {
-              id: `srv_${Date.now()}`,
-              title: "New Service Offering",
-              description: "High impact consulting and execution",
-              price: "₹ 10,000",
-              isEnabled: true,
-            };
-            updateBlockData("services", { items: [...servicesList, newItem] });
-            setSaveMessage("Service added. Edit title and price below.");
-            setTimeout(() => setSaveMessage(null), 2500);
-          }}
-          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
+          onClick={handleOpenAddService}
+          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add Service</span>
@@ -1553,46 +1682,56 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {servicesList.map((srv, idx) => (
           <div
             key={srv.id || idx}
-            className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+            className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-xs"
           >
             <div className="flex items-center gap-3 w-full sm:w-auto flex-1 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-600 flex items-center justify-center font-black text-sm shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-sm shrink-0">
                 {idx + 1}
               </div>
               <div className="flex-1 space-y-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={srv.title || ""}
+                    onChange={(e) => {
+                      const updated = [...servicesList];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      updateBlockData("services", { items: updated });
+                    }}
+                    placeholder="Service title..."
+                    className="w-full text-sm font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 rounded-md px-1 transition-colors"
+                  />
+                  {srv.duration && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium shrink-0">
+                      {srv.duration}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  value={srv.title}
-                  onChange={(e) => {
-                    const updated = [...servicesList];
-                    updated[idx] = { ...updated[idx], title: e.target.value };
-                    updateBlockData("services", { items: updated });
-                  }}
-                  className="w-full text-sm font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 rounded-md px-1 transition-colors"
-                />
-                <input
-                  type="text"
-                  value={srv.description}
+                  value={srv.description || ""}
                   onChange={(e) => {
                     const updated = [...servicesList];
                     updated[idx] = { ...updated[idx], description: e.target.value };
                     updateBlockData("services", { items: updated });
                   }}
+                  placeholder="Short description..."
                   className="w-full text-xs text-slate-600 dark:text-slate-400 bg-transparent focus:outline-none focus:bg-white dark:focus:bg-slate-800 rounded-md px-1 transition-colors"
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end shrink-0">
               <input
                 type="text"
-                value={srv.price}
+                value={srv.price || ""}
                 onChange={(e) => {
                   const updated = [...servicesList];
                   updated[idx] = { ...updated[idx], price: e.target.value };
                   updateBlockData("services", { items: updated });
                 }}
-                className="w-28 text-right font-black text-blue-600 dark:text-blue-400 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
+                placeholder="Price"
+                className="w-28 text-right font-black text-blue-600 dark:text-blue-400 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-blue-500 transition-colors"
               />
               <input
                 type="checkbox"
@@ -1607,11 +1746,20 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               />
               <button
                 type="button"
+                onClick={() => handleOpenEditService(idx)}
+                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-blue-200/60 dark:border-blue-800/60 shadow-xs"
+                title="Edit service details"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>Edit</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   const updated = servicesList.filter((_, i) => i !== idx);
                   updateBlockData("services", { items: updated });
                 }}
-                className="p-1.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
                 title="Delete service"
               >
                 <Trash2 className="w-4 h-4" />
@@ -1620,6 +1768,116 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
         ))}
       </div>
+
+      {/* Interactive Modal for Service Addition / Editing */}
+      {showServiceModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {editingServiceIndex !== null ? "Edit Service / Offering" : "Add New Service / Offering"}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Update service title, fee, duration, and customer deliverables.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowServiceModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Service / Offering Title *
+                </label>
+                <input
+                  type="text"
+                  value={serviceFormData.title}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, title: e.target.value })}
+                  placeholder="e.g. M&A Due Diligence, Commercial Contract Review"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Pricing / Fee
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceFormData.price}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, price: e.target.value })}
+                    placeholder="e.g. ₹50,000 or Custom"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Duration (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceFormData.duration}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, duration: e.target.value })}
+                    placeholder="e.g. 1 Hour, Monthly, 48 Hours"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Service Description & Key Deliverables
+                </label>
+                <textarea
+                  rows={3}
+                  value={serviceFormData.description}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, description: e.target.value })}
+                  placeholder="Outline what is included in this service package..."
+                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="service-modal-enabled"
+                  checked={serviceFormData.isEnabled}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, isEnabled: e.target.checked })}
+                  className="w-4 h-4 text-blue-600 rounded border-slate-300 cursor-pointer"
+                />
+                <label htmlFor="service-modal-enabled" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Show this service actively on your public card
+                </label>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowServiceModal(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveService}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
+              >
+                {editingServiceIndex !== null ? "Update Service" : "Add Service"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1897,17 +2155,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
           <button
             type="button"
-            onClick={() => {
-              const newItem = {
-                id: `t_${Date.now()}`,
-                clientName: "Happy Client",
-                clientTitle: "Business Director",
-                rating: 5,
-                content: "Outstanding results and communication. Highly recommended!",
-              };
-              updateBlockData("testimonials", { items: [...testimonialsList, newItem] });
-            }}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
+            onClick={handleOpenAddTestimonial}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Testimonial</span>
@@ -1916,59 +2165,166 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
         <div className="space-y-3">
           {testimonialsList.map((t, idx) => (
-            <div key={t.id || idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-2">
+            <div key={t.id || idx} className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-3 group hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-xs">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-700 font-bold text-xs flex items-center justify-center">
-                    {t.clientName?.charAt(0) || "C"}
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-teal-500/20 text-teal-700 dark:text-teal-400 font-bold text-sm flex items-center justify-center shrink-0">
+                    {(t.clientName || "C").charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <input
-                      type="text"
-                      value={t.clientName}
-                      onChange={(e) => {
-                        const updated = [...testimonialsList];
-                        updated[idx] = { ...updated[idx], clientName: e.target.value };
-                        updateBlockData("testimonials", { items: updated });
-                      }}
-                      className="text-xs font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={t.clientTitle}
-                      onChange={(e) => {
-                        const updated = [...testimonialsList];
-                        updated[idx] = { ...updated[idx], clientTitle: e.target.value };
-                        updateBlockData("testimonials", { items: updated });
-                      }}
-                      className="block text-[10px] text-slate-400 bg-transparent focus:outline-none"
-                    />
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                      {t.clientName || "Anonymous Client"}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {t.clientTitle || "Verified Client"}
+                    </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = testimonialsList.filter((_, i) => i !== idx);
-                    updateBlockData("testimonials", { items: updated });
-                  }}
-                  className="p-1 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <div className="hidden sm:flex items-center gap-0.5 text-amber-400 mr-1.5">
+                    {[...Array(t.rating || 5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditTestimonial(idx)}
+                    className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-blue-200/60 dark:border-blue-800/60 shadow-xs"
+                    title="Edit review details"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = testimonialsList.filter((_, i) => i !== idx);
+                      updateBlockData("testimonials", { items: updated });
+                    }}
+                    className="p-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                    title="Delete testimonial"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <textarea
-                rows={2}
-                value={t.content}
-                onChange={(e) => {
-                  const updated = [...testimonialsList];
-                  updated[idx] = { ...updated[idx], content: e.target.value };
-                  updateBlockData("testimonials", { items: updated });
-                }}
-                className="w-full text-xs text-slate-700 dark:text-slate-300 bg-transparent border-t border-slate-200/80 dark:border-white/10 pt-2 focus:outline-none resize-none"
-              />
+
+              {/* Review Text */}
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed italic bg-white/70 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/60 dark:border-white/5">
+                &ldquo;{t.content}&rdquo;
+              </p>
             </div>
           ))}
         </div>
+
+        {/* Interactive Modal for Testimonial Addition / Editing */}
+        {showTestimonialModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {editingTestimonialIndex !== null ? "Edit Testimonial" : "Add New Testimonial"}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Add client feedback, designation, and star ratings.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTestimonialModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Client Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialFormData.clientName}
+                    onChange={(e) => setTestimonialFormData({ ...testimonialFormData, clientName: e.target.value })}
+                    placeholder="e.g. Neha Shah, Rahul Sharma"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Client Title / Business
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialFormData.clientTitle}
+                    onChange={(e) => setTestimonialFormData({ ...testimonialFormData, clientTitle: e.target.value })}
+                    placeholder="e.g. Salon Owner, Founder at TechCorp"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                {/* Rating selection (1-5 stars) */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Star Rating: {testimonialFormData.rating} / 5
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((starVal) => (
+                      <button
+                        key={starVal}
+                        type="button"
+                        onClick={() => setTestimonialFormData({ ...testimonialFormData, rating: starVal })}
+                        className="p-1 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
+                      >
+                        <Star
+                          className={`w-6 h-6 transition-colors ${
+                            starVal <= (testimonialFormData.rating || 5)
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-slate-300 dark:text-slate-600"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Review / Testimonial Content *
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={testimonialFormData.content}
+                    onChange={(e) => setTestimonialFormData({ ...testimonialFormData, content: e.target.value })}
+                    placeholder="Enter what the client said about your work or service..."
+                    className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setShowTestimonialModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveTestimonial}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
+                >
+                  {editingTestimonialIndex !== null ? "Update Testimonial" : "Add Testimonial"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Frequently Asked Questions (FAQ) Card */}
