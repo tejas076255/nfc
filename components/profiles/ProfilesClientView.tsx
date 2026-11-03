@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Sliders,
   Plus,
@@ -68,8 +68,10 @@ function calculateSetupScore(profile: ProfileItem): { percent: number; label: st
 
 export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClientViewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams?.get("tab") === "employee" ? "employee" : "all";
   const [profiles, setProfiles] = useState<ProfileItem[]>(initialProfiles);
-  const [filterTab, setFilterTab] = useState<"all" | "primary" | "employee">("all");
+  const [filterTab, setFilterTab] = useState<"all" | "primary" | "employee">(initialTab);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -255,40 +257,46 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
       )}
 
       {/* Quota tracker banner */}
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-            <Users className="w-4 h-4" />
+      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs shadow-xs">
+        <div className="flex items-center gap-3.5 flex-wrap">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-slate-600 dark:text-slate-300 font-medium">
-              Profile Quota: <strong className="text-slate-900 dark:text-white font-bold">{profiles.length}</strong> of{" "}
-              <strong className="text-slate-900 dark:text-white font-bold">
-                {planInfo.profileLimit >= 999 ? "Unlimited" : planInfo.profileLimit} Slots Used
-              </strong>{" "}
-              ({slotsRemaining} remaining for employees)
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-black text-sm sm:text-base text-slate-900 dark:text-white">
+                Company - Admin (Card slot {planInfo.profileLimit})
+              </span>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 uppercase tracking-wider">
+                {planInfo.planName}
+              </span>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+              <strong className="text-slate-900 dark:text-white font-bold">{profiles.length}</strong> of{" "}
+              <strong className="text-slate-900 dark:text-white font-bold">{planInfo.profileLimit}</strong> Card Slots Used •{" "}
+              <span className="text-teal-600 dark:text-teal-400 font-bold">{slotsRemaining} Slots Remaining</span> for Employee Cards (EC1, EC2, EC3...)
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {isLimitReached ? (
             <button
               type="button"
               onClick={() => setShowUpgradeModal(true)}
-              className="text-purple-600 dark:text-purple-400 hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Upgrade Plan Quota</span>
+              <span>Upgrade Plan (+ Slots)</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={() => setShowAddModal(true)}
-              className="text-teal-600 dark:text-teal-400 hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95 transition-all"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Employee Profile</span>
+              <Plus className="w-4 h-4" />
+              <span>+ Add Employee Card (EC{employeeProfiles.length + 1})</span>
             </button>
           )}
         </div>
@@ -355,6 +363,12 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
           displayedProfiles.map((profile, index) => {
             const isPrimary = profile.id === primaryProfile?.id;
             const setup = calculateSetupScore(profile);
+            const employeeIndex = !isPrimary
+              ? employeeProfiles.findIndex((p) => p.id === profile.id) + 1
+              : 0;
+
+            const cardCode = isPrimary ? "Profile 1" : `EC${employeeIndex}`;
+            const cardRole = isPrimary ? "Company Primary Card" : `Employee Card ${employeeIndex}`;
 
             return (
               <div
@@ -362,7 +376,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                 className="rounded-3xl p-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 flex flex-col justify-between space-y-4 hover:border-blue-500/50 transition-all shadow-xs group"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                         isPrimary
@@ -370,7 +384,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                           : "bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20"
                       }`}
                     >
-                      {isPrimary ? "Primary Owner" : "Employee Profile"}
+                      {cardCode} • {cardRole}
                     </span>
                     <span
                       className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
@@ -388,19 +402,29 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                       {profile.name}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                      {profile.title || "No designation set"}
+                      {profile.title || (isPrimary ? "Primary Business Profile" : `Employee Card ${employeeIndex}`)}
                     </p>
                   </Link>
                   <p className="text-[11px] text-blue-600/90 dark:text-blue-400 font-mono truncate hover:underline">
                     /p/{profile.slug}
                   </p>
 
+                  {/* Mode / Feature Badge */}
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    <span>
+                      {isPrimary
+                        ? "Dark & Light theme with Preview (Edit) • Steps 1 to 8"
+                        : `Step 1 to 8 Setup • NFC Card & QR Backup`}
+                    </span>
+                  </div>
+
                   {/* Step-by-Step Completion Score */}
                   <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-white/5 space-y-1.5">
                     <div className="flex items-center justify-between text-[11px] font-bold">
                       <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
                         <Layers className="w-3 h-3 text-blue-500" />
-                        <span>Step-by-step Setup:</span>
+                        <span>Steps 1 to 8:</span>
                       </span>
                       <span className={setup.isComplete ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}>
                         {setup.label}
@@ -417,7 +441,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                     <Eye className="w-3.5 h-3.5" />
                     <span>{profile.viewsCount} views</span>
@@ -429,17 +453,18 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                         href={`/p/${profile.slug}`}
                         target="_blank"
                         className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-                        title="Open Live Public Profile"
+                        title={`Open Live ${cardCode} Profile`}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </Link>
                     )}
                     <Link
                       href={`/dashboard/profiles/${profile.id}/edit`}
-                      className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      title={`Edit ${cardCode} (Steps 1 to 8)`}
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>{setup.isComplete ? "Edit Profile" : "Continue Setup"}</span>
+                      <span>Edit (Steps 1-8)</span>
                     </Link>
                     <button
                       type="button"
@@ -448,7 +473,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                         setDeletingProfile(profile);
                       }}
                       className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 transition-all cursor-pointer"
-                      title="Delete Digital Profile"
+                      title={`Delete ${cardCode}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -470,9 +495,11 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Add Employee Profile</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    + Add Employee Card (EC{employeeProfiles.length + 1})
+                  </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Create a new digital card for a sales rep, manager or team member.
+                    Create Employee Card {employeeProfiles.length + 1} under your {planInfo.profileLimit} card slots plan. Inherits branding & opens Step 1 to 8.
                   </p>
                 </div>
               </div>
@@ -599,9 +626,9 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
                 <button
                   type="submit"
                   disabled={isSubmitting || !empForm.name.trim()}
-                  className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-md disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-md disabled:opacity-50 flex items-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  {isSubmitting ? "Creating..." : "Create Employee Profile"}
+                  {isSubmitting ? "Creating..." : `Create EC${employeeProfiles.length + 1} & Open Steps 1-8`}
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -613,31 +640,50 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
       {deletingProfile && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
           <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-                <Trash2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Delete Digital Profile?</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  This action is permanent and frees up 1 slot in your quota.
-                </p>
-              </div>
-            </div>
+            {(() => {
+              const isPrimaryDel = deletingProfile.id === primaryProfile?.id;
+              const delIndex = !isPrimaryDel
+                ? employeeProfiles.findIndex((p) => p.id === deletingProfile.id) + 1
+                : 0;
+              const delCode = isPrimaryDel ? "Profile 1" : `EC${delIndex}`;
 
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-white/5 space-y-1.5">
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                {deletingProfile.name}
-              </div>
-              <div className="text-xs font-mono text-teal-600 dark:text-teal-400 truncate">
-                /p/{deletingProfile.slug}
-              </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-1">
-                <span>Designation: {deletingProfile.title || "None"}</span>
-                <span>•</span>
-                <span className="capitalize">{deletingProfile.status}</span>
-              </div>
-            </div>
+              return (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                      <Trash2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                        Delete {delCode} ({deletingProfile.name})?
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        This action permanently deletes this card and frees up 1 slot in your {planInfo.profileLimit} card slots.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-white/5 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                        {deletingProfile.name}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">
+                        {delCode}
+                      </span>
+                    </div>
+                    <div className="text-xs font-mono text-teal-600 dark:text-teal-400 truncate">
+                      /p/{deletingProfile.slug}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-1">
+                      <span>Designation: {deletingProfile.title || "None"}</span>
+                      <span>•</span>
+                      <span className="capitalize">{deletingProfile.status}</span>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
 
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />

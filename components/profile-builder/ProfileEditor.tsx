@@ -308,7 +308,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       }
       setSaveMessage("Employee card created successfully! Redirecting...");
       setTimeout(() => {
-        window.location.href = `/dashboard/profiles/${data.profile.id}/edit`;
+        const newProfileId = data.id || data.profile?.id;
+        window.location.href = `/dashboard/profiles/${newProfileId}/edit`;
       }, 1000);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to create employee profile");
@@ -2368,19 +2369,24 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       <header className="shrink-0 bg-white dark:bg-[#0a0f1d] border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs z-30 transition-colors">
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <span>Edit Profile</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate max-w-[180px] sm:max-w-[260px]">
+                <span>{profile.name}</span>
+              </h1>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 shrink-0">
+                {profile.isEmployee ? "Employee Card (EC)" : "Profile 1 (Primary)"}
+              </span>
               <Link
                 href="/dashboard/profiles"
-                className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-500/30 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
+                className="text-[11px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
                 title="View and switch between all digital profiles"
               >
                 <span>All Profiles</span>
                 <ChevronRight className="w-3 h-3" />
               </Link>
-            </h1>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
-              Manage your mobile-first digital business card content and styling.
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block mt-0.5">
+              {profile.isEmployee ? "Employee Card • Step 1 to 8 Editor with Dark & Light theme preview" : "Profile 1 • Primary Company Card • Dark & Light theme with Preview"}
             </p>
           </div>
 
