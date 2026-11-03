@@ -882,33 +882,6 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const downloadsBlock: any = getBlock("downloads").blockData || {};
   const faqBlock: any = getBlock("faq").blockData || {};
 
-  // Step-by-Step Completion Guide calculation (Safely defined after block references)
-  const completionStats = useMemo(() => {
-    const contact = contactBlock || {};
-    const about = aboutBlock || {};
-    const services = (servicesBlock?.services || servicesBlock?.items || []) as any[];
-    const portfolio = (portfolioBlock?.items || []) as any[];
-    const testimonials = (testimonialsBlock?.testimonials || testimonialsBlock?.items || []) as any[];
-    const loc = locationBlock || {};
-    const socials = (socialsBlock?.links || []) as any[];
-
-    const stepChecks: Record<number, boolean> = {
-      1: Boolean(profile.name && (profile.title || profile.bio)),
-      2: Boolean(contact.phone || contact.email || contact.whatsapp || contact.websiteUrl),
-      3: Boolean(socials.length > 0),
-      4: Boolean(profile.bio || about.description || about.bio || about.content || about.imageUrl),
-      5: Boolean(services.length > 0),
-      6: Boolean(portfolio.length > 0),
-      7: Boolean(testimonials.length > 0 || loc.address),
-      8: Boolean(profile.templateId || profile.themeConfig?.accentColor),
-    };
-
-    const completedCount = Object.values(stepChecks).filter(Boolean).length;
-    const percent = Math.round((completedCount / 8) * 100);
-
-    return { completedCount, totalSteps: 8, percent, stepChecks };
-  }, [profile, blocks, contactBlock, aboutBlock, servicesBlock, portfolioBlock, testimonialsBlock, locationBlock, socialsBlock]);
-
   // Resolved experience timeline
   const experienceTimeline: any[] = highlightsBlock.experienceTimeline || [
     { id: "exp1", role: "Founder & Lead Consultant", company: "Upmark Digital", period: "2018 - Present", description: "Leading digital strategy, AI-driven solutions and growth frameworks for 500+ clients." },
@@ -988,6 +961,75 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     { id: "d2", title: "Training Brochure", fileSize: "PDF • 1.5 MB", fileUrl: "#" },
     { id: "d3", title: "Service Menu", fileSize: "PDF • 1.2 MB", fileUrl: "#" },
   ];
+
+  // Step-by-Step Completion Guide calculation (Resolved cleanly after block references and lists)
+  const completionStats = useMemo(() => {
+    const contact = contactBlock || {};
+    const about = aboutBlock || {};
+    const loc = locationBlock || {};
+
+    const hasStep1 = Boolean(profile.name && (profile.title || profile.bio || headerBlock.tagline || headerBlock.avatarUrl));
+    const hasStep2 = Boolean(contact.phone || contact.email || contact.whatsapp || contact.websiteUrl || contact.bookingUrl || contact.location);
+    const hasStep3 = Boolean(socialLinks.length > 0 || (socialsBlock?.links && socialsBlock.links.length > 0));
+    const hasStep4 = Boolean(profile.bio || about.description || about.bio || about.content || about.headline || about.imageUrl || aboutTags.length > 0);
+    const hasStep5 = Boolean(servicesList.length > 0 || (servicesBlock?.items && servicesBlock.items.length > 0));
+    const hasStep6 = Boolean(
+      portfolioList.length > 0 ||
+      (portfolioBlock?.items && portfolioBlock.items.length > 0) ||
+      (portfolioBlock?.projects && portfolioBlock.projects.length > 0)
+    );
+    const hasStep7 = Boolean(
+      testimonialsList.length > 0 ||
+      (testimonialsBlock?.items && testimonialsBlock.items.length > 0) ||
+      faqList.length > 0 ||
+      (faqBlock?.items && faqBlock.items.length > 0) ||
+      loc.address ||
+      loc.mapUrl
+    );
+    const hasStep8 = Boolean(
+      profile.templateId ||
+      profile.themeConfig?.accentColor ||
+      profile.themeConfig?.primaryColor ||
+      profile.themeConfig?.seoTitle ||
+      downloadsList.length > 0
+    );
+
+    const stepChecks: Record<number, boolean> = {
+      1: hasStep1,
+      2: hasStep2,
+      3: hasStep3,
+      4: hasStep4,
+      5: hasStep5,
+      6: hasStep6,
+      7: hasStep7,
+      8: hasStep8,
+    };
+
+    const completedCount = Object.values(stepChecks).filter(Boolean).length;
+    const percent = Math.round((completedCount / 8) * 100);
+
+    return { completedCount, totalSteps: 8, percent, stepChecks };
+  }, [
+    profile,
+    blocks,
+    headerBlock,
+    contactBlock,
+    aboutBlock,
+    servicesBlock,
+    portfolioBlock,
+    testimonialsBlock,
+    locationBlock,
+    downloadsBlock,
+    faqBlock,
+    socialsBlock,
+    socialLinks,
+    aboutTags,
+    servicesList,
+    portfolioList,
+    testimonialsList,
+    faqList,
+    downloadsList,
+  ]);
 
   const STEPS = [
     { id: 1, label: "Header & Identity", short: "Header", icon: "👤", desc: "Avatar, banner, name, role & brand logo" },
@@ -3191,7 +3233,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 type="button"
                 onClick={() => goToStep(s.id)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
-                  isActive
+                  isActive && isCompleted
+                    ? "bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30"
+                    : isActive
                     ? "bg-blue-600 text-white shadow-xs"
                     : isCompleted
                     ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-500/30"
