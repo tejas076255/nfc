@@ -139,6 +139,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
 
   return (
     <>
+      <link rel="manifest" href={`/api/manifest/${slug}`} />
       <link rel="icon" href={avatarEndpoint} />
       <link rel="shortcut icon" href={avatarEndpoint} />
       <link rel="apple-touch-icon" href={avatarEndpoint} />

@@ -460,6 +460,14 @@ function getAvatarRadiusClass(shape?: string) {
 
 
 
+// Global early capture for PWA install event before component hydration
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e: any) => {
+    e.preventDefault();
+    (window as any).__pwaInstallPrompt = e;
+  });
+}
+
 export function PublicProfileView({ profile, sourceType = "direct", sourceToken, previewTheme }: PublicProfileViewProps) {
 
   // Theme resolution (Dark / Light / Visitor Auto Mode)
@@ -501,6 +509,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const [installModalOpen, setInstallModalOpen] = useState(false);
+  const [installInstructionStep, setInstallInstructionStep] = useState(false);
 
   const [leadModalOpen, setLeadModalOpen] = useState(false);
 
@@ -569,9 +578,12 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const [isIosDevice, setIsIosDevice] = useState(false);
 
   useEffect(() => {
-    // Detect iOS (iPhone / iPad)
+    // Detect iOS (iPhone / iPad / modern iPadOS Safari)
     if (typeof navigator !== "undefined") {
-      setIsIosDevice(/iPhone|iPad|iPod/.test(navigator.userAgent));
+      setIsIosDevice(
+        /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+      );
     }
 
     // Register PWA service worker
@@ -579,8 +591,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
 
+    if (typeof window !== "undefined" && (window as any).__pwaInstallPrompt) {
+      setDeferredPrompt((window as any).__pwaInstallPrompt);
+    }
+
     const handler = (e: any) => {
       e.preventDefault();
+      if (typeof window !== "undefined") {
+        (window as any).__pwaInstallPrompt = e;
+      }
       setDeferredPrompt(e);
     };
 
@@ -1036,26 +1055,35 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
   const handleExecuteInstall = () => {
     handleTrackAction("install_app_confirm");
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choice: any) => {
-        if (choice.outcome === "accepted") {
-          setDeferredPrompt(null);
-          setInstallModalOpen(false);
-          try {
-            sessionStorage.setItem("dismissed_install_" + profile.id, "true");
-          } catch {}
-          showToast("✨ App installed successfully to your Home Screen!");
-        }
-      });
-      return;
+      try {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice: any) => {
+          if (choice && choice.outcome === "accepted") {
+            setDeferredPrompt(null);
+            setInstallModalOpen(false);
+            try {
+              sessionStorage.setItem("dismissed_install_" + profile.id, "true");
+            } catch {}
+            showToast("✨ App installed successfully to your Home Screen!");
+          } else {
+            setInstallInstructionStep(true);
+          }
+        }).catch(() => {
+          setInstallInstructionStep(true);
+        });
+        return;
+      } catch {
+        setInstallInstructionStep(true);
+      }
     }
 
+    // When native prompt is not yet available, show instructions directly in modal
+    setInstallInstructionStep(true);
     if (isIosDevice) {
       showToast("Tap Safari Share 📤 icon at the bottom -> 'Add to Home Screen'");
-      return;
+    } else {
+      showToast("Tap browser menu (⋮) -> 'Install App' or 'Add to Home screen'");
     }
-
-    showToast("Tap browser menu (⋮) -> 'Install App' or 'Add to Home screen'");
   };
 
 
@@ -2980,6 +3008,36 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             )}
 
+                            {/* Live Project URL if available */}
+                            {Boolean(item.linkUrl || item.projectUrl || item.url) && (() => {
+                              const rawUrl = item.linkUrl || item.projectUrl || item.url;
+                              const validUrl = resolveValidUrl(rawUrl);
+                              const domainDisplay = rawUrl.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0];
+                              return (
+                                <div className="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                                  <a
+                                    href={validUrl || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenExternal(e, validUrl);
+                                    }}
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold transition-colors hover:underline ${
+                                      isLightMode ? "text-blue-600 hover:text-blue-700" : "text-teal-400 hover:text-teal-300"
+                                    }`}
+                                    title={`Open live project: ${validUrl}`}
+                                  >
+                                    <span>Live Link</span>
+                                    <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                  </a>
+                                  <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 truncate max-w-[80px]">
+                                    {domainDisplay}
+                                  </span>
+                                </div>
+                              );
+                            })()}
+
                           </div>
 
                         </div>
@@ -4296,7 +4354,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl relative text-left space-y-4 border ${
+              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl relative text-left space-y-4 border overflow-hidden ${
                 isLightMode
                   ? "bg-white border-slate-200 text-slate-900"
                   : "bg-slate-900 border-white/15 text-white"
@@ -4325,20 +4383,20 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 </button>
               </div>
 
-              {/* App Summary Card Box (matching Image 2) */}
+              {/* App Summary Card Box (Fixed Image & Layout strictly matching Image 2) */}
               <div
-                className={`p-3.5 rounded-2xl flex items-center gap-3.5 border ${
+                className={`p-3 rounded-2xl flex items-center gap-3 border overflow-hidden ${
                   isLightMode
                     ? "bg-slate-100/90 border-slate-200/80"
                     : "bg-slate-800/80 border-white/10"
                 }`}
               >
-                <div className="w-13 h-13 rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200/80 dark:border-white/10 shrink-0 flex items-center justify-center">
+                <div className="w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200/80 dark:border-white/10 shrink-0 flex items-center justify-center">
                   {effectiveAvatar || effectiveCompanyLogo || effectiveBadge ? (
                     <img
                       src={effectiveAvatar || effectiveCompanyLogo || effectiveBadge || "/default-avatar.jpg"}
                       alt={personName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover rounded-2xl"
                     />
                   ) : (
                     <Smartphone className="w-7 h-7 text-blue-600" />
@@ -4349,7 +4407,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     {companyName || personName}
                   </p>
                   <p className="text-[11px] text-slate-500 font-mono truncate">
-                    {typeof window !== "undefined" ? window.location.host : "tapsync.in"}/p/{profile.slug}
+                    https://{typeof window !== "undefined" ? window.location.host : "nfc-business-card-saas.tejasgogavale5.workers.dev"}/p/{profile.slug}
                   </p>
                 </div>
               </div>
@@ -4359,23 +4417,55 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 Install the &apos;{companyName || personName}&apos; app to track and connect with buyers/clients, explore new products & services, and access this card anytime—all in real-time!
               </p>
 
-              {/* iOS Safari Steps (if iPhone / iPad) */}
-              {isIosDevice && (
-                <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 text-xs text-blue-900 dark:text-blue-200 space-y-1">
-                  <p className="font-bold flex items-center gap-1.5">
-                    <span>📲 On iPhone / iPad Safari:</span>
+              {/* Interactive Step-by-Step Instructions if deferredPrompt is not yet ready */}
+              {installInstructionStep && (
+                <div className="p-3.5 rounded-2xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900/60 text-xs text-blue-950 dark:text-blue-100 space-y-2 animate-in fade-in duration-200">
+                  <p className="font-bold flex items-center gap-1.5 text-blue-900 dark:text-blue-300">
+                    <span>📲 Easy Installation Steps:</span>
                   </p>
-                  <p className="text-[11px]">
-                    1. Tap the <span className="font-bold text-blue-600 dark:text-blue-400">Share 📤</span> button in Safari bottom bar
-                  </p>
-                  <p className="text-[11px]">
-                    2. Scroll down & tap <span className="font-bold text-blue-600 dark:text-blue-400">&apos;Add to Home Screen ➕&apos;</span>
-                  </p>
+                  {isIosDevice ? (
+                    <div className="space-y-1.5 text-[11px] leading-relaxed">
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
+                        <span>Safari ke bottom bar me <strong className="text-blue-700 dark:text-blue-300">Share icon (📤)</strong> par tap karein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
+                        <span>Scroll down karke <strong className="text-blue-700 dark:text-blue-300">&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
+                        <span>Top right me <strong className="text-blue-700 dark:text-blue-300">&apos;Add&apos;</strong> click karein — app aapke phone par install ho jayega!</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 text-[11px] leading-relaxed">
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
+                        <span>Chrome browser ke top right me <strong className="text-blue-700 dark:text-blue-300">3 dots (⋮)</strong> par tap karein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
+                        <span>Menu se <strong className="text-blue-700 dark:text-blue-300">&apos;Install app&apos;</strong> ya <strong className="text-blue-700 dark:text-blue-300">&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
+                        <span>Confirm karein — app instantly aapke home screen par add ho jayega!</span>
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Install Action Button (matching Image 2) */}
-              <div className="flex items-center justify-end pt-1">
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={() => setInstallInstructionStep(!installInstructionStep)}
+                  className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                >
+                  {installInstructionStep ? "Hide Guide" : "How to install?"}
+                </button>
                 <button
                   type="button"
                   onClick={handleExecuteInstall}
@@ -4831,31 +4921,45 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
 
-              {activeProjectModal.projectUrl && (() => {
+              {Boolean(activeProjectModal.projectUrl || activeProjectModal.linkUrl || activeProjectModal.url) && (() => {
 
-                const pUrl = resolveValidUrl(activeProjectModal.projectUrl);
+                const rawUrl = activeProjectModal.projectUrl || activeProjectModal.linkUrl || activeProjectModal.url;
+
+                const pUrl = resolveValidUrl(rawUrl);
+
+                const displayHost = rawUrl.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
 
                 return (
 
-                  <a
+                  <div className="space-y-1.5 pt-1">
 
-                    href={pUrl || "#"}
+                    <a
 
-                    target="_blank"
+                      href={pUrl || "#"}
 
-                    rel="noopener noreferrer"
+                      target="_blank"
 
-                    onClick={(e) => handleOpenExternal(e, pUrl)}
+                      rel="noopener noreferrer"
 
-                    className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      onClick={(e) => handleOpenExternal(e, pUrl)}
 
-                  >
+                      className="w-full py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-teal-600/20 active:scale-95"
 
-                    <span>Visit Live Project</span>
+                    >
 
-                    <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Visit Live Project</span>
 
-                  </a>
+                      <ExternalLink className="w-3.5 h-3.5" />
+
+                    </a>
+
+                    <p className="text-[10px] text-center text-slate-400 font-mono truncate px-2">
+
+                      {displayHost}
+
+                    </p>
+
+                  </div>
 
                 );
 

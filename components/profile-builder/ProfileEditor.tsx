@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FullProfileSnapshot, IndustryType, ProfileBlockItem } from "@/lib/profiles/types";
 import { INDUSTRY_TEMPLATES } from "@/lib/profiles/templates";
-import { PublicProfileView } from "../public-profile/PublicProfileView";
+import { PublicProfileView, resolveValidUrl } from "../public-profile/PublicProfileView";
 import {
   Camera,
   Upload,
@@ -729,12 +729,21 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       return;
     }
     const finalImage = projectFormData.imageUrl.trim() || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80";
+    const rawUrl = projectFormData.linkUrl.trim();
+    const cleanUrl = rawUrl
+      ? (rawUrl.startsWith("http://") || rawUrl.startsWith("https://"))
+        ? rawUrl
+        : `https://${rawUrl}`
+      : "";
+
     let updated: any[];
     if (editingProjectIndex !== null && editingProjectIndex >= 0) {
       updated = [...portfolioList];
       updated[editingProjectIndex] = {
         ...updated[editingProjectIndex],
         ...projectFormData,
+        linkUrl: cleanUrl,
+        projectUrl: cleanUrl,
         imageUrl: finalImage,
       };
     } else {
@@ -743,6 +752,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         {
           id: `p_${Date.now()}`,
           ...projectFormData,
+          linkUrl: cleanUrl,
+          projectUrl: cleanUrl,
           imageUrl: finalImage,
         },
       ];
@@ -2050,7 +2061,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                         title: item.title || "",
                         category: item.category || "Web Development",
                         imageUrl: item.imageUrl || "",
-                        linkUrl: item.linkUrl || "",
+                        linkUrl: item.linkUrl || item.projectUrl || item.url || "",
                         description: item.description || "",
                       });
                       setShowProjectModal(true);
@@ -2079,15 +2090,15 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 {item.description && (
                   <p className="text-[11px] text-slate-500 line-clamp-1">{item.description}</p>
                 )}
-                {item.linkUrl && (
+                {(item.linkUrl || item.projectUrl) && (
                   <a
-                    href={item.linkUrl}
+                    href={resolveValidUrl(item.linkUrl || item.projectUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:underline pt-0.5"
+                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:underline pt-0.5 truncate max-w-full"
                   >
-                    <span>Visit Project</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
+                    <span>Visit Project ({item.linkUrl || item.projectUrl})</span>
+                    <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                   </a>
                 )}
               </div>
