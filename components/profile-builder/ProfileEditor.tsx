@@ -117,6 +117,16 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     content: "",
   });
 
+  // Download document modal state
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [editingDownloadIndex, setEditingDownloadIndex] = useState<number | null>(null);
+  const [downloadFormData, setDownloadFormData] = useState({
+    title: "",
+    fileSize: "PDF • 2 MB",
+    fileUrl: "",
+    description: "",
+  });
+
   // Portfolio modal state for manual project addition
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -650,6 +660,66 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       content: "",
     });
     setSaveMessage("Testimonial saved successfully!");
+    setTimeout(() => setSaveMessage(null), 2500);
+  };
+
+  const handleOpenAddDownload = () => {
+    setEditingDownloadIndex(null);
+    setDownloadFormData({
+      title: "",
+      fileSize: "PDF • 2 MB",
+      fileUrl: "",
+      description: "",
+    });
+    setShowDownloadModal(true);
+  };
+
+  const handleOpenEditDownload = (idx: number) => {
+    const dl = downloadsList[idx];
+    if (!dl) return;
+    setEditingDownloadIndex(idx);
+    setDownloadFormData({
+      title: dl.title || "",
+      fileSize: dl.fileSize || "PDF • 2 MB",
+      fileUrl: dl.fileUrl || "",
+      description: dl.description || "",
+    });
+    setShowDownloadModal(true);
+  };
+
+  const handleSaveDownload = () => {
+    if (!downloadFormData.title.trim()) {
+      setErrorMessage("Please enter a document title.");
+      return;
+    }
+    let updated: any[];
+    if (editingDownloadIndex !== null && editingDownloadIndex >= 0) {
+      updated = [...downloadsList];
+      updated[editingDownloadIndex] = {
+        ...updated[editingDownloadIndex],
+        ...downloadFormData,
+        fileUrl: downloadFormData.fileUrl.trim() || "#",
+      };
+    } else {
+      updated = [
+        ...downloadsList,
+        {
+          id: `d_${Date.now()}`,
+          ...downloadFormData,
+          fileUrl: downloadFormData.fileUrl.trim() || "#",
+        },
+      ];
+    }
+    updateBlockData("downloads", { items: updated });
+    setShowDownloadModal(false);
+    setEditingDownloadIndex(null);
+    setDownloadFormData({
+      title: "",
+      fileSize: "PDF • 2 MB",
+      fileUrl: "",
+      description: "",
+    });
+    setSaveMessage("Document saved successfully!");
     setTimeout(() => setSaveMessage(null), 2500);
   };
 
@@ -2619,7 +2689,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       </div>
 
       {/* SEO & Search Engine Preview */}
-      <div id="seo" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
+      <div id="seo" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2627,11 +2697,11 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             </span>
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">SEO & Google Search Preview</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Control how your digital card appears when shared on WhatsApp and Google.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Customize how your digital card appears when shared on WhatsApp, Google, and social platforms.</p>
             </div>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xs text-slate-500 font-medium">Index on Google</span>
+          <label className="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">Index on Google</span>
             <input
               type="checkbox"
               checked={Boolean(profile.searchIndexed)}
@@ -2641,12 +2711,114 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </label>
         </div>
 
-        {/* Google Snippet Card */}
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Google Result Snippet</span>
-          <p className="text-xs text-emerald-700 font-mono truncate">https://tapbez.in/p/{profile.slug}</p>
-          <p className="text-sm font-bold text-blue-700 truncate">{profile.name} — {profile.title || "Business Profile"} | Tapbez</p>
-          <p className="text-xs text-slate-600 line-clamp-2">{profile.bio || "Connect with modern digital business card, verified contact, social links and portfolio."}</p>
+        {/* Input Fields to Add and Edit Custom SEO Metadata */}
+        <div className="grid grid-cols-1 gap-4 pt-1">
+          {/* Custom SEO Title */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Custom SEO Title (Browser Tab & Google Search Snippet)
+              </label>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {(profile.themeConfig?.seoTitle || "").length} / 60 chars
+              </span>
+            </div>
+            <input
+              type="text"
+              value={profile.themeConfig?.seoTitle || ""}
+              onChange={(e) => setProfile((prev: any) => ({
+                ...prev,
+                themeConfig: { ...(prev.themeConfig || {}), seoTitle: e.target.value }
+              }))}
+              placeholder={`${profile.name} — ${profile.title || "Business Profile"} | TapSync`}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
+
+          {/* Custom Meta Description */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Custom Meta Description (WhatsApp Preview & Search Engine Snippet)
+              </label>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {(profile.themeConfig?.seoDescription || "").length} / 160 chars
+              </span>
+            </div>
+            <textarea
+              rows={2}
+              value={profile.themeConfig?.seoDescription || ""}
+              onChange={(e) => setProfile((prev: any) => ({
+                ...prev,
+                themeConfig: { ...(prev.themeConfig || {}), seoDescription: e.target.value }
+              }))}
+              placeholder={profile.bio || "Connect with modern digital business card, verified contact, social links and portfolio."}
+              className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 transition-colors resize-none"
+            />
+          </div>
+
+          {/* SEO Keywords / Meta Tags */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+              SEO Keywords & Focus Tags (Comma separated)
+            </label>
+            <input
+              type="text"
+              value={profile.themeConfig?.seoKeywords || ""}
+              onChange={(e) => setProfile((prev: any) => ({
+                ...prev,
+                themeConfig: { ...(prev.themeConfig || {}), seoKeywords: e.target.value }
+              }))}
+              placeholder="e.g. digital business card, corporate counsel, nfc card, advisory"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Live Search & Social Previews */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+          {/* 1. Google Result Snippet Live Card */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 space-y-1.5">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
+              <span>Google Result Snippet</span>
+            </span>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">
+              {typeof window !== "undefined" ? window.location.origin : "https://nfc-business-card-saas.tejasgogavale5.workers.dev"}/p/{profile.slug}
+            </p>
+            <p className="text-sm font-bold text-blue-700 dark:text-blue-400 truncate hover:underline cursor-pointer">
+              {profile.themeConfig?.seoTitle?.trim() || `${profile.name} — ${profile.title || "Business Profile"} | TapSync`}
+            </p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+              {profile.themeConfig?.seoDescription?.trim() || profile.bio || "Connect with modern digital business card, verified contact, social links and portfolio."}
+            </p>
+          </div>
+
+          {/* 2. WhatsApp Social Share Preview Live Card */}
+          <div className="p-4 rounded-2xl bg-[#0b141a] text-white border border-emerald-900/40 space-y-2">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 flex items-center gap-1">
+              <span>WhatsApp Link Preview</span>
+            </span>
+            <div className="rounded-xl bg-[#202c33] p-2.5 flex items-center gap-3 border border-white/5">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-black shrink-0 flex items-center justify-center">
+                <img
+                  src={headerBlock.avatarUrl || headerBlock.coverUrl || "/default-avatar.jpg"}
+                  alt="Thumb"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-xs font-bold text-[#e9edef] truncate">
+                  {profile.themeConfig?.seoTitle?.trim() || `${profile.name} | TapSync NFC`}
+                </p>
+                <p className="text-[10px] text-[#8696a0] line-clamp-2 leading-tight">
+                  {profile.themeConfig?.seoDescription?.trim() || profile.bio || "Connect with modern digital business card."}
+                </p>
+                <p className="text-[9px] text-[#8696a0] truncate font-mono">
+                  {typeof window !== "undefined" ? window.location.host : "tapsync.in"}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2659,32 +2831,153 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             </span>
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">Downloads & PDF Documents</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Allow visitors to download your catalog, menu or corporate profile.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Allow visitors to download your catalog, menu, brochure or corporate profile.</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleOpenAddDownload}
+            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Document</span>
+          </button>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {downloadsList.map((dl, i) => (
-            <div key={dl.id || i} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <FileText className="w-4 h-4 text-red-500 shrink-0" />
-                <span className="text-xs font-bold text-slate-800">{dl.title}</span>
-                <span className="text-[10px] text-slate-400">({dl.fileSize})</span>
+            <div key={dl.id || i} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 group hover:border-slate-300 dark:hover:border-white/20 transition-all shadow-xs">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{dl.title}</p>
+                  <p className="text-[10px] text-slate-400">{dl.fileSize || "PDF • Document"}</p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = downloadsList.filter((_, idx) => idx !== i);
-                  updateBlockData("downloads", { items: updated });
-                }}
-                className="p-1 text-slate-400 hover:text-red-500 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditDownload(i)}
+                  className="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                  title="Edit document details"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = downloadsList.filter((_, idx) => idx !== i);
+                    updateBlockData("downloads", { items: updated });
+                  }}
+                  className="p-1.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+                  title="Delete document"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
+
+        {/* Interactive Modal for Document Addition / Editing */}
+        {showDownloadModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    {editingDownloadIndex !== null ? "Edit Document" : "Add Download Document"}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Add a downloadable PDF catalog, brochure, or menu for your clients.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowDownloadModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Document Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={downloadFormData.title}
+                    onChange={(e) => setDownloadFormData({ ...downloadFormData, title: e.target.value })}
+                    placeholder="e.g. Corporate Profile, Services Menu 2026, Training Brochure"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      File Format & Size
+                    </label>
+                    <input
+                      type="text"
+                      value={downloadFormData.fileSize}
+                      onChange={(e) => setDownloadFormData({ ...downloadFormData, fileSize: e.target.value })}
+                      placeholder="e.g. PDF • 2 MB"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Direct Download URL / Link
+                    </label>
+                    <input
+                      type="text"
+                      value={downloadFormData.fileUrl}
+                      onChange={(e) => setDownloadFormData({ ...downloadFormData, fileUrl: e.target.value })}
+                      placeholder="https://drive.google.com/... or file link"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Short Description (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={downloadFormData.description}
+                    onChange={(e) => setDownloadFormData({ ...downloadFormData, description: e.target.value })}
+                    placeholder="Brief description of what clients will find in this document..."
+                    className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setShowDownloadModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveDownload}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
+                >
+                  {editingDownloadIndex !== null ? "Update Document" : "Add Document"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Danger Zone: Delete Profile */}

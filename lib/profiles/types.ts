@@ -14,6 +14,9 @@ export interface ProfileThemeConfig {
   fontFamily: "inter" | "outfit" | "serif" | "mono";
   cardStyle: "glass" | "solid" | "bordered" | "minimal";
   avatarShape: "circle" | "rounded" | "squircle";
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
 }
 
 export interface HeaderBlockData {

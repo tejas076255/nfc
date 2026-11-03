@@ -30,9 +30,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const blocks = profile.blocks || [];
   const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
+  const themeConfig = profile.themeConfig || {};
 
-  const title = `${profile.name} | TapSync NFC`;
-  const description = profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
+  const title = themeConfig.seoTitle || `${profile.name} | TapSync NFC`;
+  const description = themeConfig.seoDescription || profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
 
   // High-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
   const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
@@ -40,6 +41,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
+    manifest: `/api/manifest/${slug}`,
+    appleWebApp: {
+      capable: true,
+      title: profile.name,
+      statusBarStyle: "black-translucent",
+    },
     robots: {
       index: true,
       follow: true,
