@@ -5,7 +5,12 @@ import { adminRecordQA } from "@/lib/cards/service";
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentSession();
-    if (!session || !["ops_staff", "support_staff", "super_admin"].includes(session.user.role)) {
+    const isStaff =
+      Boolean(session?.user) &&
+      (["ops_staff", "support_staff", "super_admin", "owner"].includes(session!.user.role) ||
+        session?.membershipRole === "owner");
+
+    if (!isStaff) {
       return NextResponse.json({ error: "Unauthorized. Staff privileges required." }, { status: 403 });
     }
 
@@ -16,12 +21,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required QA fields" }, { status: 400 });
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nfc-business-card-saas.tejasgogavale5.workers.dev";
     await adminRecordQA({
       cardId,
-      operatorId: session.user.id,
+      operatorId: session!.user.id,
       step,
       result,
-      readbackUrl,
+      readbackUrl: readbackUrl || `${baseUrl}/t/${verifiedQrToken || ""}`,
       verifiedQrToken,
       notes,
     });

@@ -5,7 +5,12 @@ import { adminGenerateInventory } from "@/lib/cards/service";
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentSession();
-    if (!session || !["ops_staff", "support_staff", "super_admin"].includes(session.user.role)) {
+    const isStaff =
+      Boolean(session?.user) &&
+      (["ops_staff", "support_staff", "super_admin", "owner"].includes(session!.user.role) ||
+        session?.membershipRole === "owner");
+
+    if (!isStaff) {
       return NextResponse.json({ error: "Unauthorized. Staff privileges required." }, { status: 403 });
     }
 
@@ -15,9 +20,9 @@ export async function POST(req: NextRequest) {
     const qty = Math.min(Math.max(1, parseInt(quantity, 10) || 1), 100);
     const validVariant = variant === "matte_pvc" ? "matte_pvc" : "standard_pvc";
 
-    const batch = await adminGenerateInventory(qty, validVariant, session.user.id);
+    const batch = await adminGenerateInventory(qty, validVariant, session!.user.id);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tapsync.co";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nfc-business-card-saas.tejasgogavale5.workers.dev";
     const formatted = batch.map((c) => ({
       ...c,
       ndefUrl: `${baseUrl}/t/${c.publicToken}`,

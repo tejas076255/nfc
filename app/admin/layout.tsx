@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logoutAction } from "@/lib/auth/actions";
@@ -22,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-[#06080e] text-slate-100 flex flex-col md:flex-row selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#06080e] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row selection:bg-purple-600 selection:text-white transition-colors duration-150">
       <ResponsiveAdminSidebar session={session} logoutAction={logoutAction} />
 
       {/* ADMIN CONTENT CONTAINER */}

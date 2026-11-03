@@ -615,3 +615,33 @@ export async function getAdminSystemStats() {
     };
   }
 }
+
+export async function adminToggleProfileStatus(profileId: string) {
+  const db = await getDb();
+  const [profile] = await db
+    .select()
+    .from(schema.profiles)
+    .where(eq(schema.profiles.id, profileId))
+    .limit(1);
+
+  if (!profile) throw new Error("Profile not found");
+
+  const newStatus = profile.status === "published" ? "draft" : "published";
+  const now = Math.floor(Date.now() / 1000);
+
+  await db
+    .update(schema.profiles)
+    .set({
+      status: newStatus,
+      updatedAt: now,
+    })
+    .where(eq(schema.profiles.id, profileId));
+
+  invalidateProfileCache(profile.slug);
+
+  return {
+    id: profileId,
+    status: newStatus,
+    slug: profile.slug,
+  };
+}

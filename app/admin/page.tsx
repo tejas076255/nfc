@@ -6,12 +6,15 @@ import { getAllOrders } from "@/lib/billing/service";
 import { getAllCardsForAdmin, getAuditLogs } from "@/lib/cards/service";
 import { getAllProfilesForAdmin, getAdminSystemStats } from "@/lib/profiles/service";
 import { AdminStationView } from "@/components/admin/AdminStationView";
-import { ShieldCheck, ArrowRight, LayoutDashboard } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ShieldCheck, LayoutDashboard } from "lucide-react";
 
 export const metadata = {
   title: "Admin Control Center | TapSync Operations",
   description: "Operations, hardware QA inspection, card provisioning, profile management, and order fulfillment.",
 };
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const session = await getCurrentSession();
@@ -38,36 +41,37 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-w-0">
       {/* ADMIN TOP BAR */}
-      <header className="border-b border-purple-500/20 bg-slate-950/80 backdrop-blur-xl px-4 sm:px-6 md:px-10 py-3 sm:py-0 min-h-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sticky top-0 z-40">
+      <header className="border-b border-slate-200 dark:border-purple-500/20 bg-white/95 dark:bg-slate-950/80 backdrop-blur-xl px-4 sm:px-6 md:px-10 py-3 sm:py-0 min-h-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sticky top-0 z-40 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-purple-600/10 dark:bg-purple-500/10 border border-purple-600/20 dark:border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h1 className="text-xs sm:text-sm font-bold text-white tracking-tight flex flex-wrap items-center gap-2">
+            <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2">
               <span>TapSync Hardware & Operations Terminal</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20">
                 Live Cloudflare D1
               </span>
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <ThemeToggle size="sm" />
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-300 dark:hover:text-white border border-slate-200 dark:border-white/10 text-xs font-semibold transition-colors"
           >
-            <LayoutDashboard className="w-3.5 h-3.5 text-blue-400" />
+            <LayoutDashboard className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>Switch to User Dashboard</span>
           </Link>
         </div>
       </header>
 
       {/* CONTENT AREA */}
-      <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto w-full flex-1">
+      <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full flex-1">
         <AdminStationView
           orders={orders as any}
           cards={cards as any}

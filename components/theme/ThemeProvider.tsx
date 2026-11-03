@@ -14,8 +14,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
 
   // Initialize theme from localStorage or system preference
@@ -25,11 +25,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (savedTheme && ["light", "dark", "system"].includes(savedTheme)) {
         setThemeState(savedTheme);
       } else {
-        // Default to dark for TapSync
-        setThemeState("dark");
+        // Default to light
+        setThemeState("light");
       }
     } catch {
-      setThemeState("dark");
+      setThemeState("light");
     }
     setMounted(true);
   }, []);

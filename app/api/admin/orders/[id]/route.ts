@@ -8,7 +8,12 @@ export async function PATCH(
 ) {
   try {
     const session = await getCurrentSession();
-    if (!session || !["ops_staff", "support_staff", "super_admin"].includes(session.user.role)) {
+    const isStaff =
+      Boolean(session?.user) &&
+      (["ops_staff", "support_staff", "super_admin", "owner"].includes(session!.user.role) ||
+        session?.membershipRole === "owner");
+
+    if (!isStaff) {
       return NextResponse.json({ error: "Unauthorized. Staff privileges required." }, { status: 403 });
     }
 

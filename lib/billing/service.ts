@@ -284,4 +284,54 @@ export async function adminUpdateOrderStatus(
   return { success: true };
 }
 
+export async function adminCreateSampleOrder(
+  workspaceId: string,
+  variant: "standard_pvc" | "matte_pvc" = "matte_pvc",
+  quantity: number = 1
+) {
+  const db = await getDb();
+  const now = Math.floor(Date.now() / 1000);
+  const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+  const orderId = crypto.randomUUID();
 
+  const validVariant: "standard_pvc" | "matte_pvc" = variant === "standard_pvc" ? "standard_pvc" : "matte_pvc";
+  const unitPrice = validVariant === "matte_pvc" ? 1499 : 999;
+  const totalAmount = unitPrice * quantity;
+
+  const sampleAddress = JSON.stringify({
+    fullName: "Rikesh Panchal",
+    phone: "+91 98765 43210",
+    street: "Level 4, Signature Hub, SG Highway",
+    city: "Ahmedabad",
+    state: "Gujarat",
+    postalCode: "380015",
+  });
+
+  await db.insert(schema.orders).values({
+    id: orderId,
+    workspaceId,
+    orderNumber,
+    status: "paid",
+    cardVariant: validVariant,
+    quantity,
+    totalAmountInr: totalAmount,
+    shippingAddress: sampleAddress,
+    notes: "Direct Admin Provisioning Order for Hardware QA Demonstration",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return {
+    id: orderId,
+    orderNumber,
+    status: "paid",
+    cardVariant: validVariant,
+    quantity,
+    totalAmountInr: totalAmount,
+    shippingAddress: sampleAddress,
+    trackingCarrier: null,
+    trackingNumber: null,
+    notes: "Direct Admin Provisioning Order for Hardware QA Demonstration",
+    createdAt: now,
+  };
+}
