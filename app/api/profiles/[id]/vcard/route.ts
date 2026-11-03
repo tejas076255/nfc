@@ -3,6 +3,7 @@ import { getPublishedProfileBySlug } from "@/lib/profiles/service";
 import { generateVCardString } from "@/lib/profiles/vcard";
 import { getDb, schema } from "@/lib/db";
 import { eq, or } from "drizzle-orm";
+import { logAnalyticsEvent } from "@/lib/analytics/service";
 
 export async function GET(
   req: NextRequest,
@@ -16,7 +17,11 @@ export async function GET(
 
     const db = await getDb();
     const [p] = await db
-      .select({ id: schema.profiles.id, slug: schema.profiles.slug })
+      .select({
+        id: schema.profiles.id,
+        slug: schema.profiles.slug,
+        workspaceId: schema.profiles.workspaceId,
+      })
       .from(schema.profiles)
       .where(or(eq(schema.profiles.id, id), eq(schema.profiles.slug, id)))
       .limit(1);
@@ -29,6 +34,14 @@ export async function GET(
     if (!profile) {
       return new NextResponse("Profile not published yet", { status: 404 });
     }
+
+    // Non-blocking analytics logging for vCard download
+    logAnalyticsEvent({
+      workspaceId: p.workspaceId,
+      profileId: p.id,
+      eventType: "save_contact_click",
+      sourceType: "vcard_download",
+    }).catch(() => {});
 
     const blocks = profile.blocks || [];
     const headerBlock = blocks.find((b: any) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
@@ -59,10 +72,10 @@ export async function GET(
       headers: {
         "Content-Type": "text/vcard; charset=utf-8",
         "Content-Disposition": `attachment; filename="${cleanFilename}.vcf"`,
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "no-cache",
       },
     });
   } catch (err: any) {
-    return new NextResponse(err.message || "Internal server error", { status: 500 });
+    return new NextResponse(err.message || "Failed to generate vCard", { status: 500 });
   }
 }

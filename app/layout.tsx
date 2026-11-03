@@ -1,16 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fontSans = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fontMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -27,6 +30,11 @@ export const metadata: Metadata = {
   title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
   openGraph: {
     title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
     description:
@@ -59,19 +67,21 @@ export default function RootLayout({
                     document.documentElement.classList.add('dark');
                     document.documentElement.classList.remove('light');
                   } else {
-                    document.documentElement.classList.remove('dark');
                     document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
                   }
-                } catch (e) {}
+                } catch(e) {}
               })();
             `,
           }}
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 dark:bg-[#030508] text-slate-900 dark:text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans transition-colors duration-150`}
+        className={`${fontSans.variable} ${fontMono.variable} antialiased bg-slate-50 dark:bg-[#030508] text-slate-900 dark:text-slate-100 selection:bg-amber-400 selection:text-slate-950 font-sans transition-colors duration-150`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

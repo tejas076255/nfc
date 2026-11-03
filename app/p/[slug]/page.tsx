@@ -34,20 +34,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = `${profile.name} | TapSync NFC`;
   const description = profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
 
-  // Provide high-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
+  // High-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
   const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
 
   return {
     title,
     description,
     robots: {
-      index: profile.searchIndexed,
-      follow: profile.searchIndexed,
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+      },
     },
     icons: {
-      icon: avatarEndpoint,
-      shortcut: avatarEndpoint,
-      apple: avatarEndpoint,
+      icon: [
+        { url: avatarEndpoint, type: "image/jpeg" },
+      ],
+      apple: [
+        { url: avatarEndpoint, sizes: "180x180", type: "image/jpeg" },
+      ],
+      shortcut: [avatarEndpoint],
     },
     openGraph: {
       title,
@@ -66,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ],
     },
     twitter: {
-      card: "summary", // "summary" renders the square image on the LEFT side of text
+      card: "summary", // "summary" renders square image on the LEFT side of text
       title,
       description,
       images: [avatarEndpoint],
@@ -124,6 +133,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   return (
     <>
       <link rel="icon" href={avatarEndpoint} />
+      <link rel="shortcut icon" href={avatarEndpoint} />
       <link rel="apple-touch-icon" href={avatarEndpoint} />
       <link rel="image_src" href={avatarEndpoint} />
       <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />

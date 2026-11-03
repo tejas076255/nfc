@@ -221,11 +221,11 @@ export function AdminStationView({
         prev.map((o) =>
           o.id === orderId
             ? {
-                ...o,
-                status: newStatus,
-                trackingCarrier: carrier !== undefined ? carrier : o.trackingCarrier,
-                trackingNumber: tracking !== undefined ? tracking : o.trackingNumber,
-              }
+              ...o,
+              status: newStatus,
+              trackingCarrier: carrier !== undefined ? carrier : o.trackingCarrier,
+              trackingNumber: tracking !== undefined ? tracking : o.trackingNumber,
+            }
             : o
         )
       );
@@ -390,11 +390,10 @@ export function AdminStationView({
       {/* Alert Notification */}
       {alert && (
         <div
-          className={`p-4 rounded-2xl flex items-center justify-between gap-3 border shadow-xs transition-all ${
-            alert.type === "success"
+          className={`p-4 rounded-2xl flex items-center justify-between gap-3 border shadow-xs transition-all ${alert.type === "success"
               ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30"
               : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3">
             {alert.type === "success" ? (
@@ -418,11 +417,10 @@ export function AdminStationView({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 border-b border-slate-200 dark:border-white/10 pb-4">
         <button
           onClick={() => handleTabChange("overview")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "overview"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "overview"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <BarChart3 className="w-4 h-4" />
           <span>System Overview</span>
@@ -430,11 +428,10 @@ export function AdminStationView({
 
         <button
           onClick={() => handleTabChange("profiles")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "profiles"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "profiles"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <Smartphone className="w-4 h-4" />
           <span>Profiles Directory ({profiles.length})</span>
@@ -442,11 +439,10 @@ export function AdminStationView({
 
         <button
           onClick={() => handleTabChange("orders")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "orders"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "orders"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <Truck className="w-4 h-4" />
           <span>Fulfillment & Orders ({orders.length})</span>
@@ -454,11 +450,10 @@ export function AdminStationView({
 
         <button
           onClick={() => handleTabChange("qa")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "qa"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "qa"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <Cpu className="w-4 h-4" />
           <span>Hardware QA Terminal</span>
@@ -466,11 +461,10 @@ export function AdminStationView({
 
         <button
           onClick={() => handleTabChange("inventory")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "inventory"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "inventory"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <Layers className="w-4 h-4" />
           <span>Factory Batch Mint</span>
@@ -478,11 +472,10 @@ export function AdminStationView({
 
         <button
           onClick={() => handleTabChange("logs")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === "logs"
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "logs"
               ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-          }`}
+            }`}
         >
           <History className="w-4 h-4" />
           <span>Security Audit Trail</span>
@@ -786,11 +779,10 @@ export function AdminStationView({
                         </p>
                       </div>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${
-                          isPublished
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 ${isPublished
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40"
                             : "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
-                        }`}
+                          }`}
                       >
                         {p.status}
                       </span>
@@ -840,11 +832,10 @@ export function AdminStationView({
                     <button
                       onClick={() => handleToggleProfileStatus(p.id)}
                       disabled={isToggling}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
-                        isPublished
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${isPublished
                           ? "bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/30"
                           : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/30"
-                      }`}
+                        }`}
                     >
                       {isToggling ? (
                         <Clock className="w-3.5 h-3.5 animate-spin" />
@@ -941,7 +932,7 @@ export function AdminStationView({
                   let address: any = {};
                   try {
                     address = JSON.parse(order.shippingAddress);
-                  } catch {}
+                  } catch { }
 
                   const isUpdating = updatingOrderId === order.id;
 
@@ -1213,13 +1204,12 @@ export function AdminStationView({
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                            c.inventoryStatus === "qa_pass"
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.inventoryStatus === "qa_pass"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
                               : c.inventoryStatus === "qa_fail"
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
-                              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                          }`}
+                                ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
+                                : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                            }`}
                         >
                           {c.inventoryStatus}
                         </span>

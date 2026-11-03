@@ -66,7 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Save choice
     try {
       localStorage.setItem("theme", theme);
-    } catch {}
+    } catch { }
 
     // Listen to OS system preference changes if theme === "system"
     if (theme === "system") {

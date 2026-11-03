@@ -30,20 +30,22 @@ export async function GET(
       null;
 
     if (!photoUrl) {
-      const initial = (profile.name || "T").charAt(0).toUpperCase();
-      const svg = `<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-        <rect width="300" height="300" fill="#2563eb" />
-        <circle cx="150" cy="150" r="110" fill="rgba(255,255,255,0.18)" />
-        <text x="150" y="185" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="110" font-weight="bold" fill="#ffffff" text-anchor="middle">${initial}</text>
-      </svg>`;
-
-      return new Response(svg, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/svg+xml",
-          "Cache-Control": "public, max-age=86400, s-maxage=86400",
-        },
-      });
+      const origin = new URL(req.url).origin;
+      try {
+        const fallbackRes = await fetch(`${origin}/default-avatar.jpg`);
+        if (fallbackRes.ok) {
+          const buf = await fallbackRes.arrayBuffer();
+          return new Response(buf, {
+            status: 200,
+            headers: {
+              "Content-Type": "image/jpeg",
+              "Content-Length": buf.byteLength.toString(),
+              "Cache-Control": "public, max-age=86400, s-maxage=86400",
+            },
+          });
+        }
+      } catch {}
+      return Response.redirect(`${origin}/default-avatar.jpg`, 302);
     }
 
     // Handle base64 data URLs
@@ -65,8 +67,25 @@ export async function GET(
       }
     }
 
-    // Handle external URL
+    // Handle external URL - proxy bytes directly without 302 redirect for WhatsApp crawlers
     if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
+      try {
+        const extRes = await fetch(photoUrl, {
+          headers: { "User-Agent": "Mozilla/5.0" },
+        });
+        if (extRes.ok) {
+          const contentType = extRes.headers.get("content-type") || "image/jpeg";
+          const buf = await extRes.arrayBuffer();
+          return new Response(buf, {
+            status: 200,
+            headers: {
+              "Content-Type": contentType,
+              "Content-Length": buf.byteLength.toString(),
+              "Cache-Control": "public, max-age=86400, s-maxage=86400",
+            },
+          });
+        }
+      } catch {}
       return Response.redirect(photoUrl, 302);
     }
 
@@ -75,4 +94,3 @@ export async function GET(
     return new Response(err.message || "Internal server error", { status: 500 });
   }
 }
-
