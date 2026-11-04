@@ -624,20 +624,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     // Never auto-prompt install modal inside the profile editor!
     if (sourceType === "preview") return;
 
-    // Auto prompt after 4 seconds on initial visit if not dismissed
-    const timer = setTimeout(() => {
-      try {
-        const dismissed = sessionStorage.getItem("dismissed_install_" + profile.id);
-        if (!dismissed) {
-          setInstallModalOpen(true);
-        }
-      } catch {}
-    }, 4000);
+    // Install modal only opens on user click - no auto popups
 
     return () => {
       window.removeEventListener("beforeinstallprompt", updatePrompt);
       window.removeEventListener("pwa-prompt-ready", updatePrompt);
-      clearTimeout(timer);
     };
   }, [profile.id, profile.slug]);
 
@@ -1072,7 +1063,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
 
-    const handleInstallClick = () => {
+  const handleInstallClick = async () => {
     handleTrackAction("install_app_click");
     if (sourceType === "preview") {
       const pubUrl = typeof window !== "undefined" ? `${window.location.origin}/p/${profile.slug}` : `/p/${profile.slug}`;
@@ -1080,6 +1071,24 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       showToast("✨ Opening live profile in new tab to install app!");
       return;
     }
+
+    // If native PWA install prompt is ready, trigger it directly!
+    const promptObj = deferredPrompt || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+    if (promptObj) {
+      try {
+        await promptObj.prompt();
+        const choice = await promptObj.userChoice;
+        if (choice && choice.outcome === "accepted") {
+          setDeferredPrompt(null);
+          if (typeof window !== "undefined") {
+            (window as any).__pwaInstallPrompt = null;
+          }
+          showToast("✨ App icon added successfully to your device!");
+          return;
+        }
+      } catch (err) {}
+    }
+
     setInstallModalOpen(true);
   };
 
@@ -4385,7 +4394,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               {/* Header */}
               <div className="flex items-center justify-between">
                 <h3 className={`text-base font-bold ${isLightMode ? "text-slate-900" : "text-white"}`}>
-                  Install the app
+                  Add App Icon to Device
                 </h3>
                 <button
                   type="button"
@@ -4436,7 +4445,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               {/* Description matching Image 2 */}
               <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-600" : "text-slate-300"}`}>
-                Install the &apos;{companyName || personName}&apos; app to track and connect with buyers/clients, explore new products & services, and access this card anytime—all in real-time!
+                Add &apos;{companyName || personName}&apos; as an app icon on your Mobile Home Screen or Desktop for instant 1-tap access anytime!
               </p>
 
               {/* Interactive Step-by-Step Instructions if deferredPrompt is not yet ready */}
@@ -4529,7 +4538,7 @@ Share icon (📤)</strong> par tap karein.</span>
                     className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5 shrink-0" />
-                    <span>{isDesktopDevice ? "Download Shortcut & Open" : "Install App"}</span>
+                    <span>{isDesktopDevice ? "Add App Icon to Desktop" : "Add App Icon to Phone"}</span>
                   </button>
                 </div>
 

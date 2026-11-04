@@ -23,8 +23,8 @@ export async function GET(
       .replace(/[/\\?%*:|"<>]/g, "")
       .trim() || "Digital-Profile";
 
-    // Windows Internet Shortcut format (.url)
-    const shortcutContent = `[InternetShortcut]\r\nURL=${profileUrl}\r\nIconIndex=0\r\n`;
+    // Windows Internet Shortcut format (.url) with icon
+    const shortcutContent = `[InternetShortcut]\r\nURL=${profileUrl}\r\nIconFile=${origin}/api/avatar/${targetSlug}.png\r\nIconIndex=0\r\n`;
 
     return new NextResponse(shortcutContent, {
       status: 200,
@@ -34,8 +34,7 @@ export async function GET(
         "Cache-Control": "no-store, max-age=0",
       },
     });
-  } catch (err: any) {
+  } catch (_err: any) {
     return new NextResponse("Failed to generate shortcut", { status: 500 });
   }
 }
-

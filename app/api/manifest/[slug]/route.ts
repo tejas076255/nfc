@@ -28,7 +28,7 @@ export async function GET(
     const displayName = profile.name || "Digital Card";
     const shortName = displayName.length > 15 ? displayName.slice(0, 15) : displayName;
     const description = profile.bio || headerBlock.tagline || `Contactless NFC digital card for ${displayName}`;
-    const avatarIconUrl = `${origin}/api/avatar/${slug}.jpg`;
+    const avatarIconUrl = `${origin}/api/avatar/${slug}.png`;
 
         const manifestData = {
       name: `${displayName}`,
@@ -36,7 +36,7 @@ export async function GET(
       description: description,
       start_url: `/p/${slug}?source=pwa`,
       id: `/p/${slug}`,
-      scope: `/p/${slug}`,
+      scope: `/`,
       display: "standalone",
       orientation: "portrait",
       background_color: themeConfig.backgroundColor || "#ffffff",
@@ -45,7 +45,7 @@ export async function GET(
         {
           src: avatarIconUrl,
           sizes: "192x192",
-          type: "image/jpeg",
+          type: "image/png",
           purpose: "any",
         },
         {
