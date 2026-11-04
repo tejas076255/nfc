@@ -185,13 +185,23 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const blocks: ProfileBlockItem[] = profile.blocks || [];
 
   const updateColorMode = (colorMode: "dark" | "light" | "auto") => {
-    setProfile((prev: any) => ({
-      ...prev,
-      themeConfig: {
-        ...(prev.themeConfig || {}),
-        colorMode,
-      },
-    }));
+    setProfile((prev: any) => {
+      const currentIndustry = (prev.industry || "professional") as IndustryType;
+      const tmpl = INDUSTRY_TEMPLATES[currentIndustry] || INDUSTRY_TEMPLATES.professional;
+      const targetTheme = colorMode === "light" ? tmpl.lightTheme : (tmpl.darkTheme || tmpl.defaultTheme);
+      const isSwitchingMode = colorMode !== "auto" && prev.themeConfig?.colorMode !== colorMode;
+
+      return {
+        ...prev,
+        themeConfig: {
+          ...(prev.themeConfig || {}),
+          colorMode,
+          backgroundColor: isSwitchingMode ? targetTheme.backgroundColor : (prev.themeConfig?.backgroundColor || targetTheme.backgroundColor),
+          textColor: isSwitchingMode ? targetTheme.textColor : (prev.themeConfig?.textColor || targetTheme.textColor),
+          accentColor: isSwitchingMode ? targetTheme.accentColor : (prev.themeConfig?.accentColor || targetTheme.accentColor),
+        },
+      };
+    });
     setPreviewThemeOverride(colorMode === "auto" ? "dark" : colorMode);
   };
 
@@ -466,19 +476,22 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     const tmpl = INDUSTRY_TEMPLATES[industryKey];
     if (!tmpl) return;
 
+    const isCurrentLight = ((profile.themeConfig as any)?.colorMode === "light") || (previewThemeOverride === "light");
+    const activeTheme = isCurrentLight ? (tmpl.lightTheme || tmpl.defaultTheme) : (tmpl.darkTheme || tmpl.defaultTheme);
+
     setProfile((prev: any) => ({
       ...prev,
       industry: industryKey,
       templateId: tmpl.id,
       themeConfig: {
         ...(prev.themeConfig || {}),
-        primaryColor: tmpl.defaultTheme.primaryColor,
-        accentColor: tmpl.defaultTheme.accentColor,
-        backgroundColor: tmpl.defaultTheme.backgroundColor,
-        textColor: tmpl.defaultTheme.textColor,
-        avatarShape: tmpl.defaultTheme.avatarShape || prev.themeConfig?.avatarShape || "circle",
-        cardStyle: tmpl.defaultTheme.cardStyle || prev.themeConfig?.cardStyle || "glass",
-        fontFamily: tmpl.defaultTheme.fontFamily || prev.themeConfig?.fontFamily || "outfit",
+        primaryColor: activeTheme.primaryColor,
+        accentColor: activeTheme.accentColor,
+        backgroundColor: activeTheme.backgroundColor,
+        textColor: activeTheme.textColor,
+        avatarShape: activeTheme.avatarShape || prev.themeConfig?.avatarShape || "circle",
+        cardStyle: activeTheme.cardStyle || prev.themeConfig?.cardStyle || "glass",
+        fontFamily: activeTheme.fontFamily || prev.themeConfig?.fontFamily || "outfit",
       },
     }));
     setSaveMessage(`Applied ${tmpl.name} styling.`);

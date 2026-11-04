@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       whatsapp: body.whatsapp,
       company: body.company,
       isEmployee: body.isEmployee,
+      colorMode: body.colorMode || "dark",
     });
 
     return NextResponse.json(result, { status: 201 });

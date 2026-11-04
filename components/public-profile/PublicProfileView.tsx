@@ -1610,17 +1610,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
         isLightMode
-
-          ? "text-slate-900 bg-gradient-to-br from-slate-100 via-[#f8fafc] to-slate-200"
-
+          ? "text-slate-900"
           : "text-slate-100"
-
       } ${sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"}`}
-
       style={{
-
-        backgroundColor: isLightMode ? undefined : (theme.backgroundColor || "#07090e"),
-
+        backgroundColor: isLightMode 
+          ? (theme.backgroundColor && !["#07090e", "#090d16", "#0d090a", "#022c22", "#09090b", "#1c1917", "#0f0728"].includes(theme.backgroundColor.toLowerCase()) 
+              ? theme.backgroundColor 
+              : "#f8fafc")
+          : (theme.backgroundColor || "#07090e"),
       }}
 
     >

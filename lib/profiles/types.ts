@@ -17,6 +17,7 @@ export interface ProfileThemeConfig {
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string;
+  colorMode?: "dark" | "light" | "auto";
 }
 
 export interface HeaderBlockData {

@@ -6,6 +6,14 @@ export interface TemplateDefinition {
   name: string;
   tagline: string;
   description: string;
+  lightName?: string;
+  darkName?: string;
+  lightStyleDesc?: string;
+  darkStyleDesc?: string;
+  lightTheme: ProfileThemeConfig;
+  darkTheme: ProfileThemeConfig;
+  lightCoverUrl: string;
+  darkCoverUrl: string;
   defaultTheme: ProfileThemeConfig;
   defaultBlocks: ProfileBlockItem[];
 }
@@ -17,14 +25,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Executive Suite",
     tagline: "Corporate, Legal & Advisory",
     description: "Tailored for consultants, lawyers, executives, and financial advisors.",
-    defaultTheme: {
-      primaryColor: "#0f172a", // Slate 900
-      accentColor: "#2563eb", // Royal Blue
+    lightName: "Executive Suite (Light)",
+    darkName: "Executive Suite (Dark)",
+    lightStyleDesc: "Alabaster Ivory & Royal Navy",
+    darkStyleDesc: "Obsidian Slate & Cobalt Blue",
+    lightCoverUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#1d4ed8",
+      backgroundColor: "#f8fafc",
+      textColor: "#0f172a",
+      fontFamily: "outfit",
+      cardStyle: "glass",
+      avatarShape: "rounded",
+      colorMode: "light",
+    },
+    darkTheme: {
+      primaryColor: "#0f172a",
+      accentColor: "#3b82f6",
       backgroundColor: "#090d16",
       textColor: "#f8fafc",
       fontFamily: "outfit",
       cardStyle: "glass",
       avatarShape: "rounded",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#0f172a",
+      accentColor: "#3b82f6",
+      backgroundColor: "#090d16",
+      textColor: "#f8fafc",
+      fontFamily: "outfit",
+      cardStyle: "glass",
+      avatarShape: "rounded",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {
@@ -112,14 +147,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Luxury Atelier",
     tagline: "Bridal, Makeup, Hair & Wellness",
     description: "Designed for celebrity makeup artists, salon directors, and estheticians.",
-    defaultTheme: {
+    lightName: "Luxury Atelier (Light)",
+    darkName: "Luxury Atelier (Dark)",
+    lightStyleDesc: "Champagne Pearl & Rose Quartz",
+    darkStyleDesc: "Midnight Burgundy & Rose Silk",
+    lightCoverUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#be123c",
+      backgroundColor: "#fff1f2",
+      textColor: "#881337",
+      fontFamily: "serif",
+      cardStyle: "glass",
+      avatarShape: "circle",
+      colorMode: "light",
+    },
+    darkTheme: {
       primaryColor: "#1c1417",
-      accentColor: "#e11d48", // Rose Red
+      accentColor: "#f43f5e",
       backgroundColor: "#0d090a",
       textColor: "#fff1f2",
       fontFamily: "serif",
       cardStyle: "glass",
       avatarShape: "circle",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#1c1417",
+      accentColor: "#f43f5e",
+      backgroundColor: "#0d090a",
+      textColor: "#fff1f2",
+      fontFamily: "serif",
+      cardStyle: "glass",
+      avatarShape: "circle",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {
@@ -208,14 +270,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Architectural Horizon",
     tagline: "Luxury Properties & Developments",
     description: "Built for real estate brokers, developers, and premium property consultants.",
-    defaultTheme: {
-      primaryColor: "#064e3b", // Emerald 900
-      accentColor: "#10b981", // Emerald 500
+    lightName: "Architectural Horizon (Light)",
+    darkName: "Architectural Horizon (Dark)",
+    lightStyleDesc: "Architectural Mint & Emerald",
+    darkStyleDesc: "Forest Charcoal & Neon Emerald",
+    lightCoverUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#047857",
+      backgroundColor: "#f0fdf4",
+      textColor: "#064e3b",
+      fontFamily: "outfit",
+      cardStyle: "bordered",
+      avatarShape: "squircle",
+      colorMode: "light",
+    },
+    darkTheme: {
+      primaryColor: "#064e3b",
+      accentColor: "#10b981",
       backgroundColor: "#022c22",
       textColor: "#ecfdf5",
       fontFamily: "outfit",
       cardStyle: "bordered",
       avatarShape: "squircle",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#064e3b",
+      accentColor: "#10b981",
+      backgroundColor: "#022c22",
+      textColor: "#ecfdf5",
+      fontFamily: "outfit",
+      cardStyle: "bordered",
+      avatarShape: "squircle",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {
@@ -290,14 +379,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Neo Gallery",
     tagline: "Design, Photography & Art Direction",
     description: "High-contrast visual portfolio for designers, photographers, and studios.",
-    defaultTheme: {
+    lightName: "Neo Gallery (Light)",
+    darkName: "Neo Gallery (Dark)",
+    lightStyleDesc: "Swiss Clean White & Indigo",
+    darkStyleDesc: "Pitch Black & Lavender Void",
+    lightCoverUrl: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#4f46e5",
+      backgroundColor: "#ffffff",
+      textColor: "#09090b",
+      fontFamily: "outfit",
+      cardStyle: "minimal",
+      avatarShape: "rounded",
+      colorMode: "light",
+    },
+    darkTheme: {
       primaryColor: "#000000",
-      accentColor: "#6366f1", // Indigo
+      accentColor: "#818cf8",
       backgroundColor: "#09090b",
       textColor: "#fafafa",
       fontFamily: "outfit",
       cardStyle: "minimal",
       avatarShape: "rounded",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#000000",
+      accentColor: "#818cf8",
+      backgroundColor: "#09090b",
+      textColor: "#fafafa",
+      fontFamily: "outfit",
+      cardStyle: "minimal",
+      avatarShape: "rounded",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {
@@ -374,14 +490,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Cornerstone Local",
     tagline: "Cafés, Clinics, Boutiques & Services",
     description: "Designed for storefronts, healthcare clinics, and local services.",
-    defaultTheme: {
-      primaryColor: "#78350f", // Amber 900
-      accentColor: "#d97706", // Amber 600
+    lightName: "Cornerstone Local (Light)",
+    darkName: "Cornerstone Local (Dark)",
+    lightStyleDesc: "Artisan Latte & Warm Amber",
+    darkStyleDesc: "Espresso Walnut & Radiant Amber",
+    lightCoverUrl: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#b45309",
+      backgroundColor: "#fefce8",
+      textColor: "#78350f",
+      fontFamily: "outfit",
+      cardStyle: "solid",
+      avatarShape: "squircle",
+      colorMode: "light",
+    },
+    darkTheme: {
+      primaryColor: "#78350f",
+      accentColor: "#f59e0b",
       backgroundColor: "#1c1917",
       textColor: "#fef3c7",
       fontFamily: "outfit",
       cardStyle: "solid",
       avatarShape: "squircle",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#78350f",
+      accentColor: "#f59e0b",
+      backgroundColor: "#1c1917",
+      textColor: "#fef3c7",
+      fontFamily: "outfit",
+      cardStyle: "solid",
+      avatarShape: "squircle",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {
@@ -461,14 +604,41 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
     name: "Pulse Creator",
     tagline: "Influencers, Streamers & Podcasters",
     description: "Vibrant link hub for digital creators, YouTubers, and podcasters.",
-    defaultTheme: {
-      primaryColor: "#581c87", // Purple 900
-      accentColor: "#a855f7", // Purple 500
+    lightName: "Pulse Creator (Light)",
+    darkName: "Pulse Creator (Dark)",
+    lightStyleDesc: "Frosted Lilac & Royal Violet",
+    darkStyleDesc: "Cosmic Neon & Electric Amethyst",
+    lightCoverUrl: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1200&auto=format&fit=crop&q=80",
+    darkCoverUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&auto=format&fit=crop&q=80",
+    lightTheme: {
+      primaryColor: "#ffffff",
+      accentColor: "#7e22ce",
+      backgroundColor: "#faf5ff",
+      textColor: "#581c87",
+      fontFamily: "outfit",
+      cardStyle: "glass",
+      avatarShape: "circle",
+      colorMode: "light",
+    },
+    darkTheme: {
+      primaryColor: "#581c87",
+      accentColor: "#c084fc",
       backgroundColor: "#0f0728",
       textColor: "#faf5ff",
       fontFamily: "outfit",
       cardStyle: "glass",
       avatarShape: "circle",
+      colorMode: "dark",
+    },
+    defaultTheme: {
+      primaryColor: "#581c87",
+      accentColor: "#c084fc",
+      backgroundColor: "#0f0728",
+      textColor: "#faf5ff",
+      fontFamily: "outfit",
+      cardStyle: "glass",
+      avatarShape: "circle",
+      colorMode: "dark",
     },
     defaultBlocks: [
       {

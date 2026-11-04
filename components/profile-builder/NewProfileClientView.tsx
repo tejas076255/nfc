@@ -152,6 +152,10 @@ export function NewProfileClientView({
     const meta = TEMPLATE_PREVIEW_META[industry] || TEMPLATE_PREVIEW_META.professional;
     const displayName = name.trim() || meta.sampleName;
 
+    const isLight = previewThemeMode === "light";
+    const chosenTheme = isLight ? template.lightTheme : template.darkTheme;
+    const chosenCover = isLight ? template.lightCoverUrl : template.darkCoverUrl;
+
     return {
       id: "preview-new-profile",
       slug: "preview-card",
@@ -161,8 +165,7 @@ export function NewProfileClientView({
       industry: industry,
       templateId: template.id,
       themeConfig: {
-        ...template.defaultTheme,
-        accentColor: template.defaultTheme.accentColor || "#d97706",
+        ...(chosenTheme || template.defaultTheme),
         colorMode: previewThemeMode,
       },
       blocks: template.defaultBlocks.map((b) => {
@@ -176,6 +179,7 @@ export function NewProfileClientView({
               company: meta.sampleCompany,
               badge: meta.badgeText,
               avatarUrl: meta.avatarUrl,
+              coverUrl: chosenCover,
             },
           };
         }
@@ -196,7 +200,7 @@ export function NewProfileClientView({
       const res = await fetch("/api/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), industry }),
+        body: JSON.stringify({ name: name.trim(), industry, colorMode: previewThemeMode }),
       });
 
       const data = (await res.json()) as any;
@@ -370,57 +374,115 @@ export function NewProfileClientView({
             </div>
 
             {/* Template Family Selection Cards */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 px-1">
-                  Select Industry Template Family
-                </label>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Click any template to preview
-                </span>
+            <div className="space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Select Industry Template Family
+                  </label>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Choose your industry and switch between specific Light &amp; Dark design editions
+                  </p>
+                </div>
+
+                {/* Specific Light / Dark Template Mode Selector */}
+                <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 shadow-xs self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewThemeMode("light")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      previewThemeMode === "light"
+                        ? "bg-white text-amber-600 shadow-sm border border-slate-200/80"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5 text-amber-500" />
+                    <span>☀️ Light Templates</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewThemeMode("dark")}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      previewThemeMode === "dark"
+                        ? "bg-slate-900 text-blue-400 shadow-sm border border-slate-700"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400"
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5 text-blue-400" />
+                    <span>🌙 Dark Templates</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {Object.values(INDUSTRY_TEMPLATES).map((tmpl) => {
                   const isSelected = industry === tmpl.industry;
+                  const isLight = previewThemeMode === "light";
+                  const activeTheme = isLight ? tmpl.lightTheme : tmpl.darkTheme;
+                  const activeTitle = isLight ? (tmpl.lightName || tmpl.name) : (tmpl.darkName || tmpl.name);
+                  const activeStyle = isLight ? (tmpl.lightStyleDesc || tmpl.tagline) : (tmpl.darkStyleDesc || tmpl.tagline);
+                  const activeCover = isLight ? tmpl.lightCoverUrl : tmpl.darkCoverUrl;
+
                   return (
                     <div
                       key={tmpl.id}
                       onClick={() => setIndustry(tmpl.industry)}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between relative group ${
+                      className={`p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between relative group overflow-hidden ${
                         isSelected
-                          ? "border-blue-600 bg-blue-50/60 dark:bg-blue-600/10 shadow-md shadow-blue-500/10 dark:border-blue-500"
+                          ? "border-blue-600 bg-blue-50/70 dark:bg-blue-600/10 shadow-lg shadow-blue-500/10 dark:border-blue-500 ring-2 ring-blue-500/20"
                           : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                       }`}
                     >
-                      <div className="space-y-2">
+                      <div className="space-y-3">
+                        {/* Top Badges & Color Swatches */}
                         <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                              isSelected
-                                ? "bg-blue-600 text-white"
-                                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                            }`}
-                          >
-                            {tmpl.industry.replace("_", " ")}
-                          </span>
-                          <div
-                            className="w-4 h-4 rounded-full border border-white/40 shadow-xs"
-                            style={{ backgroundColor: tmpl.defaultTheme.accentColor }}
-                            title={`Accent color: ${tmpl.defaultTheme.accentColor}`}
-                          />
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                isSelected
+                                  ? "bg-blue-600 text-white"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                              }`}
+                            >
+                              {tmpl.industry.replace("_", " ")}
+                            </span>
+                            <span
+                              className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                isLight
+                                  ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500/30"
+                                  : "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-500/30"
+                              }`}
+                            >
+                              {isLight ? "☀️ Light" : "🌙 Dark"}
+                            </span>
+                          </div>
+
+                          {/* Theme Palette Swatches (Background & Accent) */}
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className="w-4 h-4 rounded-full border border-slate-300 dark:border-white/30 shadow-xs"
+                              style={{ backgroundColor: activeTheme?.backgroundColor || (isLight ? "#ffffff" : "#090d16") }}
+                              title={`Background: ${activeTheme?.backgroundColor}`}
+                            />
+                            <div
+                              className="w-4 h-4 rounded-full border border-white/40 shadow-xs"
+                              style={{ backgroundColor: activeTheme?.accentColor }}
+                              title={`Accent: ${activeTheme?.accentColor}`}
+                            />
+                          </div>
                         </div>
 
+                        {/* Title and Style Description */}
                         <div>
                           <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            {tmpl.name}
+                            {activeTitle}
                           </h3>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
-                            {tmpl.tagline}
+                          <p className={`text-xs font-bold mt-0.5 ${isLight ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>
+                            {activeStyle}
                           </p>
                         </div>
 
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
                           {tmpl.description}
                         </p>
                       </div>
@@ -435,7 +497,7 @@ export function NewProfileClientView({
                             <span>Selected</span>
                           </span>
                         ) : (
-                          <span className="text-slate-400 group-hover:text-blue-600 transition-colors">
+                          <span className="text-slate-400 group-hover:text-blue-600 transition-colors font-medium">
                             Preview →
                           </span>
                         )}

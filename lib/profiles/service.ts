@@ -154,6 +154,7 @@ export async function createProfile(
     whatsapp?: string;
     company?: string;
     isEmployee?: boolean;
+    colorMode?: "dark" | "light" | "auto";
   }
 ) {
   const db = await getDb();
@@ -173,34 +174,44 @@ export async function createProfile(
     );
   }
 
-  // If creating an employee/team profile, inherit company details and branding from existing primary profile
-  let inheritedTheme = template.defaultTheme;
+  // Determine specific Light or Dark theme and cover
+  const mode = data.colorMode === "light" ? "light" : "dark";
+  const chosenTheme = mode === "light" && template.lightTheme ? template.lightTheme : (template.darkTheme || template.defaultTheme);
+  const chosenCover = mode === "light" && template.lightCoverUrl ? template.lightCoverUrl : (template.darkCoverUrl || (template.defaultBlocks[0]?.blockData as any)?.coverUrl);
+
+  let finalTheme = {
+    ...chosenTheme,
+    colorMode: mode,
+  };
   let inheritedCompany = data.company || "";
   let inheritedLogo = "";
 
-  const [primaryExisting] = await db
-    .select()
-    .from(schema.profiles)
-    .where(eq(schema.profiles.workspaceId, workspaceId))
-    .limit(1);
-
-  if (primaryExisting) {
-    try {
-      inheritedTheme = { ...template.defaultTheme, ...(JSON.parse(primaryExisting.themeConfig || "{}")) };
-    } catch {}
-
-    const [headerBlockRow] = await db
+  // ONLY inherit branding if explicitly creating an employee card!
+  if (data.isEmployee) {
+    const [primaryExisting] = await db
       .select()
-      .from(schema.profileBlocks)
-      .where(and(eq(schema.profileBlocks.profileId, primaryExisting.id), eq(schema.profileBlocks.type, "identity_header")))
+      .from(schema.profiles)
+      .where(eq(schema.profiles.workspaceId, workspaceId))
       .limit(1);
 
-    if (headerBlockRow?.blockData) {
+    if (primaryExisting) {
       try {
-        const parsed = JSON.parse(headerBlockRow.blockData);
-        if (!inheritedCompany && parsed.company) inheritedCompany = parsed.company;
-        if (parsed.logoUrl) inheritedLogo = parsed.logoUrl;
+        finalTheme = { ...finalTheme, ...(JSON.parse(primaryExisting.themeConfig || "{}")), colorMode: mode };
       } catch {}
+
+      const [headerBlockRow] = await db
+        .select()
+        .from(schema.profileBlocks)
+        .where(and(eq(schema.profileBlocks.profileId, primaryExisting.id), eq(schema.profileBlocks.type, "identity_header")))
+        .limit(1);
+
+      if (headerBlockRow?.blockData) {
+        try {
+          const parsed = JSON.parse(headerBlockRow.blockData);
+          if (!inheritedCompany && parsed.company) inheritedCompany = parsed.company;
+          if (parsed.logoUrl) inheritedLogo = parsed.logoUrl;
+        } catch {}
+      }
     }
   }
 
@@ -220,7 +231,7 @@ export async function createProfile(
     bio: (template.defaultBlocks[2]?.blockData as any)?.bio || "",
     industry: data.industry,
     templateId: template.id,
-    themeConfig: JSON.stringify(inheritedTheme),
+    themeConfig: JSON.stringify(finalTheme),
     status: "draft",
     searchIndexed: 0,
     fallbackPreference: 0,
@@ -237,7 +248,7 @@ export async function createProfile(
       if (data.title) blockData.title = data.title;
       if (inheritedCompany) blockData.company = inheritedCompany;
       if (inheritedLogo) blockData.logoUrl = inheritedLogo;
-      
+      if (chosenCover) blockData.coverUrl = chosenCover;
     } else if (block.type === "contact_actions") {
       if (data.phone) blockData.phone = data.phone;
       if (data.email) blockData.email = data.email;
