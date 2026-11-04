@@ -14,7 +14,21 @@ import { FaqSection } from "@/components/landing/FaqSection";
 import { SlashCta } from "@/components/landing/SlashCta";
 import { SlashFooter } from "@/components/landing/SlashFooter";
 
-export default async function HomePage() {
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ mode?: string; source?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  if (params.mode === "app" || params.source === "pwa") {
+    const cookieStore = await cookies();
+    const slug = cookieStore.get("last_profile_slug")?.value || "htt";
+    redirect(`/p/${slug}`);
+  }
+
   const session = await getCurrentSession();
 
   return (

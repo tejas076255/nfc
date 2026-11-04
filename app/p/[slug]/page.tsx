@@ -139,6 +139,12 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
 
   return (
     <>
+      <link rel="manifest" href={`/api/manifest/${slug}`} />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `try{localStorage.setItem('last_profile_slug','${slug}');localStorage.setItem('installed_profile_slug','${slug}');document.cookie="last_profile_slug=${slug}; path=/; max-age=31536000; SameSite=Lax";}catch(e){}`,
+        }}
+      />
       <link rel="icon" href={avatarEndpoint} />
       <link rel="shortcut icon" href={avatarEndpoint} />
       <link rel="apple-touch-icon" href={avatarEndpoint} />

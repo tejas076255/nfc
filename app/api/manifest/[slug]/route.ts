@@ -31,17 +31,23 @@ export async function GET(
     const avatarIconUrl = `${origin}/api/avatar/${slug}.jpg`;
 
         const manifestData = {
-      name: `${displayName} | TapSync NFC`,
+      name: `${displayName}`,
       short_name: shortName,
       description: description,
-      start_url: `/p/${slug}`,
+      start_url: `/p/${slug}?source=pwa`,
       id: `/p/${slug}`,
-      scope: "/",
+      scope: `/p/${slug}`,
       display: "standalone",
       orientation: "portrait",
-      background_color: themeConfig.backgroundColor || "#0a0e17",
-      theme_color: themeConfig.accentColor || "#2563eb",
+      background_color: themeConfig.backgroundColor || "#ffffff",
+      theme_color: themeConfig.accentColor || "#d97706",
       icons: [
+        {
+          src: avatarIconUrl,
+          sizes: "192x192",
+          type: "image/jpeg",
+          purpose: "any",
+        },
         {
           src: `${origin}/icon-192x192.png`,
           sizes: "192x192",
@@ -65,12 +71,6 @@ export async function GET(
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
-        },
-        {
-          src: `${origin}/apple-touch-icon.png`,
-          sizes: "180x180",
-          type: "image/png",
-          purpose: "any",
         },
       ],
     };

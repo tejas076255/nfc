@@ -27,7 +27,6 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  manifest: "/manifest.json",
   title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
@@ -68,6 +67,24 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Standalone app launcher redirect: Always open the user profile instead of marketing website
+              (function() {
+                try {
+                  var isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                     window.navigator.standalone === true ||
+                                     window.location.search.indexOf('mode=app') !== -1;
+                  if (isStandalone && (window.location.pathname === '/' || window.location.pathname === '')) {
+                    var slug = localStorage.getItem('last_profile_slug') || 
+                               localStorage.getItem('installed_profile_slug') || 
+                               (document.cookie.match(/(?:^|;\s*)last_profile_slug=([^;]+)/) || [])[1] ||
+                               'htt';
+                    if (slug) {
+                      window.location.replace('/p/' + slug);
+                    }
+                  }
+                } catch(e) {}
+              })();
+
               // Early capture of PWA beforeinstallprompt
               window.addEventListener('beforeinstallprompt', function(e) {
                 e.preventDefault();

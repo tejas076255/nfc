@@ -578,6 +578,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const [isIosDevice, setIsIosDevice] = useState(false);
 
   useEffect(() => {
+    // Save active profile slug so standalone apps always open this user profile
+    try {
+      localStorage.setItem("last_profile_slug", profile.slug);
+      localStorage.setItem("installed_profile_slug", profile.slug);
+      document.cookie = `last_profile_slug=${profile.slug}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {}
+
     // Detect device type
     if (typeof navigator !== "undefined") {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1097,37 +1104,22 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
 
     if (isDesktopDevice) {
-      // Create executable HTML desktop launcher (opens directly as standalone webapp window)
-      const launcherContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${appTitle}</title>
-  <meta http-equiv="refresh" content="0; url=${pubUrl}">
-  <script>
-    window.location.replace("${pubUrl}");
-  </script>
-</head>
-<body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#030508;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-  <div style="text-align:center;padding:24px;max-width:400px;background:#0d1527;border-radius:24px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 40px rgba(0,0,0,0.5);">
-    <h2 style="margin:0 0 8px 0;font-size:20px;">${appTitle}</h2>
-    <p style="color:#94a3b8;font-size:13px;margin:0 0 16px 0;">Opening digital profile web application...</p>
-    <a href="${pubUrl}" style="display:inline-block;padding:10px 20px;border-radius:12px;background:#2563eb;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;">Launch Now &rarr;</a>
-  </div>
-</body>
-</html>`;
-      const blob = new Blob([launcherContent], { type: "text/html" });
+      // Create real Windows Internet Shortcut (.url) directly opening the profile
+      const shortcutContent = `[InternetShortcut]
+URL=${pubUrl}
+IconIndex=0
+`;
+      const blob = new Blob([shortcutContent], { type: "application/x-mswinurl" });
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `${appTitle}-App.html`;
+      a.download = `${appTitle}.url`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(downloadUrl);
 
-      showToast(`✨ Desktop app launcher downloaded! Click address bar ⨁ to install as permanent app.`);
+      showToast(`✨ Desktop shortcut for ${appTitle} downloaded! Double-click to open.`);
       return;
     }
 

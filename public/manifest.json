@@ -1,13 +1,13 @@
 {
-  "name": "TapSync Digital Business Card",
-  "short_name": "TapSync",
+  "name": "Digital Business Card",
+  "short_name": "Digital Card",
   "description": "Smart Contactless NFC Digital Business Card & Profile",
-  "start_url": "/",
-  "id": "/",
+  "start_url": "/?mode=app",
+  "id": "/?mode=app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#07090e",
-  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "theme_color": "#d97706",
   "icons": [
     {
       "src": "/icon-192x192.png",
