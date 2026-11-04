@@ -384,77 +384,207 @@ html:not(.dark) ::-webkit-scrollbar-thumb:hover {
 }
 
 /* =========================================================================
+   PROFILE PREVIEW & PUBLIC CARD THEME ISOLATION
+   Completely decouples the Profile Preview and Public Cards from System theme!
+   System theme changes (Dashboard light/dark) NEVER impact the profile preview.
+   ========================================================================= */
+
+/* Ensure phone mockup frame and public cards are isolated stacking contexts */
+.phone-mockup-frame,
+[data-theme-isolated="true"],
+.public-profile-root {
+  isolation: isolate;
+}
+
+/* Explicit protection: Inside phone mockup or public profile in Dark Mode */
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"],
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] * {
+  color-scheme: dark !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] h1.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] h2.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] h3.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] h4.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] span.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] p.text-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] div.text-white {
+  color: #ffffff !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .text-slate-100 {
+  color: #f1f5f9 !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .text-slate-200 {
+  color: #e2e8f0 !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-900\/50 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-900\/60 {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-900\/80 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-900 {
+  background-color: #0f172a !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-950\/60 {
+  background-color: rgba(2, 6, 23, 0.6) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-950\/80 {
+  background-color: rgba(2, 6, 23, 0.8) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-950 {
+  background-color: #020617 !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .bg-slate-800 {
+  background-color: #1e293b !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .border-white\/5 {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .border-white\/15 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="dark"] .border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Explicit protection: Inside phone mockup or public profile in Light Mode */
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"],
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] * {
+  color-scheme: light !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .rounded-3xl.bg-white,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .bg-white {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .rounded-2xl.bg-slate-50,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .rounded-xl.bg-slate-50,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .bg-slate-50 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .text-slate-900,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] h1,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] h2,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] h3,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] h4 {
+  color: #0f172a !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .text-slate-800 {
+  color: #1e293b !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .text-slate-700 {
+  color: #334155 !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .text-slate-600 {
+  color: #475569 !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] input:not([type="checkbox"]):not([type="radio"]),
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] textarea,
+:is(.phone-mockup-frame, [data-theme-isolated="true"], .public-profile-root)[data-theme-mode="light"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* =========================================================================
    LIGHT MODE AUTO-ADAPTERS FOR DASHBOARD & SITE COMPONENTS
-   These ensure existing dashboard pages look crisp and high-contrast in light mode
-   without affecting phone previews or explicit dark containers!
+   These ensure dashboard pages look crisp and high-contrast in light mode.
+   STRICTLY EXCLUDES phone preview and public card containers!
    ========================================================================= */
 
 /* Main canvas and layout background in light mode */
 html:not(.dark) .dashboard-root,
-html:not(.dark) .bg-\[\#07090e\],
-html:not(.dark) .bg-\[\#030508\],
-html:not(.dark) .bg-\[\#050811\] {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#07090e\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#030508\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#050811\] {
   background-color: #f8fafc;
 }
 
 /* Sidebar & surface background in light mode */
 html:not(.dark) .sidebar-container,
-html:not(.dark) .bg-\[\#0a0f1d\],
-html:not(.dark) .bg-\[\#070b14\],
-html:not(.dark) .bg-\[\#080b14\],
-html:not(.dark) .bg-\[\#0d1424\],
-html:not(.dark) .bg-\[\#0e1424\] {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#0a0f1d\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#070b14\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#080b14\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#0d1424\],
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-\[\#0e1424\] {
   background-color: #ffffff;
 }
 
 /* Subtle borders in light mode */
-html:not(.dark) .border-white\/5,
-html:not(.dark) .border-white\/10,
-html:not(.dark) .border-white\/15,
-html:not(.dark) .border-white\/20 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).border-white\/5,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).border-white\/10,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).border-white\/15,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).border-white\/20 {
   border-color: #e2e8f0;
 }
 
 /* High contrast text in light mode */
-html:not(.dark) h1.text-white,
-html:not(.dark) h2.text-white,
-html:not(.dark) h3.text-white,
-html:not(.dark) h4.text-white,
-html:not(.dark) span.text-white:not(.keep-white),
-html:not(.dark) p.text-white:not(.keep-white),
-html:not(.dark) div.text-white:not(.keep-white) {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)h1.text-white,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)h2.text-white,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)h3.text-white,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)h4.text-white,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)span.text-white:not(.keep-white),
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)p.text-white:not(.keep-white),
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *)div.text-white:not(.keep-white) {
   color: #0f172a;
 }
 
-html:not(.dark) .text-slate-100,
-html:not(.dark) .text-slate-200 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).text-slate-100,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).text-slate-200 {
   color: #1e293b;
 }
 
-html:not(.dark) .text-slate-300 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).text-slate-300 {
   color: #334155;
 }
 
-html:not(.dark) .text-slate-400 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).text-slate-400 {
   color: #64748b;
 }
 
 /* Slate badges and secondary cards in light mode */
-html:not(.dark) .bg-slate-900\/50,
-html:not(.dark) .bg-slate-900\/60,
-html:not(.dark) .bg-slate-900\/80,
-html:not(.dark) .bg-slate-900 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-900\/50,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-900\/60,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-900\/80,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-900 {
   background-color: #f1f5f9;
   border-color: #e2e8f0;
 }
 
-html:not(.dark) .bg-slate-950\/60,
-html:not(.dark) .bg-slate-950\/80,
-html:not(.dark) .bg-slate-950 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-950\/60,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-950\/80,
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-950 {
   background-color: #f8fafc;
 }
 
-html:not(.dark) .bg-slate-800 {
+html:not(.dark) :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).bg-slate-800 {
   background-color: #e2e8f0;
 }
 
@@ -473,16 +603,10 @@ html:not(.dark) .bg-red-600 * {
   color: #ffffff !important;
 }
 
-/* Keep phone mockups always styled properly */
-.phone-mockup-frame,
-.phone-mockup-frame * {
-  color-scheme: dark !important;
-}
-
-/* Light mode inputs, textareas and selects */
-html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not(.phone-mockup-frame *),
-html:not(.dark) textarea:not(.phone-mockup-frame *),
-html:not(.dark) select:not(.phone-mockup-frame *) {
+/* Light mode inputs, textareas and selects in dashboard */
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]):not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *),
+html:not(.dark) textarea:not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *),
+html:not(.dark) select:not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *) {
   background-color: #ffffff;
   color: #0f172a;
   border-color: #cbd5e1;
@@ -508,33 +632,33 @@ html:not(.dark) .bg-white\/10 {
   background-color: rgba(0, 0, 0, 0.06);
 }
 
-/* Dark mode adapters for editor cards and panels */
-html.dark .rounded-3xl.bg-white {
+/* Dark mode adapters for editor cards and panels (strictly outside phone preview and public profile) */
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white {
   background-color: #0b1222 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-html.dark .rounded-2xl.bg-slate-50,
-html.dark .rounded-xl.bg-slate-50 {
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-2xl.bg-slate-50,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-xl.bg-slate-50 {
   background-color: #080d19 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-html.dark .rounded-3xl.bg-white .text-slate-900,
-html.dark .rounded-3xl.bg-white h2,
-html.dark .rounded-3xl.bg-white h3,
-html.dark .rounded-3xl.bg-white h4 {
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white .text-slate-900,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white h2,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white h3,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white h4 {
   color: #f8fafc !important;
 }
 
-html.dark .rounded-3xl.bg-white .text-slate-500,
-html.dark .rounded-3xl.bg-white .text-slate-600 {
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white .text-slate-500,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white .text-slate-600 {
   color: #94a3b8 !important;
 }
 
-html.dark .rounded-3xl.bg-white input:not([type="checkbox"]):not([type="radio"]),
-html.dark .rounded-3xl.bg-white textarea,
-html.dark .rounded-3xl.bg-white select {
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white input:not([type="checkbox"]):not([type="radio"]),
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white textarea,
+html.dark :not(.phone-mockup-frame *):not([data-theme-isolated="true"] *):not(.public-profile-root *).rounded-3xl.bg-white select {
   background-color: #0d1527 !important;
   color: #f8fafc !important;
   border-color: rgba(255, 255, 255, 0.12) !important;

@@ -3445,25 +3445,39 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
 
           {/* REALISTIC SMARTPHONE BEZEL FRAME (FIT EXACTLY IN VIEWPORT) */}
-          <div className="phone-mockup-frame w-full max-w-[320px] h-full max-h-[calc(100vh-130px)] aspect-[9/18.5] rounded-[38px] p-2 bg-slate-950 border-[5px] border-slate-800 shadow-2xl relative flex flex-col overflow-hidden shrink min-h-0">
+          <div
+            className="phone-mockup-frame w-full max-w-[320px] h-full max-h-[calc(100vh-130px)] aspect-[9/18.5] rounded-[38px] p-2 bg-slate-950 border-[5px] border-slate-800 shadow-2xl relative flex flex-col overflow-hidden shrink min-h-0"
+            data-theme-mode={previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")}
+            data-theme-isolated="true"
+          >
             {/* iPhone Top Notch / Speaker Slit */}
             <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-24 h-3.5 rounded-full bg-black z-30 flex items-center justify-center">
               <div className="w-8 h-1 rounded-full bg-slate-800" />
             </div>
 
             {/* Status Bar */}
-            <div className="pt-1 px-5 pb-1 flex items-center justify-between text-[10px] font-semibold text-white/90 z-20 relative select-none shrink-0">
+            <div className={`pt-1 px-5 pb-1 flex items-center justify-between text-[10px] font-semibold z-20 relative select-none shrink-0 ${
+              (previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light" ? "text-slate-800" : "text-white/90"
+            }`}>
               <span>9:41</span>
               <div className="flex items-center gap-1">
                 <span className="text-[9px]">5G</span>
-                <div className="w-4 h-2 rounded-2xs border border-white/80 p-0.5 flex items-center">
-                  <div className="w-full h-full bg-white rounded-2xs" />
+                <div className={`w-4 h-2 rounded-2xs border p-0.5 flex items-center ${
+                  (previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light" ? "border-slate-700" : "border-white/80"
+                }`}>
+                  <div className={`w-full h-full rounded-2xs ${
+                    (previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")) === "light" ? "bg-slate-800" : "bg-white"
+                  }`} />
                 </div>
               </div>
             </div>
 
             {/* Scrollable Mobile Viewport */}
-            <div className="w-full flex-1 rounded-[26px] overflow-hidden overflow-y-auto scrollbar-none min-h-0">
+            <div
+              className="w-full flex-1 rounded-[26px] overflow-hidden overflow-y-auto scrollbar-none min-h-0"
+              data-theme-mode={previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")}
+              data-theme-isolated="true"
+            >
               <PublicProfileView
                 profile={{
                   id: profile.id,

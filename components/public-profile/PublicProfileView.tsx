@@ -499,10 +499,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
   const isLightMode = previewTheme
-
     ? previewTheme === "light"
-
-    : configuredColorMode === "light" || (configuredColorMode === "auto" && systemIsLight);
+    : configuredColorMode === "light" || (configuredColorMode === "auto" && (sourceType === "preview" ? false : systemIsLight));
 
   // Modal states
 
@@ -1583,8 +1581,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
   return (
 
     <div
+      data-profile-preview="true"
+      data-theme-isolated="true"
+      data-theme-mode={isLightMode ? "light" : "dark"}
+      className={`public-profile-root flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-300 ${
 
-      className={`flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-300 ${
 
         isLightMode
 
@@ -3046,7 +3047,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                               const validUrl = resolveValidUrl(rawUrl);
                               const domainDisplay = rawUrl.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0];
                               return (
-                                <div className="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                                <div className={`mt-1.5 pt-1.5 border-t flex items-center justify-between ${isLightMode ? "border-slate-100" : "border-white/5"}`}>
                                   <a
                                     href={validUrl || "#"}
                                     target="_blank"
@@ -3063,7 +3064,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                                     <span>Live Link</span>
                                     <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                                   </a>
-                                  <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 truncate max-w-[80px]">
+                                  <span className={`text-[9px] font-mono truncate max-w-[80px] ${isLightMode ? "text-slate-400" : "text-slate-500"}`}>
                                     {domainDisplay}
                                   </span>
                                 </div>
@@ -4423,7 +4424,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     : "bg-slate-800/80 border-white/10"
                 }`}
               >
-                <div className="w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-200/80 dark:border-white/10 shrink-0 flex items-center justify-center">
+                <div className={`w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-white shadow-sm border shrink-0 flex items-center justify-center ${isLightMode ? "border-slate-200/80" : "border-white/10"}`}>
                   {effectiveAvatar || effectiveCompanyLogo || effectiveBadge ? (
                     <img
                       src={effectiveAvatar || effectiveCompanyLogo || effectiveBadge || "/default-avatar.jpg"}
@@ -4451,52 +4452,72 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               {/* Interactive Step-by-Step Instructions if deferredPrompt is not yet ready */}
               {installInstructionStep && (
-                <div className="p-3.5 rounded-2xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900/60 text-xs text-blue-950 dark:text-blue-100 space-y-2 animate-in fade-in duration-200">
-                  <p className="font-bold flex items-center gap-1.5 text-blue-900 dark:text-blue-300">
+                <div className={`p-3.5 rounded-2xl text-xs space-y-2 animate-in fade-in duration-200 ${isLightMode ? "bg-blue-50/90 border border-blue-200/80 text-blue-950" : "bg-blue-950/50 border border-blue-900/60 text-blue-100"}`}>
+
+                  <p className={`font-bold flex items-center gap-1.5 ${isLightMode ? "text-blue-900" : "text-blue-300"}`}>
+
                     <span>📲 Easy Installation Steps:</span>
                   </p>
                   {isDesktopDevice ? (
                     <div className="space-y-1.5 text-[11px] leading-relaxed">
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
-                        <span>Browser address bar me top-right me <strong className="text-blue-700 dark:text-blue-300">⨁ (Install App)</strong> icon par click karein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+1.</span>
+                        <span>Browser address bar me top-right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+⨁ (Install App)</strong> icon par click karein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
-                        <span>Ya Chrome menu (⋮) me <strong className="text-blue-700 dark:text-blue-300">&apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> chunein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+2.</span>
+                        <span>Ya Chrome menu (⋮) me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> chunein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
-                        <span>Ya neeche <strong className="text-blue-700 dark:text-blue-300">&apos;Download Shortcut&apos;</strong> par click karein desktop par add karne ke liye!</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+3.</span>
+                        <span>Ya neeche <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Download Shortcut&apos;</strong> par click karein desktop par add karne ke liye!</span>
                       </p>
                     </div>
                   ) : isIosDevice ? (
                     <div className="space-y-1.5 text-[11px] leading-relaxed">
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
-                        <span>Safari ke bottom bar me <strong className="text-blue-700 dark:text-blue-300">Share icon (📤)</strong> par tap karein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+1.</span>
+                        <span>Safari ke bottom bar me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+Share icon (📤)</strong> par tap karein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
-                        <span>Scroll down karke <strong className="text-blue-700 dark:text-blue-300">&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+2.</span>
+                        <span>Scroll down karke <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
-                        <span>Top right me <strong className="text-blue-700 dark:text-blue-300">&apos;Add&apos;</strong> click karein — app aapke phone par install ho jayega!</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+3.</span>
+                        <span>Top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Add&apos;</strong> click karein — app aapke phone par install ho jayega!</span>
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-1.5 text-[11px] leading-relaxed">
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
-                        <span>Chrome browser ke top right me <strong className="text-blue-700 dark:text-blue-300">3 dots (⋮)</strong> par tap karein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+1.</span>
+                        <span>Chrome browser ke top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+3 dots (⋮)</strong> par tap karein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
-                        <span>Menu se <strong className="text-blue-700 dark:text-blue-300">&apos;Install app&apos;</strong> ya <strong className="text-blue-700 dark:text-blue-300">&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+2.</span>
+                        <span>Menu se <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Install app&apos;</strong> ya <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
+&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
                       </p>
                       <p className="flex items-start gap-1.5">
-                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
+                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
+3.</span>
                         <span>Confirm karein — app instantly aapke home screen par add ho jayega!</span>
                       </p>
                     </div>
@@ -4510,7 +4531,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                   <button
                     type="button"
                     onClick={() => setInstallInstructionStep(!installInstructionStep)}
-                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                    className={`text-[11px] font-semibold hover:underline cursor-pointer ${isLightMode ? "text-blue-600" : "text-blue-400"}`}
                   >
                     {installInstructionStep ? "Hide Guide" : "How to install?"}
                   </button>
@@ -4525,14 +4546,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 </div>
 
                 {/* Secondary Actions: Save Contact & Copy Link */}
-                <div className="pt-2 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-[11px]">
+                <div className={`pt-2 border-t flex items-center justify-between text-[11px] ${isLightMode ? "border-slate-100" : "border-white/10"}`}>
+
                   <button
                     type="button"
                     onClick={() => {
                       handleDownloadVCard();
                       setInstallModalOpen(false);
                     }}
-                    className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                    className={`font-medium flex items-center gap-1 cursor-pointer transition-colors ${isLightMode ? "text-slate-600 hover:text-blue-600" : "text-slate-400 hover:text-blue-400"}`}
                   >
                     <FileDown className="w-3.5 h-3.5 shrink-0" />
                     <span>Save Contact (.vcf)</span>
@@ -4547,7 +4569,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                       showToast("Profile link copied to clipboard!");
                       setTimeout(() => setCopiedLink(false), 2000);
                     }}
-                    className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                    className={`font-medium flex items-center gap-1 cursor-pointer transition-colors ${isLightMode ? "text-slate-600 hover:text-blue-600" : "text-slate-400 hover:text-blue-400"}`}
                   >
                     <Copy className="w-3.5 h-3.5 shrink-0" />
                     <span>{copiedLink ? "Copied!" : "Copy Profile Link"}</span>
