@@ -77,7 +77,7 @@ export default function RootLayout({
                     var slug = localStorage.getItem('last_profile_slug') || 
                                localStorage.getItem('installed_profile_slug') || 
                                (document.cookie.match(/(?:^|;\s*)last_profile_slug=([^;]+)/) || [])[1] ||
-                               'htt';
+                               'htt-5311';
                     if (slug) {
                       window.location.replace('/p/' + slug);
                     }
