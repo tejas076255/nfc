@@ -57,9 +57,22 @@ export default function RootLayout({
   return (
     <html lang="en" className="light scroll-smooth" suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" id="app-manifest" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TapSync" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
               (function() {
                 try {
                   var saved = localStorage.getItem('theme');

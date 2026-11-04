@@ -510,6 +510,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [installInstructionStep, setInstallInstructionStep] = useState(false);
+  const [isDesktopDevice, setIsDesktopDevice] = useState(false);
 
   const [leadModalOpen, setLeadModalOpen] = useState(false);
 
@@ -578,12 +579,22 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const [isIosDevice, setIsIosDevice] = useState(false);
 
   useEffect(() => {
-    // Detect iOS (iPhone / iPad / modern iPadOS Safari)
+    // Detect device type
     if (typeof navigator !== "undefined") {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsDesktopDevice(!isMobile);
       setIsIosDevice(
         /iPhone|iPad|iPod/.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
       );
+    }
+
+    // Dynamically update manifest tag in head to this profile's slug
+    if (typeof document !== "undefined") {
+      const manifestTag = document.getElementById("app-manifest") as HTMLLinkElement;
+      if (manifestTag) {
+        manifestTag.href = `/api/manifest/${profile.slug}`;
+      }
     }
 
     // Register PWA service worker
@@ -619,7 +630,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       window.removeEventListener("beforeinstallprompt", handler);
       clearTimeout(timer);
     };
-  }, [profile.id]);
+  }, [profile.id, profile.slug]);
 
 
 
@@ -1054,6 +1065,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const handleExecuteInstall = () => {
     handleTrackAction("install_app_confirm");
+
     if (deferredPrompt) {
       try {
         deferredPrompt.prompt();
@@ -1064,7 +1076,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
             try {
               sessionStorage.setItem("dismissed_install_" + profile.id, "true");
             } catch {}
-            showToast("✨ App installed successfully to your Home Screen!");
+            showToast("✨ App installed successfully to your device!");
           } else {
             setInstallInstructionStep(true);
           }
@@ -1077,13 +1089,33 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       }
     }
 
-    // When native prompt is not yet available, show instructions directly in modal
+    // If native prompt is not ready, provide immediate tangible desktop shortcut or instructions
     setInstallInstructionStep(true);
+
+    if (isDesktopDevice) {
+      const appTitle = (companyName || personName || "Digital Profile").trim();
+      const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
+      const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconIndex=0\r\n`;
+      const blob = new Blob([shortcutContent], { type: "application/x-mswinurl" });
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `${appTitle}.url`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(downloadUrl);
+
+      showToast(`✨ Desktop shortcut for '${appTitle}' downloaded! Also check top-right ⨁ in address bar.`);
+      return;
+    }
+
     if (isIosDevice) {
       showToast("Tap Safari Share 📤 icon at the bottom -> 'Add to Home Screen'");
-    } else {
-      showToast("Tap browser menu (⋮) -> 'Install App' or 'Add to Home screen'");
+      return;
     }
+
+    showToast("Tap browser menu (⋮) -> 'Install App' or 'Add to Home screen'");
   };
 
 
@@ -4423,7 +4455,22 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                   <p className="font-bold flex items-center gap-1.5 text-blue-900 dark:text-blue-300">
                     <span>📲 Easy Installation Steps:</span>
                   </p>
-                  {isIosDevice ? (
+                  {isDesktopDevice ? (
+                    <div className="space-y-1.5 text-[11px] leading-relaxed">
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
+                        <span>Browser address bar me top-right me <strong className="text-blue-700 dark:text-blue-300">⨁ (Install App)</strong> icon par click karein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">2.</span>
+                        <span>Ya Chrome menu (⋮) me <strong className="text-blue-700 dark:text-blue-300">&apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> chunein.</span>
+                      </p>
+                      <p className="flex items-start gap-1.5">
+                        <span className="font-bold text-blue-600 dark:text-blue-400">3.</span>
+                        <span>Ya neeche <strong className="text-blue-700 dark:text-blue-300">&apos;Download Shortcut&apos;</strong> par click karein desktop par add karne ke liye!</span>
+                      </p>
+                    </div>
+                  ) : isIosDevice ? (
                     <div className="space-y-1.5 text-[11px] leading-relaxed">
                       <p className="flex items-start gap-1.5">
                         <span className="font-bold text-blue-600 dark:text-blue-400">1.</span>
@@ -4457,22 +4504,55 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 </div>
               )}
 
-              {/* Install Action Button (matching Image 2) */}
-              <div className="flex items-center justify-between pt-1">
-                <button
-                  type="button"
-                  onClick={() => setInstallInstructionStep(!installInstructionStep)}
-                  className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-                >
-                  {installInstructionStep ? "Hide Guide" : "How to install?"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleExecuteInstall}
-                  className="px-7 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition-all cursor-pointer"
-                >
-                  Install
-                </button>
+              {/* Install Action Buttons */}
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInstallInstructionStep(!installInstructionStep)}
+                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    {installInstructionStep ? "Hide Guide" : "How to install?"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteInstall}
+                    className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5 shrink-0" />
+                    <span>{deferredPrompt ? "Install App" : isDesktopDevice ? "Download Shortcut" : "Install App"}</span>
+                  </button>
+                </div>
+
+                {/* Secondary Actions: Save Contact & Copy Link */}
+                <div className="pt-2 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDownloadVCard();
+                      setInstallModalOpen(false);
+                    }}
+                    className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <FileDown className="w-3.5 h-3.5 shrink-0" />
+                    <span>Save Contact (.vcf)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof navigator !== "undefined" && navigator.clipboard) {
+                        navigator.clipboard.writeText(getPublicUrl());
+                      }
+                      setCopiedLink(true);
+                      showToast("Profile link copied to clipboard!");
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }}
+                    className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Copy className="w-3.5 h-3.5 shrink-0" />
+                    <span>{copiedLink ? "Copied!" : "Copy Profile Link"}</span>
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
