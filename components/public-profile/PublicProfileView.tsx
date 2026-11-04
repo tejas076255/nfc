@@ -804,11 +804,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   // Profile image appears in the background (hero portrait)
 
-  const heroPortrait = rawAvatar || rawCover || null;
+  const heroPortrait = rawCover || rawAvatar || null;
 
   // Brand/company logo appears centered over the hero portrait
 
-  const centerLogo = rawLogo || (rawCover && rawAvatar && rawCover !== rawAvatar ? rawAvatar : null);
+  const centerLogo = rawLogo || (rawCover && rawAvatar && rawCover !== rawAvatar ? rawAvatar : rawAvatar || null);
 
   const effectiveCompanyLogo = rawLogo || centerLogo || null;
 
@@ -1683,9 +1683,9 @@ IconIndex=0
 
         <div className="relative w-full">
 
-          {/* Hero Profile Photo in Background */}
+          {/* Hero Profile Photo in Background - FULLY VISIBLE & CRISP */}
 
-          <div className="h-56 sm:h-64 w-full relative overflow-hidden bg-slate-900">
+          <div className="h-80 sm:h-96 w-full relative overflow-hidden bg-slate-900">
 
             {heroPortrait ? (
 
@@ -1695,7 +1695,7 @@ IconIndex=0
 
                 alt={personName}
 
-                className="w-full h-full object-cover object-top filter brightness-95"
+                className="w-full h-full object-cover object-center sm:object-top"
 
               />
 
@@ -1729,9 +1729,9 @@ IconIndex=0
 
 
 
-            {/* Bottom vignette overlay */}
+            {/* Bottom edge fade only at the very bottom (last 90px) so background photo is FULLY VISIBLE */}
 
-            <div className={`absolute inset-0 bg-gradient-to-t ${isLightMode ? "from-white via-white/40 to-transparent" : "from-[#07090e] via-[#07090e]/40 to-transparent"} pointer-events-none`} />
+            <div className={`absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t ${isLightMode ? "from-white via-white/50 to-transparent" : "from-[#07090e] via-[#07090e]/50 to-transparent"} pointer-events-none`} />
 
 
 
@@ -1795,7 +1795,7 @@ IconIndex=0
 
                   alt={companyName || personName}
 
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
 
                 />
 
