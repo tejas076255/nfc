@@ -601,7 +601,7 @@ export function NewProfileClientView({
 
             {/* PHONE SCREEN CONTENT */}
             <div
-              className="phone-mockup-frame rounded-[26px] overflow-hidden max-h-[580px] overflow-y-auto no-scrollbar"
+              className="phone-mockup-frame rounded-[26px] overflow-hidden max-h-[580px] overflow-y-auto no-scrollbar relative"
               data-theme-mode={previewThemeMode}
               data-theme-isolated="true"
             >

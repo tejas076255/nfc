@@ -1103,23 +1103,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const appTitle = (companyName || personName || "Digital Profile").trim();
     const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
 
-    if (isDesktopDevice) {
-      // Create real Windows Internet Shortcut (.url) directly opening the profile
-      const shortcutContent = `[InternetShortcut]
-URL=${pubUrl}
-IconIndex=0
-`;
-      const blob = new Blob([shortcutContent], { type: "application/x-mswinurl" });
-      const downloadUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = `${appTitle}.url`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
+    if (sourceType === "preview") {
+      const pubUrl = typeof window !== "undefined" ? `${window.location.origin}/p/${profile.slug}` : `/p/${profile.slug}`;
+      window.open(pubUrl, "_blank");
+      setInstallModalOpen(false);
+      showToast("✨ Opening profile in new tab to add app icon!");
+      return;
+    }
 
-      showToast(`✨ Desktop shortcut for ${appTitle} downloaded! Double-click to open.`);
+    if (isDesktopDevice) {
+      showToast("Click address bar ⨁ (Install App) or Chrome menu (⋮) -> 'Install page as app'");
       return;
     }
 
@@ -4188,7 +4181,7 @@ IconIndex=0
 
         {shareModalOpen && (
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/85 backdrop-blur-md`}>
 
             <motion.div
 
@@ -4198,7 +4191,7 @@ IconIndex=0
 
               exit={{ scale: 0.95, opacity: 0 }}
 
-              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-3 max-h-[92%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-2xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
 
             >
 
@@ -4339,12 +4332,12 @@ IconIndex=0
       {/* ============================================================== */}
       <AnimatePresence>
         {installModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200`}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl relative text-left space-y-4 border overflow-hidden ${
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-2.5 max-h-[94%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-3xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative text-left border overflow-hidden ${
                 isLightMode
                   ? "bg-white border-slate-200 text-slate-900"
                   : "bg-slate-900 border-white/15 text-white"
@@ -4429,12 +4422,7 @@ IconIndex=0
                         <span>Ya Chrome menu (⋮) me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
 &apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> chunein.</span>
                       </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-3.</span>
-                        <span>Ya neeche <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Download Shortcut&apos;</strong> par click karein desktop par add karne ke liye!</span>
-                      </p>
+
                     </div>
                   ) : isIosDevice ? (
                     <div className="space-y-1.5 text-[11px] leading-relaxed">
@@ -4550,7 +4538,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
         {leadModalOpen && (
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/85 backdrop-blur-md`}>
 
             <motion.div
 
@@ -4560,7 +4548,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
               exit={{ scale: 0.95, opacity: 0 }}
 
-              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-3 max-h-[92%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-2xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
 
             >
 
@@ -4908,7 +4896,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
         {activeProjectModal && (
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/85 backdrop-blur-md`}>
 
             <motion.div
 
@@ -4918,7 +4906,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
               exit={{ scale: 0.95, opacity: 0 }}
 
-              className="w-full max-w-sm rounded-2xl bg-slate-900 border border-white/15 p-5 shadow-2xl relative max-h-[85vh] overflow-y-auto space-y-3.5"
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-3 max-h-[92%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm rounded-2xl p-5 space-y-3.5 max-h-[85vh] overflow-y-auto"} bg-slate-900 border border-white/15 shadow-2xl relative`}
 
             >
 
@@ -5044,7 +5032,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
         {reportModalOpen && (
 
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/85 backdrop-blur-md`}>
 
             <motion.div
 
@@ -5054,7 +5042,7 @@ Share icon (📤)</strong> par tap karein.</span>
 
               exit={{ scale: 0.95, opacity: 0 }}
 
-              className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl relative space-y-4 ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-4 rounded-2xl space-y-3 max-h-[92%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-2xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative ${isLightMode ? "bg-white border border-slate-200 text-slate-900" : "bg-slate-900 border border-white/15 text-white"}`}
 
             >
 

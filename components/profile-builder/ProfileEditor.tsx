@@ -3474,7 +3474,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
             {/* Scrollable Mobile Viewport */}
             <div
-              className="w-full flex-1 rounded-[26px] overflow-hidden overflow-y-auto scrollbar-none min-h-0"
+              className="w-full flex-1 rounded-[26px] overflow-hidden overflow-y-auto scrollbar-none min-h-0 relative"
               data-theme-mode={previewThemeOverride || ((profile.themeConfig as any)?.colorMode === "light" ? "light" : "dark")}
               data-theme-isolated="true"
             >
