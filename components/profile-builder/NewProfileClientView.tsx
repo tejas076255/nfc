@@ -56,7 +56,7 @@ const TEMPLATE_PREVIEW_META: Record<
 > = {
   professional: {
     sampleName: "htt",
-    sampleTitle: "Senior Corporate Counsel",
+    sampleTitle: "",
     sampleCompany: "Vertex Legal Advisory",
     sampleBio: "14+ years advising tier-1 tech firms and private equity groups through capital restructuring, commercial contracts, and institutional dispute resolution.",
     sampleServices: [

@@ -621,6 +621,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     window.addEventListener("beforeinstallprompt", updatePrompt);
     window.addEventListener("pwa-prompt-ready", updatePrompt);
 
+    // Never auto-prompt install modal inside the profile editor!
+    if (sourceType === "preview") return;
+
     // Auto prompt after 4 seconds on initial visit if not dismissed
     const timer = setTimeout(() => {
       try {
@@ -824,7 +827,12 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const personName = headerBlock.name || profile.name || "Cardholder";
 
-  const professionalTitle = headerBlock.title || profile.title || "Digital Identity";
+  const rawTitle = (headerBlock.title ?? profile.title ?? "").trim();
+  const lowerTitle = rawTitle.toLowerCase();
+  const professionalTitle = (lowerTitle === "senior corporate counsel" || lowerTitle === "team member" || lowerTitle === "digital identity") ? "" : rawTitle;
+
+  const rawBadge = (headerBlock.badge || "").trim();
+  const cleanBadge = rawBadge.toLowerCase() === "team member" ? "" : rawBadge;
 
   const companyName = headerBlock.company || "";
 
@@ -1066,6 +1074,12 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
     const handleInstallClick = () => {
     handleTrackAction("install_app_click");
+    if (sourceType === "preview") {
+      const pubUrl = typeof window !== "undefined" ? `${window.location.origin}/p/${profile.slug}` : `/p/${profile.slug}`;
+      window.open(pubUrl, "_blank");
+      showToast("✨ Opening live profile in new tab to install app!");
+      return;
+    }
     setInstallModalOpen(true);
   };
 
@@ -1830,11 +1844,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               </h1>
 
-              {headerBlock.badge && (
+              {cleanBadge && (
 
                 <span
 
-                  title={headerBlock.badge}
+                  title={cleanBadge}
 
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
 
@@ -1846,7 +1860,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                   <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" />
 
-                  <span>{headerBlock.badge}</span>
+                  <span>{cleanBadge}</span>
 
                 </span>
 
@@ -1858,11 +1872,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
             {/* Professional Designation */}
 
-            <p className="text-sm font-semibold tracking-wide" style={{ color: theme.accentColor || "#14b8a6" }}>
+            {professionalTitle ? (
+              <p className="text-sm font-semibold tracking-wide" style={{ color: theme.accentColor || "#14b8a6" }}>
 
-              {professionalTitle}
+                {professionalTitle}
 
-            </p>
+              </p>
+            ) : null}
 
 
 
@@ -4331,7 +4347,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       {/* MODAL 2: INSTALL WEB APP (PWA MATCHING IMAGE 2 SPEC)           */}
       {/* ============================================================== */}
       <AnimatePresence>
-        {installModalOpen && (
+        {installModalOpen && sourceType !== "preview" && (
           <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200`}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}

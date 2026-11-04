@@ -119,7 +119,7 @@ export function ProfilesClientView({ initialProfiles, planInfo }: ProfilesClient
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: empForm.name.trim(),
-          title: empForm.title.trim() || "Team Member",
+          title: empForm.title.trim(),
           email: empForm.email.trim(),
           phone: empForm.phone.trim(),
           whatsapp: empForm.whatsapp.trim() || empForm.phone.trim(),

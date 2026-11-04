@@ -34,7 +34,7 @@ export const INDUSTRY_TEMPLATES: Record<IndustryType, TemplateDefinition> = {
         sortOrder: 0,
         blockData: {
           name: "Siddharth Mehta",
-          title: "Senior Corporate Counsel",
+          title: "",
           company: "Vertex Legal Advisory",
           badge: "Verified Practitioner",
           avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",

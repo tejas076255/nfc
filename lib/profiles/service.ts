@@ -237,7 +237,7 @@ export async function createProfile(
       if (data.title) blockData.title = data.title;
       if (inheritedCompany) blockData.company = inheritedCompany;
       if (inheritedLogo) blockData.logoUrl = inheritedLogo;
-      if (data.isEmployee) blockData.badge = "Team Member";
+      
     } else if (block.type === "contact_actions") {
       if (data.phone) blockData.phone = data.phone;
       if (data.email) blockData.email = data.email;
