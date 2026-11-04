@@ -27,6 +27,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  manifest: "/manifest.json",
   title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
@@ -57,7 +58,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="light scroll-smooth" suppressHydrationWarning>
       <head>
-        <link rel="manifest" href="/manifest.json" id="app-manifest" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
@@ -68,6 +68,14 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Early capture of PWA beforeinstallprompt
+              window.addEventListener('beforeinstallprompt', function(e) {
+                e.preventDefault();
+                window.__pwaInstallPrompt = e;
+                try {
+                  window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
+                } catch(err) {}
+              });
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').catch(function() {});

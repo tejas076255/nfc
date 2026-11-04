@@ -30,7 +30,7 @@ export async function GET(
     const description = profile.bio || headerBlock.tagline || `Contactless NFC digital card for ${displayName}`;
     const avatarIconUrl = `${origin}/api/avatar/${slug}.jpg`;
 
-    const manifestData = {
+        const manifestData = {
       name: `${displayName} | TapSync NFC`,
       short_name: shortName,
       description: description,
@@ -70,18 +70,6 @@ export async function GET(
           src: `${origin}/apple-touch-icon.png`,
           sizes: "180x180",
           type: "image/png",
-          purpose: "any",
-        },
-        {
-          src: avatarIconUrl,
-          sizes: "192x192",
-          type: "image/jpeg",
-          purpose: "any",
-        },
-        {
-          src: avatarIconUrl,
-          sizes: "512x512",
-          type: "image/jpeg",
           purpose: "any",
         },
       ],

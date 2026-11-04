@@ -43,6 +43,7 @@ import {
   Building2,
 
   Smartphone,
+  QrCode,
 
   Star,
 
@@ -600,19 +601,18 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
 
+    const updatePrompt = (e?: any) => {
+      if (e?.preventDefault) e.preventDefault();
+      const p = e || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+      if (p) setDeferredPrompt(p);
+    };
+
     if (typeof window !== "undefined" && (window as any).__pwaInstallPrompt) {
       setDeferredPrompt((window as any).__pwaInstallPrompt);
     }
 
-    const handler = (e: any) => {
-      e.preventDefault();
-      if (typeof window !== "undefined") {
-        (window as any).__pwaInstallPrompt = e;
-      }
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("beforeinstallprompt", updatePrompt);
+    window.addEventListener("pwa-prompt-ready", updatePrompt);
 
     // Auto prompt after 4 seconds on initial visit if not dismissed
     const timer = setTimeout(() => {
@@ -625,7 +625,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     }, 4000);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("beforeinstallprompt", updatePrompt);
+      window.removeEventListener("pwa-prompt-ready", updatePrompt);
       clearTimeout(timer);
     };
   }, [profile.id, profile.slug]);
@@ -1061,59 +1062,81 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     setInstallModalOpen(true);
   };
 
-  const handleExecuteInstall = () => {
+  const handleExecuteInstall = async () => {
     handleTrackAction("install_app_confirm");
 
-    if (deferredPrompt) {
+    const promptObj = deferredPrompt || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+
+    if (promptObj) {
       try {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choice: any) => {
-          if (choice && choice.outcome === "accepted") {
-            setDeferredPrompt(null);
-            setInstallModalOpen(false);
-            try {
-              sessionStorage.setItem("dismissed_install_" + profile.id, "true");
-            } catch {}
-            showToast("✨ App installed successfully to your device!");
-          } else {
-            setInstallInstructionStep(true);
+        await promptObj.prompt();
+        const choice = await promptObj.userChoice;
+        if (choice && choice.outcome === "accepted") {
+          setDeferredPrompt(null);
+          if (typeof window !== "undefined") {
+            (window as any).__pwaInstallPrompt = null;
           }
-        }).catch(() => {
+          setInstallModalOpen(false);
+          try {
+            sessionStorage.setItem("dismissed_install_" + profile.id, "true");
+          } catch {}
+          showToast("✨ App installed successfully to your device!");
+          return;
+        } else {
           setInstallInstructionStep(true);
-        });
-        return;
-      } catch {
+        }
+      } catch (err) {
         setInstallInstructionStep(true);
       }
     }
 
-    // If native prompt is not ready, provide immediate tangible desktop shortcut or instructions
+    // If native prompt is not ready, show device instructions & provide instant app launcher
     setInstallInstructionStep(true);
 
+    const appTitle = (companyName || personName || "Digital Profile").trim();
+    const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
+
     if (isDesktopDevice) {
-      const appTitle = (companyName || personName || "Digital Profile").trim();
-      const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
-      const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconIndex=0\r\n`;
-      const blob = new Blob([shortcutContent], { type: "application/x-mswinurl" });
+      // Create executable HTML desktop launcher (opens directly as standalone webapp window)
+      const launcherContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${appTitle}</title>
+  <meta http-equiv="refresh" content="0; url=${pubUrl}">
+  <script>
+    window.location.replace("${pubUrl}");
+  </script>
+</head>
+<body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;background:#030508;color:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  <div style="text-align:center;padding:24px;max-width:400px;background:#0d1527;border-radius:24px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 40px rgba(0,0,0,0.5);">
+    <h2 style="margin:0 0 8px 0;font-size:20px;">${appTitle}</h2>
+    <p style="color:#94a3b8;font-size:13px;margin:0 0 16px 0;">Opening digital profile web application...</p>
+    <a href="${pubUrl}" style="display:inline-block;padding:10px 20px;border-radius:12px;background:#2563eb;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;">Launch Now &rarr;</a>
+  </div>
+</body>
+</html>`;
+      const blob = new Blob([launcherContent], { type: "text/html" });
       const downloadUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = downloadUrl;
-      a.download = `${appTitle}.url`;
+      a.download = `${appTitle}-App.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(downloadUrl);
 
-      showToast(`✨ Desktop shortcut for '${appTitle}' downloaded! Also check top-right ⨁ in address bar.`);
+      showToast(`✨ Desktop app launcher downloaded! Click address bar ⨁ to install as permanent app.`);
       return;
     }
 
     if (isIosDevice) {
-      showToast("Tap Safari Share 📤 icon at the bottom -> 'Add to Home Screen'");
+      showToast("Tap Safari Share 📤 icon at the bottom -> 'Add to Home Screen ➕'");
       return;
     }
 
-    showToast("Tap browser menu (⋮) -> 'Install App' or 'Add to Home screen'");
+    showToast("Tap Chrome menu (⋮) -> 'Install App' or 'Add to Home screen 📲'");
   };
 
 
@@ -1660,6 +1683,63 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
         }`}
 
       >
+
+        {/* ============================================================== */}
+        {/* NATIVE MOBILE APP TOP BAR                                      */}
+        {/* ============================================================== */}
+        <div className={`sticky top-0 z-30 px-3.5 py-2.5 flex items-center justify-between gap-2 border-b backdrop-blur-xl transition-colors ${
+          isLightMode 
+            ? "bg-white/95 border-slate-200/90 text-slate-900 shadow-xs" 
+            : "bg-slate-950/95 border-white/10 text-white shadow-md"
+        }`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            {effectiveAvatar || effectiveBadge ? (
+              <img
+                src={effectiveAvatar || effectiveBadge}
+                alt={personName}
+                className="w-7 h-7 rounded-full object-cover border border-white/20 shrink-0"
+              />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                {personName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-bold truncate flex items-center gap-1 leading-tight">
+                <span>{companyName || personName}</span>
+                <CheckCircle2 className="w-3 h-3 text-blue-500 shrink-0" />
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium truncate leading-none mt-0.5">
+                Digital Business Profile
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Quick Install App Button in Top Bar */}
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1 shadow-xs active:scale-95 transition-transform cursor-pointer"
+              title="Install app to phone or desktop"
+            >
+              <Smartphone className="w-3 h-3 shrink-0" />
+              <span>Install App</span>
+            </button>
+
+            {/* Share profile icon */}
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+              title="Share profile"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
 
         {/* ============================================================== */}
 
@@ -4102,119 +4182,118 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       >
 
         <div
-
           className={`${
-
             sourceType === "preview"
-
-              ? "w-full grid grid-cols-3 gap-1.5"
-
+              ? "w-full grid grid-cols-5 gap-1 p-1 bg-slate-900/90 rounded-2xl border border-white/10"
               : isLightMode
-
-              ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-
-              : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-
+              ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-1.5 sm:p-2 grid grid-cols-5 gap-1 sm:gap-1.5"
+              : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1.5 sm:p-2 grid grid-cols-5 gap-1 sm:gap-1.5"
           }`}
-
         >
-
-          {/* Action 1: Save Contact (Direct vCard to Phone) */}
-
+          {/* Action 1: Install App */}
           <button
-
             type="button"
-
-            onClick={handleDownloadVCard}
-
-            className="py-2.5 px-2 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer truncate"
-
-            style={{
-
-              background: `linear-gradient(135deg, ${theme.accentColor || "#2563eb"} 0%, ${theme.accentColor || "#2563eb"}dd 100%)`,
-
-              backgroundColor: theme.accentColor || "#2563eb",
-
-              boxShadow: `0 4px 14px 0 ${theme.accentColor || "#2563eb"}40`,
-
-            }}
-
-            title="Download vCard contact to phone"
-
-          >
-
-            <Download className="w-3.5 h-3.5 shrink-0" />
-
-            <span className="truncate">Save Contact</span>
-
-          </button>
-
-
-
-          {/* Action 2: Inquiry Form */}
-
-          <button
-
-            type="button"
-
-            onClick={() => {
-
-              handleTrackAction("sticky_inquiry_click");
-
-              setLeadModalOpen(true);
-
-            }}
-
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
-
-              isLightMode
-
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
-
-                : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
-
-            }`}
-
-            title="Open contact exchange form"
-
-          >
-
-            <Mail className="w-3.5 h-3.5 shrink-0 text-teal-600" />
-
-            <span className="truncate">Inquiry Form</span>
-
-          </button>
-
-
-
-          {/* Action 3: Install Web App */}
-
-          <button
-
-            type="button"
-
             onClick={handleInstallClick}
-
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
-
+            className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer ${
               isLightMode
-
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
-
-                : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
-
+                ? "bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200"
+                : "bg-blue-950/60 hover:bg-blue-900/60 text-blue-300 border border-blue-500/30"
             }`}
-
-            title="Install Web App on Home Screen"
-
+            title="Install App to your device"
           >
-
-            <Smartphone className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
-
-            <span className="truncate">Install App</span>
-
+            <Download className="w-4 h-4 shrink-0 text-blue-500" />
+            <span className="truncate">Install</span>
           </button>
 
+          {/* Action 2: WhatsApp or Call */}
+          {contactBlock.whatsapp ? (
+            <a
+              href={`https://wa.me/${contactBlock.whatsapp.replace(/[^0-9]/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => handleOpenExternal(e, `https://wa.me/${contactBlock.whatsapp.replace(/[^0-9]/g, "")}`)}
+              className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer ${
+                isLightMode
+                  ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
+                  : "bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30"
+              }`}
+              title="Chat on WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4 shrink-0 text-emerald-500" />
+              <span className="truncate">WhatsApp</span>
+            </a>
+          ) : (
+            <a
+              href={contactBlock.phone ? `tel:${contactBlock.phone}` : "#"}
+              onClick={(e) => {
+                if (!contactBlock.phone) {
+                  e.preventDefault();
+                  showToast("Phone number not provided");
+                }
+              }}
+              className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer ${
+                isLightMode
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+                  : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
+              }`}
+              title="Call"
+            >
+              <Phone className="w-4 h-4 shrink-0 text-teal-500" />
+              <span className="truncate">Call</span>
+            </a>
+          )}
+
+          {/* Action 3: Save Contact (Direct vCard) */}
+          <button
+            type="button"
+            onClick={handleDownloadVCard}
+            className="py-2 px-1 rounded-xl text-white text-[10px] font-bold flex flex-col items-center justify-center gap-1 shadow-md active:scale-95 transition-all cursor-pointer"
+            style={{
+              background: `linear-gradient(135deg, ${theme.accentColor || "#2563eb"} 0%, ${theme.accentColor || "#2563eb"}dd 100%)`,
+              backgroundColor: theme.accentColor || "#2563eb",
+            }}
+            title="Save Contact to Phonebook (.vcf)"
+          >
+            <Plus className="w-4 h-4 shrink-0" />
+            <span className="truncate">Add Contact</span>
+          </button>
+
+          {/* Action 4: Services / Offerings */}
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById("services");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth" });
+              } else {
+                setLeadModalOpen(true);
+              }
+            }}
+            className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer ${
+              isLightMode
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
+            }`}
+            title="View Services"
+          >
+            <Briefcase className="w-4 h-4 shrink-0 text-amber-500" />
+            <span className="truncate">Services</span>
+          </button>
+
+          {/* Action 5: Share / QR Code */}
+          <button
+            type="button"
+            onClick={() => setShareModalOpen(true)}
+            className={`py-2 px-1 rounded-xl text-[10px] font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer ${
+              isLightMode
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
+            }`}
+            title="Share & QR Code"
+          >
+            <QrCode className="w-4 h-4 shrink-0 text-purple-500" />
+            <span className="truncate">Share / QR</span>
+          </button>
         </div>
 
       </div>
@@ -4541,7 +4620,7 @@ Share icon (📤)</strong> par tap karein.</span>
                     className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5 shrink-0" />
-                    <span>{deferredPrompt ? "Install App" : isDesktopDevice ? "Download Shortcut" : "Install App"}</span>
+                    <span>Install App</span>
                   </button>
                 </div>
 
