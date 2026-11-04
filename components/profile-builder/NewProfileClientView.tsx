@@ -2,7 +2,9 @@
 
 import { UpgradePlanModal } from "@/components/modals/UpgradePlanModal";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { PublicProfileView } from "../public-profile/PublicProfileView";
+import { FullProfileSnapshot } from "@/lib/profiles/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { INDUSTRY_TEMPLATES } from "@/lib/profiles/templates";
@@ -53,16 +55,17 @@ const TEMPLATE_PREVIEW_META: Record<
   }
 > = {
   professional: {
-    sampleName: "Siddharth Mehta",
+    sampleName: "htt",
     sampleTitle: "Senior Corporate Counsel",
     sampleCompany: "Vertex Legal Advisory",
-    sampleBio: "14+ years advising high-growth tech firms through regulatory strategy, M&A and corporate scaling.",
+    sampleBio: "14+ years advising tier-1 tech firms and private equity groups through capital restructuring, commercial contracts, and institutional dispute resolution.",
     sampleServices: [
-      { title: "Corporate Advisory", price: "₹25,000" },
-      { title: "Contract Review", price: "₹15,000" },
+      { title: "M&A Due Diligence", price: "₹50,000" },
+      { title: "Commercial Contract Review", price: "₹25,000" },
+      { title: "Retainer Advisory", price: "Custom" },
     ],
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
-    badgeText: "Verified Legal Counsel",
+    badgeText: "Verified Practitioner",
   },
   beauty: {
     sampleName: "Ananya Sen",
@@ -138,11 +141,49 @@ export function NewProfileClientView({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isQuotaReached, setIsQuotaReached] = useState(initialLimitReached);
-  const [previewThemeMode, setPreviewThemeMode] = useState<"dark" | "light">("dark");
+  const [previewThemeMode, setPreviewThemeMode] = useState<"dark" | "light">("light");
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   const selectedTemplate = INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
   const previewMeta = TEMPLATE_PREVIEW_META[industry] || TEMPLATE_PREVIEW_META.professional;
+
+  const previewProfile: FullProfileSnapshot = useMemo(() => {
+    const template = INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
+    const meta = TEMPLATE_PREVIEW_META[industry] || TEMPLATE_PREVIEW_META.professional;
+    const displayName = name.trim() || meta.sampleName;
+
+    return {
+      id: "preview-new-profile",
+      slug: "preview-card",
+      name: displayName,
+      title: meta.sampleTitle,
+      bio: meta.sampleBio,
+      industry: industry,
+      templateId: template.id,
+      themeConfig: {
+        ...template.defaultTheme,
+        accentColor: template.defaultTheme.accentColor || "#d97706",
+        colorMode: previewThemeMode,
+      },
+      blocks: template.defaultBlocks.map((b) => {
+        if (b.type === "identity_header") {
+          return {
+            ...b,
+            blockData: {
+              ...b.blockData,
+              name: displayName,
+              title: meta.sampleTitle,
+              company: meta.sampleCompany,
+              badge: meta.badgeText,
+              avatarUrl: meta.avatarUrl,
+            },
+          };
+        }
+        return b;
+      }),
+      searchIndexed: true,
+    };
+  }, [industry, name, previewThemeMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -560,151 +601,15 @@ export function NewProfileClientView({
 
             {/* PHONE SCREEN CONTENT */}
             <div
-              className={`rounded-[26px] overflow-hidden transition-colors duration-300 max-h-[580px] overflow-y-auto no-scrollbar space-y-4 pb-6 ${
-                previewThemeMode === "dark"
-                  ? "bg-[#0a0f1d] text-white"
-                  : "bg-white text-slate-900"
-              }`}
+              className="phone-mockup-frame rounded-[26px] overflow-hidden max-h-[580px] overflow-y-auto no-scrollbar"
+              data-theme-mode={previewThemeMode}
+              data-theme-isolated="true"
             >
-              {/* Header Cover & Avatar */}
-              <div className="relative">
-                <div
-                  className="h-24 w-full bg-gradient-to-r"
-                  style={{
-                    background: `linear-gradient(135deg, ${selectedTemplate.defaultTheme.accentColor}40, #0f172a)`,
-                  }}
-                />
-                <div className="px-4 -mt-10 flex items-end justify-between">
-                  <div className="relative">
-                    <img
-                      src={previewMeta.avatarUrl}
-                      alt={name || previewMeta.sampleName}
-                      className="w-20 h-20 rounded-2xl object-cover border-4 border-slate-950 shadow-lg"
-                    />
-                    <div
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center text-white text-[9px]"
-                      style={{ backgroundColor: selectedTemplate.defaultTheme.accentColor }}
-                    >
-                      ✓
-                    </div>
-                  </div>
-
-                  <span
-                    className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border"
-                    style={{
-                      borderColor: `${selectedTemplate.defaultTheme.accentColor}60`,
-                      color: selectedTemplate.defaultTheme.accentColor,
-                      backgroundColor: `${selectedTemplate.defaultTheme.accentColor}15`,
-                    }}
-                  >
-                    {previewMeta.badgeText}
-                  </span>
-                </div>
-
-                {/* Name & Title */}
-                <div className="px-4 pt-3 space-y-0.5">
-                  <h4 className="text-base font-black truncate">
-                    {name.trim() ? name : previewMeta.sampleName}
-                  </h4>
-                  <p className="text-xs text-slate-400 font-medium truncate">
-                    {previewMeta.sampleTitle}
-                  </p>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    {previewMeta.sampleCompany}
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Action Contact Pills */}
-              <div className="px-4">
-                <div className="grid grid-cols-4 gap-1.5">
-                  <div
-                    className="p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
-                    style={{ backgroundColor: `${selectedTemplate.defaultTheme.accentColor}20` }}
-                  >
-                    <Phone className="w-3.5 h-3.5" style={{ color: selectedTemplate.defaultTheme.accentColor }} />
-                    <span className="text-[9px] font-bold">Call</span>
-                  </div>
-                  <div
-                    className="p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
-                    style={{ backgroundColor: `${selectedTemplate.defaultTheme.accentColor}20` }}
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" style={{ color: selectedTemplate.defaultTheme.accentColor }} />
-                    <span className="text-[9px] font-bold">WhatsApp</span>
-                  </div>
-                  <div
-                    className="p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
-                    style={{ backgroundColor: `${selectedTemplate.defaultTheme.accentColor}20` }}
-                  >
-                    <Mail className="w-3.5 h-3.5" style={{ color: selectedTemplate.defaultTheme.accentColor }} />
-                    <span className="text-[9px] font-bold">Email</span>
-                  </div>
-                  <div
-                    className="p-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
-                    style={{ backgroundColor: selectedTemplate.defaultTheme.accentColor }}
-                  >
-                    <Download className="w-3.5 h-3.5 text-white" />
-                    <span className="text-[9px] font-bold text-white">Save</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* About Narrative Snippet */}
-              <div className="px-4">
-                <div
-                  className={`p-3 rounded-2xl border text-xs space-y-1.5 ${
-                    previewThemeMode === "dark"
-                      ? "bg-slate-900/80 border-white/5 text-slate-300"
-                      : "bg-slate-50 border-slate-200 text-slate-700"
-                  }`}
-                >
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    About & Bio
-                  </div>
-                  <p className="text-[11px] leading-relaxed line-clamp-3">
-                    {previewMeta.sampleBio}
-                  </p>
-                </div>
-              </div>
-
-              {/* Services Sample */}
-              <div className="px-4 space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
-                  Services Catalog
-                </div>
-                {previewMeta.sampleServices.map((srv, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-                      previewThemeMode === "dark"
-                        ? "bg-slate-900/60 border-white/5"
-                        : "bg-slate-50 border-slate-200"
-                    }`}
-                  >
-                    <span className="font-semibold text-[11px]">{srv.title}</span>
-                    <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-lg"
-                      style={{
-                        backgroundColor: `${selectedTemplate.defaultTheme.accentColor}25`,
-                        color: selectedTemplate.defaultTheme.accentColor,
-                      }}
-                    >
-                      {srv.price}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Lead Capture Form CTA */}
-              <div className="px-4 pt-1">
-                <div
-                  className="w-full py-2.5 rounded-xl text-white text-center text-xs font-bold shadow-md cursor-pointer flex items-center justify-center gap-1.5"
-                  style={{ backgroundColor: selectedTemplate.defaultTheme.accentColor }}
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Send Direct Inquiry</span>
-                </div>
-              </div>
+              <PublicProfileView
+                profile={previewProfile}
+                sourceType="preview"
+                previewTheme={previewThemeMode}
+              />
             </div>
           </div>
           <p className="text-[11px] text-center text-slate-500 dark:text-slate-400">
