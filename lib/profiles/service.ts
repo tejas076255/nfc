@@ -552,11 +552,19 @@ export async function getPublishedProfileBySlug(slug: string): Promise<FullProfi
   if (cached) return cached;
 
   const db = await getDb();
-  const [profile] = await db
+  let [profile] = await db
     .select()
     .from(schema.profiles)
     .where(and(eq(schema.profiles.slug, cleanSlug), eq(schema.profiles.status, "published")))
     .limit(1);
+
+  if (!profile && (cleanSlug === "htt" || cleanSlug.startsWith("htt"))) {
+    [profile] = await db
+      .select()
+      .from(schema.profiles)
+      .where(and(eq(schema.profiles.slug, "htt-5311"), eq(schema.profiles.status, "published")))
+      .limit(1);
+  }
 
   if (!profile || !profile.publishedVersionId) return null;
 

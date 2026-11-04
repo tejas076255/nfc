@@ -19,7 +19,11 @@ const getCachedProfile = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const profile = await getCachedProfile(slug);
+  let profile = await getCachedProfile(slug);
+
+  if (!profile && slug === "htt") {
+    profile = await getCachedProfile("htt-5311");
+  }
 
   if (!profile) {
     return {
@@ -94,7 +98,11 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
   const { slug } = await params;
   const { src = "direct", token } = await searchParams;
 
-  const profile = await getCachedProfile(slug);
+  let profile = await getCachedProfile(slug);
+
+  if (!profile && slug === "htt") {
+    profile = await getCachedProfile("htt-5311");
+  }
 
   if (!profile) {
     return (

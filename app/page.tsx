@@ -25,7 +25,8 @@ export default async function HomePage({
   const params = searchParams ? await searchParams : {};
   if (params.mode === "app" || params.source === "pwa") {
     const cookieStore = await cookies();
-    const slug = cookieStore.get("last_profile_slug")?.value || "htt";
+    let slug = cookieStore.get("last_profile_slug")?.value || "htt-5311";
+    if (slug === "htt") slug = "htt-5311";
     redirect(`/p/${slug}`);
   }
 
