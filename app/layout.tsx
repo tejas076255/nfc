@@ -94,9 +94,14 @@ export default function RootLayout({
                 } catch(err) {}
               });
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').catch(function() {});
-                });
+                var regSw = function() {
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+                };
+                if (document.readyState === 'complete') {
+                  regSw();
+                } else {
+                  window.addEventListener('load', regSw);
+                }
               }
               (function() {
                 try {

@@ -1122,54 +1122,26 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           try {
             sessionStorage.setItem("dismissed_install_" + profile.id, "true");
           } catch {}
-          showToast("✨ App installed successfully to your device!");
+          showToast(`✨ '${cleanTitle}' app icon aapki screen par install ho gaya!`);
           return;
         }
       } catch (err) {}
     }
 
-    // 2. Desktop: Download genuine .url desktop shortcut AND immediately open profile webpage
-    if (isDesktopDevice) {
-      try {
-        const shortcutUrl = `/api/shortcut/${profile.slug}`;
-        const a = document.createElement("a");
-        a.href = shortcutUrl;
-        a.download = `${cleanTitle}.url`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } catch (e) {
-        const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconIndex=0\r\n`;
-        const blob = new Blob([shortcutContent], { type: "application/internet-shortcut" });
-        const dlUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = dlUrl;
-        a.download = `${cleanTitle}.url`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(dlUrl);
-      }
-
-      // Immediately launch the profile webpage so user sees it right away
-      window.open(pubUrl, "_blank");
-      setInstallModalOpen(false);
-      showToast(`✨ Desktop shortcut downloaded & opening ${cleanTitle} webpage!`);
-      return;
-    }
-
-    // 3. iOS Device:
-    if (isIosDevice) {
-      setInstallInstructionStep(true);
-      showToast("Tap Safari Share 📤 icon at the bottom -> 'Add to Home Screen ➕'");
-      return;
-    }
-
-    // 4. Android without native prompt:
+    // 2. Direct browser native installation guide (NO FILE DOWNLOADS!)
     setInstallInstructionStep(true);
-    // Reload into standalone mode or open directly
-    window.location.href = pubUrl;
-    showToast("Opening profile webpage! Tap menu (⋮) -> 'Add to Home screen 📲'");
+
+    if (isDesktopDevice) {
+      showToast("Browser address bar me ⨁ ya menu me 'Install app' par click karein desktop icon ke liye!");
+      return;
+    }
+
+    if (isIosDevice) {
+      showToast("Safari bottom bar me Share 📤 -> 'Add to Home Screen ➕' tap karein!");
+      return;
+    }
+
+    showToast("Chrome menu (⋮) me 'Install app' ya 'Add to Home screen 📲' select karein!");
   };
 
 
@@ -4445,78 +4417,64 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               {/* Description matching Image 2 */}
               <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-600" : "text-slate-300"}`}>
-                Add &apos;{companyName || personName}&apos; as an app icon on your Mobile Home Screen or Desktop for instant 1-tap access anytime!
+                Add &apos;{companyName || personName}&apos; directly to your Windows Desktop or Phone Home Screen as an app icon — no file download required!
               </p>
 
-              {/* Interactive Step-by-Step Instructions if deferredPrompt is not yet ready */}
-              {installInstructionStep && (
-                <div className={`p-3.5 rounded-2xl text-xs space-y-2 animate-in fade-in duration-200 ${isLightMode ? "bg-blue-50/90 border border-blue-200/80 text-blue-950" : "bg-blue-950/50 border border-blue-900/60 text-blue-100"}`}>
-
-                  <p className={`font-bold flex items-center gap-1.5 ${isLightMode ? "text-blue-900" : "text-blue-300"}`}>
-
-                    <span>📲 Easy Installation Steps:</span>
-                  </p>
+              {/* Real App Icon Instructions (NO FILE DOWNLOADS!) */}
+              <div className={`p-3.5 rounded-2xl text-xs space-y-2.5 animate-in fade-in duration-200 ${isLightMode ? "bg-blue-50/90 border border-blue-200/80 text-blue-950" : "bg-blue-950/50 border border-blue-900/60 text-blue-100"}`}>
+                <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-blue-900" : "text-blue-300"}`}>
                   {isDesktopDevice ? (
-                    <div className="space-y-1.5 text-[11px] leading-relaxed">
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-1.</span>
-                        <span>Browser address bar me top-right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-⨁ (Install App)</strong> icon par click karein.</span>
-                      </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-2.</span>
-                        <span>Ya Chrome menu (⋮) me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> chunein.</span>
-                      </p>
-
-                    </div>
+                    <span>🖥️ Windows Screen (Desktop) par App Icon:</span>
                   ) : isIosDevice ? (
-                    <div className="space-y-1.5 text-[11px] leading-relaxed">
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-1.</span>
-                        <span>Safari ke bottom bar me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-Share icon (📤)</strong> par tap karein.</span>
-                      </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-2.</span>
-                        <span>Scroll down karke <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
-                      </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-3.</span>
-                        <span>Top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Add&apos;</strong> click karein — app aapke phone par install ho jayega!</span>
-                      </p>
-                    </div>
+                    <span>🍏 iPhone Screen par App Icon:</span>
                   ) : (
-                    <div className="space-y-1.5 text-[11px] leading-relaxed">
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-1.</span>
-                        <span>Chrome browser ke top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-3 dots (⋮)</strong> par tap karein.</span>
-                      </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-2.</span>
-                        <span>Menu se <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Install app&apos;</strong> ya <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>
-&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
-                      </p>
-                      <p className="flex items-start gap-1.5">
-                        <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>
-3.</span>
-                        <span>Confirm karein — app instantly aapke home screen par add ho jayega!</span>
-                      </p>
-                    </div>
+                    <span>📱 Mobile Screen par App Icon:</span>
                   )}
-                </div>
-              )}
+                </p>
+
+                {isDesktopDevice ? (
+                  <div className="space-y-1.5 text-[11px] leading-relaxed">
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>1.</span>
+                      <span>Address bar me top-right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>⨁ (Install App)</strong> icon par click karein.</span>
+                    </p>
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>2.</span>
+                      <span>Ya browser menu (⋮) me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Save and share&apos; → &apos;Install page as app...&apos;</strong> select karein.</span>
+                    </p>
+                    <p className="flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold pt-0.5">
+                      <span>✓</span>
+                      <span>Bina kisi file download ke, seedha aapke Windows Desktop aur Start Menu par real App Icon ban jayega!</span>
+                    </p>
+                  </div>
+                ) : isIosDevice ? (
+                  <div className="space-y-1.5 text-[11px] leading-relaxed">
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>1.</span>
+                      <span>Safari ke bottom bar me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>Share icon (📤)</strong> par tap karein.</span>
+                    </p>
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>2.</span>
+                      <span>Scroll down karke <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 text-[11px] leading-relaxed">
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>1.</span>
+                      <span>Chrome browser ke top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>3 dots (⋮)</strong> par tap karein.</span>
+                    </p>
+                    <p className="flex items-start gap-1.5">
+                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>2.</span>
+                      <span>Menu me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Install app&apos;</strong> ya <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
+                    </p>
+                    <p className="flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold pt-0.5">
+                      <span>✓</span>
+                      <span>Aapke phone ki screen par Real App Icon add ho jayega!</span>
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Install Action Buttons */}
               <div className="space-y-2.5 pt-1">
@@ -4530,15 +4488,15 @@ Share icon (📤)</strong> par tap karein.</span>
                     className={`text-[11px] font-semibold hover:underline cursor-pointer flex items-center gap-1 ${isLightMode ? "text-blue-600 hover:text-blue-700" : "text-blue-400 hover:text-blue-300"}`}
                   >
                     <ExternalLink className="w-3 h-3" />
-                    <span>Open Webpage</span>
+                    <span>Open in New Tab</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleExecuteInstall}
                     className="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <Download className="w-3.5 h-3.5 shrink-0" />
-                    <span>{isDesktopDevice ? "Add App Icon to Desktop" : "Add App Icon to Phone"}</span>
+                    <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                    <span>Install App to Screen</span>
                   </button>
                 </div>
 

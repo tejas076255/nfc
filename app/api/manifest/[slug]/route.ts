@@ -43,12 +43,6 @@ export async function GET(
       theme_color: themeConfig.accentColor || "#d97706",
       icons: [
         {
-          src: avatarIconUrl,
-          sizes: "192x192",
-          type: "image/png",
-          purpose: "any",
-        },
-        {
           src: `${origin}/icon-192x192.png`,
           sizes: "192x192",
           type: "image/png",
@@ -71,6 +65,12 @@ export async function GET(
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
+        },
+        {
+          src: `${origin}/api/avatar/${slug}.jpg`,
+          sizes: "192x192",
+          type: "image/jpeg",
+          purpose: "any",
         },
       ],
     };
