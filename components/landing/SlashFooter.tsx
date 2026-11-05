@@ -29,10 +29,10 @@ export function SlashFooter() {
           {/* Brand Col */}
           <div className="lg:col-span-5 space-y-6">
             <Link href="/" className="inline-flex items-center gap-2.5 text-white font-bold text-xl tracking-tight">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <Wifi className="w-4 h-4 text-black rotate-90" />
+              <div className="w-8 h-8 rounded-lg bg-white shadow-md flex items-center justify-center overflow-hidden p-1">
+                <img src="/tapbez-emblem.png" alt="tapbez logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-semibold text-lg text-white">TapSync</span>
+              <span className="font-black text-xl text-white">tap<span className="text-teal-400">bez</span></span>
             </Link>
 
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-sm">

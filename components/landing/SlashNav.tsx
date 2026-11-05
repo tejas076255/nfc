@@ -69,18 +69,14 @@ export function SlashNav({ sessionUser }: SlashNavProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Logo Brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <motion.div 
-              whileHover={{ rotate: 90, scale: 1.08 }} 
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20"
-            >
-              <Wifi className="w-4 h-4 text-slate-950 rotate-90 stroke-[2.5]" />
-            </motion.div>
+            <div className="w-8 h-8 rounded-lg bg-white shadow-xs border border-slate-200/80 dark:border-white/10 flex items-center justify-center overflow-hidden p-1 transition-transform group-hover:scale-105">
+              <img src="/tapbez-emblem.png" alt="tapbez logo" className="w-full h-full object-contain" />
+            </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-100 transition-colors">
-                TapSync
+              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white transition-colors">
+                tap<span className="text-teal-500">bez</span>
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
             </div>
           </Link>
 

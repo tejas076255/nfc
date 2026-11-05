@@ -27,23 +27,28 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
+  title: "tapbez | Smart Contactless NFC Business Cards & Executive Identity",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
+    title: "tapbez | Smart Contactless NFC Business Cards & Executive Identity",
     description:
       "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, zero app needed.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TapSync | Smart Contactless NFC Business Cards & Executive Identity",
+    title: "tapbez | Smart Contactless NFC Business Cards & Executive Identity",
     description:
       "Universal contactless NFC business cards and digital identity platform for leaders.",
   },
@@ -58,6 +63,8 @@ export default function RootLayout({
     <html lang="en" className="light scroll-smooth" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" id="app-manifest" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
