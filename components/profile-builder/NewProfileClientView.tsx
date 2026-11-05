@@ -7,7 +7,7 @@ import { PublicProfileView } from "../public-profile/PublicProfileView";
 import { FullProfileSnapshot } from "@/lib/profiles/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { INDUSTRY_TEMPLATES } from "@/lib/profiles/templates";
+import { INDUSTRY_TEMPLATES, TEMPLATES_BY_INDUSTRY, ALL_TEMPLATES, TemplateDefinition } from "@/lib/profiles/templates";
 import { IndustryType } from "@/lib/profiles/types";
 import {
   Sliders,
@@ -138,20 +138,24 @@ export function NewProfileClientView({
   const router = useRouter();
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState<IndustryType>("professional");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("corporate_slate");
+  const [activeIndustryFilter, setActiveIndustryFilter] = useState<IndustryType | "all">("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isQuotaReached, setIsQuotaReached] = useState(initialLimitReached);
   const [previewThemeMode, setPreviewThemeMode] = useState<"dark" | "light">("light");
   const [showMobilePreview, setShowMobilePreview] = useState(false);
 
-  const selectedTemplate = INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
-  const previewMeta = TEMPLATE_PREVIEW_META[industry] || TEMPLATE_PREVIEW_META.professional;
+  const selectedTemplate: TemplateDefinition = ALL_TEMPLATES[selectedTemplateId] || INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
 
   const previewProfile: FullProfileSnapshot = useMemo(() => {
-    const template = INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
-    const meta = TEMPLATE_PREVIEW_META[industry] || TEMPLATE_PREVIEW_META.professional;
-    const displayName = name.trim() || meta.sampleName;
+    const template = ALL_TEMPLATES[selectedTemplateId] || INDUSTRY_TEMPLATES[industry] || INDUSTRY_TEMPLATES.professional;
+    const headerBlock = template.defaultBlocks.find((b) => b.type === "identity_header");
+    const sampleHeader = headerBlock?.blockData || {};
+    const aboutBlock = template.defaultBlocks.find((b) => b.type === "about");
+    const sampleAbout = aboutBlock?.blockData || {};
 
+    const displayName = name.trim() || sampleHeader.name || "Digital Card";
     const isLight = previewThemeMode === "light";
     const chosenTheme = isLight ? template.lightTheme : template.darkTheme;
     const chosenCover = isLight ? template.lightCoverUrl : template.darkCoverUrl;
@@ -160,9 +164,9 @@ export function NewProfileClientView({
       id: "preview-new-profile",
       slug: "preview-card",
       name: displayName,
-      title: meta.sampleTitle,
-      bio: meta.sampleBio,
-      industry: industry,
+      title: sampleHeader.title || "",
+      bio: sampleAbout.bio || sampleHeader.tagline || "",
+      industry: template.industry,
       templateId: template.id,
       themeConfig: {
         ...(chosenTheme || template.defaultTheme),
@@ -175,10 +179,6 @@ export function NewProfileClientView({
             blockData: {
               ...b.blockData,
               name: displayName,
-              title: meta.sampleTitle,
-              company: meta.sampleCompany,
-              badge: meta.badgeText,
-              avatarUrl: meta.avatarUrl,
               coverUrl: chosenCover,
             },
           };
@@ -187,7 +187,7 @@ export function NewProfileClientView({
       }),
       searchIndexed: true,
     };
-  }, [industry, name, previewThemeMode]);
+  }, [selectedTemplateId, industry, name, previewThemeMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +200,7 @@ export function NewProfileClientView({
       const res = await fetch("/api/profiles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), industry, colorMode: previewThemeMode }),
+        body: JSON.stringify({ name: name.trim(), industry: selectedTemplate.industry, templateId: selectedTemplate.id, colorMode: previewThemeMode }),
       });
 
       const data = (await res.json()) as any;
@@ -374,19 +374,24 @@ export function NewProfileClientView({
             </div>
 
             {/* Template Family Selection Cards */}
-            <div className="space-y-3.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
                 <div>
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Select Industry Template Family
-                  </label>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Choose your industry and switch between specific Light &amp; Dark design editions
+                  <div className="flex items-center gap-2">
+                    <label className="block text-sm font-extrabold text-slate-900 dark:text-white">
+                      Choose Your Design Template
+                    </label>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700">
+                      24 Distinct Styles
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Select from 4 specialized designs crafted for each profession with full Light &amp; Dark editions
                   </p>
                 </div>
 
                 {/* Specific Light / Dark Template Mode Selector */}
-                <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 shadow-xs self-start sm:self-auto">
+                <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-white/10 shadow-xs self-start sm:self-auto shrink-0">
                   <button
                     type="button"
                     onClick={() => setPreviewThemeMode("light")}
@@ -397,7 +402,7 @@ export function NewProfileClientView({
                     }`}
                   >
                     <Sun className="w-3.5 h-3.5 text-amber-500" />
-                    <span>☀️ Light Templates</span>
+                    <span>☀️ Light Mode</span>
                   </button>
                   <button
                     type="button"
@@ -409,102 +414,150 @@ export function NewProfileClientView({
                     }`}
                   >
                     <Moon className="w-3.5 h-3.5 text-blue-400" />
-                    <span>🌙 Dark Templates</span>
+                    <span>🌙 Dark Mode</span>
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {Object.values(INDUSTRY_TEMPLATES).map((tmpl) => {
-                  const isSelected = industry === tmpl.industry;
-                  const isLight = previewThemeMode === "light";
-                  const activeTheme = isLight ? tmpl.lightTheme : tmpl.darkTheme;
-                  const activeTitle = isLight ? (tmpl.lightName || tmpl.name) : (tmpl.darkName || tmpl.name);
-                  const activeStyle = isLight ? (tmpl.lightStyleDesc || tmpl.tagline) : (tmpl.darkStyleDesc || tmpl.tagline);
-                  const activeCover = isLight ? tmpl.lightCoverUrl : tmpl.darkCoverUrl;
-
+              {/* Profession Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 -mx-1 px-1">
+                {[
+                  { id: "all", label: "All Templates", count: 24, icon: "✨" },
+                  { id: "professional", label: "Corporate & Advisory", count: 4, icon: "⚖️" },
+                  { id: "creative", label: "Creative & Agency", count: 4, icon: "🎨" },
+                  { id: "real_estate", label: "Real Estate & Living", count: 4, icon: "🏛️" },
+                  { id: "beauty", label: "Beauty & Wellness", count: 4, icon: "💅" },
+                  { id: "local_business", label: "Dining & Retail", count: 4, icon: "☕" },
+                  { id: "creator", label: "Creator & Media", count: 4, icon: "🎙️" },
+                ].map((cat) => {
+                  const isCatActive = activeIndustryFilter === cat.id;
                   return (
-                    <div
-                      key={tmpl.id}
-                      onClick={() => setIndustry(tmpl.industry)}
-                      className={`p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between relative group overflow-hidden ${
-                        isSelected
-                          ? "border-blue-600 bg-blue-50/70 dark:bg-blue-600/10 shadow-lg shadow-blue-500/10 dark:border-blue-500 ring-2 ring-blue-500/20"
-                          : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveIndustryFilter(cat.id as any)}
+                      className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+                        isCatActive
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-500/20"
+                          : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
-                      <div className="space-y-3">
-                        {/* Top Badges & Color Swatches */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <span
-                              className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                isSelected
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                              }`}
-                            >
-                              {tmpl.industry.replace("_", " ")}
-                            </span>
-                            <span
-                              className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                                isLight
-                                  ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500/30"
-                                  : "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-500/30"
-                              }`}
-                            >
-                              {isLight ? "☀️ Light" : "🌙 Dark"}
-                            </span>
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                          isCatActive
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        {cat.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Template Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {Object.values(ALL_TEMPLATES)
+                  .filter((tmpl) => activeIndustryFilter === "all" || tmpl.industry === activeIndustryFilter)
+                  .map((tmpl) => {
+                    const isSelected = selectedTemplateId === tmpl.id;
+                    const isLight = previewThemeMode === "light";
+                    const activeTheme = isLight ? tmpl.lightTheme : tmpl.darkTheme;
+                    const activeTitle = isLight ? (tmpl.lightName || tmpl.name) : (tmpl.darkName || tmpl.name);
+                    const activeStyle = isLight ? (tmpl.lightStyleDesc || tmpl.tagline) : (tmpl.darkStyleDesc || tmpl.tagline);
+                    const activeCover = isLight ? tmpl.lightCoverUrl : tmpl.darkCoverUrl;
+
+                    return (
+                      <div
+                        key={tmpl.id}
+                        onClick={() => {
+                          setSelectedTemplateId(tmpl.id);
+                          setIndustry(tmpl.industry);
+                        }}
+                        className={`p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between relative group overflow-hidden ${
+                          isSelected
+                            ? "border-blue-600 bg-blue-50/70 dark:bg-blue-600/10 shadow-lg shadow-blue-500/10 dark:border-blue-500 ring-2 ring-blue-500/20"
+                            : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        }`}
+                      >
+                        <div className="space-y-3">
+                          {/* Top Badges & Color Swatches */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  isSelected
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                }`}
+                              >
+                                {tmpl.industry.replace("_", " ")}
+                              </span>
+                              <span
+                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                  isLight
+                                    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-500/30"
+                                    : "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-500/30"
+                                }`}
+                              >
+                                {isLight ? "☀️ Light" : "🌙 Dark"}
+                              </span>
+                              <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                                {tmpl.defaultTheme.fontFamily || "Outfit"}
+                              </span>
+                            </div>
+
+                            {/* Theme Palette Swatches (Background & Accent) */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <div
+                                className="w-4 h-4 rounded-full border border-slate-300 dark:border-white/30 shadow-xs"
+                                style={{ backgroundColor: activeTheme?.backgroundColor || (isLight ? "#ffffff" : "#090d16") }}
+                                title={`Background: ${activeTheme?.backgroundColor}`}
+                              />
+                              <div
+                                className="w-4 h-4 rounded-full border border-white/40 shadow-xs"
+                                style={{ backgroundColor: activeTheme?.accentColor }}
+                                title={`Accent: ${activeTheme?.accentColor}`}
+                              />
+                            </div>
                           </div>
 
-                          {/* Theme Palette Swatches (Background & Accent) */}
-                          <div className="flex items-center gap-1.5">
-                            <div
-                              className="w-4 h-4 rounded-full border border-slate-300 dark:border-white/30 shadow-xs"
-                              style={{ backgroundColor: activeTheme?.backgroundColor || (isLight ? "#ffffff" : "#090d16") }}
-                              title={`Background: ${activeTheme?.backgroundColor}`}
-                            />
-                            <div
-                              className="w-4 h-4 rounded-full border border-white/40 shadow-xs"
-                              style={{ backgroundColor: activeTheme?.accentColor }}
-                              title={`Accent: ${activeTheme?.accentColor}`}
-                            />
+                          {/* Title and Style Description */}
+                          <div>
+                            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                              {activeTitle}
+                            </h3>
+                            <p className={`text-xs font-bold mt-0.5 ${isLight ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>
+                              {activeStyle}
+                            </p>
                           </div>
-                        </div>
 
-                        {/* Title and Style Description */}
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                            {activeTitle}
-                          </h3>
-                          <p className={`text-xs font-bold mt-0.5 ${isLight ? "text-amber-600 dark:text-amber-400" : "text-blue-600 dark:text-blue-400"}`}>
-                            {activeStyle}
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
+                            {tmpl.description}
                           </p>
                         </div>
 
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
-                          {tmpl.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-white/10 mt-3 text-[11px]">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium">
-                          {tmpl.defaultBlocks.length} Default Sections
-                        </span>
-                        {isSelected ? (
-                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Selected</span>
+                        <div className="pt-3 flex items-center justify-between border-t border-slate-100 dark:border-white/10 mt-3 text-[11px]">
+                          <span className="text-slate-500 dark:text-slate-400 font-medium">
+                            {tmpl.defaultBlocks.length} Default Sections
                           </span>
-                        ) : (
-                          <span className="text-slate-400 group-hover:text-blue-600 transition-colors font-medium">
-                            Preview →
-                          </span>
-                        )}
+                          {isSelected ? (
+                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-bold">
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Selected</span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 group-hover:text-blue-600 transition-colors font-medium">
+                              Preview &amp; Select →
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </div>
 

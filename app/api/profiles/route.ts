@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const result = await createProfile(session.workspace.id, {
       name: body.name,
       industry: body.industry || "professional",
+      templateId: body.templateId,
       slug: body.slug,
       title: body.title,
       phone: body.phone,

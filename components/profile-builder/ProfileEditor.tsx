@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FullProfileSnapshot, IndustryType, ProfileBlockItem } from "@/lib/profiles/types";
-import { INDUSTRY_TEMPLATES } from "@/lib/profiles/templates";
+import { INDUSTRY_TEMPLATES, ALL_TEMPLATES, TEMPLATES_BY_INDUSTRY } from "@/lib/profiles/templates";
 import { PublicProfileView, resolveValidUrl } from "../public-profile/PublicProfileView";
 import {
   Camera,
@@ -141,6 +141,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   // Theme simulator preview override
   const [previewThemeOverride, setPreviewThemeOverride] = useState<"dark" | "light" | null>(null);
+  const [editorTemplateFilter, setEditorTemplateFilter] = useState<IndustryType | "all">("all");
 
   // Section Reorder Modal & Drag State
   const [showReorderModal, setShowReorderModal] = useState(false);
@@ -187,7 +188,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const updateColorMode = (colorMode: "dark" | "light" | "auto") => {
     setProfile((prev: any) => {
       const currentIndustry = (prev.industry || "professional") as IndustryType;
-      const tmpl = INDUSTRY_TEMPLATES[currentIndustry] || INDUSTRY_TEMPLATES.professional;
+      const tmpl = (prev.templateId && ALL_TEMPLATES[prev.templateId]) || INDUSTRY_TEMPLATES[currentIndustry] || INDUSTRY_TEMPLATES.professional;
       const targetTheme = colorMode === "light" ? tmpl.lightTheme : (tmpl.darkTheme || tmpl.defaultTheme);
       const isSwitchingMode = colorMode !== "auto" && prev.themeConfig?.colorMode !== colorMode;
 
@@ -465,15 +466,14 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   };
 
   // Industry Template & Appearance helpers
-  const switchTemplateFamily = (rawKey: string) => {
+  const switchTemplateFamily = (templateKey: string) => {
     const normalizeIndustryKey = (key: string): IndustryType => {
       if (key === "bridal_beauty") return "beauty";
       if (key === "portfolio_agency") return "creative";
       if (key === "local_biz") return "local_business";
       return key as IndustryType;
     };
-    const industryKey = normalizeIndustryKey(rawKey);
-    const tmpl = INDUSTRY_TEMPLATES[industryKey];
+    const tmpl = ALL_TEMPLATES[templateKey] || INDUSTRY_TEMPLATES[normalizeIndustryKey(templateKey)] || INDUSTRY_TEMPLATES.professional;
     if (!tmpl) return;
 
     const isCurrentLight = ((profile.themeConfig as any)?.colorMode === "light") || (previewThemeOverride === "light");
@@ -481,7 +481,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
     setProfile((prev: any) => ({
       ...prev,
-      industry: industryKey,
+      industry: tmpl.industry,
       templateId: tmpl.id,
       themeConfig: {
         ...(prev.themeConfig || {}),
@@ -2579,61 +2579,146 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   // SECTION 8: APPEARANCE, THEME, DOWNLOADS & SEO
   const renderAppearanceAndSeoSection = () => (
     <div id="appearance" className="space-y-6">
-      {/* 6 Industry Template Families */}
+      {/* 24 Industry Design Templates */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
-        <div className="flex items-center gap-3">
-          <span className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-            🎨
-          </span>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Choose Industry Template Family</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Switching template updates visual styling and accents while preserving all your content.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+              🎨
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Choose Design Template</h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700">
+                  24 Designs
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Switching templates instantly restyles colors, typography, card shapes, and theme accents while preserving all your photos, blocks, and contact details.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* 6 Template Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Profession Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 -mx-1 px-1">
           {[
-            { key: "professional", name: "Executive Suite", desc: "Corporate, Legal & Advisory", color: "#2563eb" },
-            { key: "beauty", name: "Luxury Atelier", desc: "Bridal, Makeup, Hair & Wellness", color: "#e11d48" },
-            { key: "real_estate", name: "Architectural Horizon", desc: "Luxury Properties & Developments", color: "#059669" },
-            { key: "creative", name: "Neo Gallery", desc: "Design, Photography & Art Direction", color: "#6366f1" },
-            { key: "local_business", name: "Cornerstone Local", desc: "Cafés, Clinics, Boutiques & Services", color: "#d97706" },
-            { key: "creator", name: "Pulse Creator", desc: "Influencers, Streamers & Podcasters", color: "#a855f7" },
-          ].map((tmpl) => {
-            const isSelected = profile.industry === tmpl.key || (
-              (profile.industry === "bridal_beauty" && tmpl.key === "beauty") ||
-              (profile.industry === "portfolio_agency" && tmpl.key === "creative") ||
-              (profile.industry === "local_biz" && tmpl.key === "local_business")
-            );
+            { id: "all", label: "All Designs", count: 24, icon: "✨" },
+            { id: "professional", label: "Corporate & Advisory", count: 4, icon: "⚖️" },
+            { id: "creative", label: "Creative & Agency", count: 4, icon: "🎨" },
+            { id: "real_estate", label: "Real Estate & Living", count: 4, icon: "🏛️" },
+            { id: "beauty", label: "Beauty & Wellness", count: 4, icon: "💅" },
+            { id: "local_business", label: "Dining & Retail", count: 4, icon: "☕" },
+            { id: "creator", label: "Creator & Media", count: 4, icon: "🎙️" },
+          ].map((cat) => {
+            const isCatActive = editorTemplateFilter === cat.id;
             return (
-              <div
-                key={tmpl.key}
-                onClick={() => switchTemplateFamily(tmpl.key)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                  isSelected
-                    ? "bg-blue-50 dark:bg-blue-950/40 text-blue-900 dark:text-white border-2 border-blue-600 dark:border-blue-500 shadow-md ring-2 ring-blue-500/20"
-                    : "bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-800"
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setEditorTemplateFilter(cat.id as any)}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+                  isCatActive
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-500/20"
+                    : "bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
-                <div className="min-w-0 pr-3">
-                  <p className={`text-sm font-bold truncate ${isSelected ? "text-blue-950 dark:text-white" : "text-slate-900 dark:text-white"}`}>
-                    {tmpl.name}
-                  </p>
-                  <p className={`text-xs truncate ${isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-slate-400"}`}>
-                    {tmpl.desc}
-                  </p>
-                </div>
-                <div
-                  className="w-4 h-4 rounded-full shrink-0 shadow-xs border-2 border-white/40"
-                  style={{ backgroundColor: tmpl.color }}
-                />
-              </div>
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                    isCatActive
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                  }`}
+                >
+                  {cat.count}
+                </span>
+              </button>
             );
           })}
         </div>
 
-        {/* Card Color Theme Mode (Dark & Light Mode) */}
+        {/* 24 Template Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+          {Object.values(ALL_TEMPLATES)
+            .filter((tmpl) => editorTemplateFilter === "all" || tmpl.industry === editorTemplateFilter)
+            .map((tmpl) => {
+              const isSelected = profile.templateId === tmpl.id || (!profile.templateId && profile.industry === tmpl.industry);
+              const isCurrentLight = ((profile.themeConfig as any)?.colorMode === "light") || (previewThemeOverride === "light");
+              const activeTheme = isCurrentLight ? (tmpl.lightTheme || tmpl.defaultTheme) : (tmpl.darkTheme || tmpl.defaultTheme);
+              const activeTitle = isCurrentLight ? (tmpl.lightName || tmpl.name) : (tmpl.darkName || tmpl.name);
+              const activeTagline = isCurrentLight ? (tmpl.lightStyleDesc || tmpl.tagline) : (tmpl.darkStyleDesc || tmpl.tagline);
+
+              return (
+                <div
+                  key={tmpl.id}
+                  onClick={() => switchTemplateFamily(tmpl.id)}
+                  className={`p-3.5 sm:p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between relative group ${
+                    isSelected
+                      ? "bg-indigo-50/80 dark:bg-indigo-950/40 border-2 border-indigo-600 dark:border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-white/20"
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                          {tmpl.industry.replace("_", " ")}
+                        </span>
+                        <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-700/60">
+                          {tmpl.defaultTheme.fontFamily || "Outfit"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-white/20 shadow-xs"
+                          style={{ backgroundColor: activeTheme.backgroundColor }}
+                          title={`Background: ${activeTheme.backgroundColor}`}
+                        />
+                        <div
+                          className="w-3.5 h-3.5 rounded-full border border-white/40 shadow-xs"
+                          style={{ backgroundColor: activeTheme.accentColor }}
+                          title={`Accent: ${activeTheme.accentColor}`}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className={`text-sm font-extrabold truncate ${isSelected ? "text-indigo-950 dark:text-white" : "text-slate-900 dark:text-white"}`}>
+                        {activeTitle}
+                      </p>
+                      <p className={`text-[11px] font-bold truncate mt-0.5 ${isSelected ? "text-indigo-600 dark:text-indigo-400" : "text-slate-500 dark:text-slate-400"}`}>
+                        {activeTagline}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      {tmpl.description}
+                    </p>
+                  </div>
+
+                  <div className="pt-2.5 mt-2.5 border-t border-slate-200/60 dark:border-white/10 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-400 text-[10px]">
+                      {tmpl.defaultBlocks.length} sections
+                    </span>
+                    {isSelected ? (
+                      <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-extrabold">
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Active Style</span>
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 group-hover:text-indigo-600 transition-colors font-medium">
+                        Apply Style →
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+
+      {/* Card Color Theme Mode (Dark & Light Mode) */}
         <div className="pt-4 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>

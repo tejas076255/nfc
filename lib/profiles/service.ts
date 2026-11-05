@@ -1,7 +1,7 @@
 import { getDb, schema } from "../db";
 import { eq, and, count, desc } from "drizzle-orm";
 import { FullProfileSnapshot, IndustryType } from "./types";
-import { INDUSTRY_TEMPLATES } from "./templates";
+import { INDUSTRY_TEMPLATES, ALL_TEMPLATES, getTemplateById } from "./templates";
 import { fastCache, invalidateProfileCache } from "../cache";
 
 export async function getWorkspaceSubscriptionPlan(workspaceId: string) {
@@ -147,6 +147,7 @@ export async function createProfile(
   data: {
     name: string;
     industry: IndustryType;
+    templateId?: string;
     slug?: string;
     title?: string;
     phone?: string;
@@ -158,7 +159,7 @@ export async function createProfile(
   }
 ) {
   const db = await getDb();
-  const template = INDUSTRY_TEMPLATES[data.industry] || INDUSTRY_TEMPLATES.professional;
+  const template = (data.templateId && ALL_TEMPLATES[data.templateId]) || INDUSTRY_TEMPLATES[data.industry] || INDUSTRY_TEMPLATES.professional;
 
   // Enforce workspace plan profile creation quota
   const planInfo = await getWorkspaceSubscriptionPlan(workspaceId);
