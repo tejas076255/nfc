@@ -141,6 +141,10 @@ export async function loginAction(prevState: any, formData?: FormData) {
   }
 
   await createSession(user.id);
+  const isStaff = ["super_admin", "ops_staff", "support_staff"].includes(user.role);
+  if (isStaff) {
+    return redirect("/admin");
+  }
   const safeReturn = returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
   return redirect(safeReturn);
 }

@@ -74,7 +74,7 @@ export function ResponsiveAdminSidebar({ session, logoutAction }: ResponsiveAdmi
                 Admin Console<span className="text-purple-600 dark:text-purple-400">.</span>
               </span>
               <span className="text-[10px] text-purple-700 dark:text-purple-400 font-semibold tracking-wider uppercase block">
-                Super Admin & QA
+                tapbez Super Admin
               </span>
             </div>
           </div>
@@ -124,22 +124,7 @@ export function ResponsiveAdminSidebar({ session, logoutAction }: ResponsiveAdmi
             );
           })}
 
-          {/* Switch to User Workspace Section */}
-          <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/10">
-            <div className="px-3 pb-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500">
-              Switch Portal
-            </div>
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-200 dark:border-blue-500/20 transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <LayoutDashboard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span>User Workspace</span>
-              </div>
-              <ArrowRight className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
+
         </nav>
       </div>
 

@@ -1,61 +1,127 @@
-import React, { Suspense } from "react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentSession } from "@/lib/auth/session";
-import { logoutAction } from "@/lib/auth/actions";
-import { getWorkspaceProfiles, getWorkspaceSubscriptionPlan } from "@/lib/profiles/service";
-import { ResponsiveSidebar } from "@/components/layout/ResponsiveSidebar";
-import { ShieldCheck, ArrowRight } from "lucide-react";
-
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getCurrentSession();
-
-  if (!session || !session.user || !session.workspace) {
-    return redirect("/login");
-  }
-
-  const isAdmin = ["super_admin", "ops_staff", "support_staff"].includes(session.user.role);
-
-  const [profiles, planInfo] = await Promise.all([
-    getWorkspaceProfiles(session.workspace.id),
-    getWorkspaceSubscriptionPlan(session.workspace.id),
-  ]);
-
-  const primaryProfileId = profiles.length > 0 ? profiles[0].id : undefined;
-
-  return (
-    <div className="h-screen max-h-screen overflow-hidden bg-slate-50 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 flex flex-col md:flex-row selection:bg-blue-600 selection:text-white transition-colors duration-150">
-      <Suspense fallback={<div className="w-64 bg-white dark:bg-[#0a0f1d] min-h-screen hidden md:block border-r border-slate-200 dark:border-white/5" />}>
-        <ResponsiveSidebar
-          session={session}
-          isAdmin={isAdmin}
-          logoutAction={logoutAction}
-          primaryProfileId={primaryProfileId}
-          planName={planInfo?.planName}
-        />
-      </Suspense>
-
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-slate-50 dark:bg-[#07090e] transition-colors duration-150">
-        {isAdmin && (
-          <div className="bg-gradient-to-r from-purple-100 via-slate-100 to-purple-100 dark:from-purple-950/60 dark:via-slate-950 dark:to-purple-950/60 border-b border-purple-200 dark:border-purple-500/20 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-            <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
-              <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
-              <span>
-                Staff Mode Active: You are in <strong>User Workspace</strong> view.
-              </span>
-            </div>
-            <Link
-              href="/admin"
-              className="flex items-center gap-1 text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 font-semibold text-xs hover:underline"
-            >
-              <span>Switch to Admin Console</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        )}
-        {children}
-      </main>
-    </div>
-  );
-}
+import React, { Suspense } from "react";
+
+import Link from "next/link";
+
+import { redirect } from "next/navigation";
+
+import { getCurrentSession } from "@/lib/auth/session";
+
+import { logoutAction } from "@/lib/auth/actions";
+
+import { getWorkspaceProfiles, getWorkspaceSubscriptionPlan } from "@/lib/profiles/service";
+
+import { ResponsiveSidebar } from "@/components/layout/ResponsiveSidebar";
+
+import { ShieldCheck, ArrowRight } from "lucide-react";
+
+
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+
+  const session = await getCurrentSession();
+
+
+
+  if (!session || !session.user || !session.workspace) {
+
+    return redirect("/login");
+
+  }
+
+
+
+  const isAdmin = ["super_admin", "ops_staff", "support_staff"].includes(session.user.role);
+
+  // Admin account strictly sees only the Admin Console
+  if (isAdmin) {
+    return redirect("/admin");
+  }
+
+
+
+  const [profiles, planInfo] = await Promise.all([
+
+    getWorkspaceProfiles(session.workspace.id),
+
+    getWorkspaceSubscriptionPlan(session.workspace.id),
+
+  ]);
+
+
+
+  const primaryProfileId = profiles.length > 0 ? profiles[0].id : undefined;
+
+
+
+  return (
+
+    <div className="h-screen max-h-screen overflow-hidden bg-slate-50 dark:bg-[#07090e] text-slate-800 dark:text-slate-100 flex flex-col md:flex-row selection:bg-blue-600 selection:text-white transition-colors duration-150">
+
+      <Suspense fallback={<div className="w-64 bg-white dark:bg-[#0a0f1d] min-h-screen hidden md:block border-r border-slate-200 dark:border-white/5" />}>
+
+        <ResponsiveSidebar
+
+          session={session}
+
+          isAdmin={isAdmin}
+
+          logoutAction={logoutAction}
+
+          primaryProfileId={primaryProfileId}
+
+          planName={planInfo?.planName}
+
+        />
+
+      </Suspense>
+
+
+
+      {/* MAIN CONTENT AREA */}
+
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-slate-50 dark:bg-[#07090e] transition-colors duration-150">
+
+        {isAdmin && (
+
+          <div className="bg-gradient-to-r from-purple-100 via-slate-100 to-purple-100 dark:from-purple-950/60 dark:via-slate-950 dark:to-purple-950/60 border-b border-purple-200 dark:border-purple-500/20 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+
+            <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300">
+
+              <ShieldCheck className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+
+              <span>
+
+                Staff Mode Active: You are in <strong>User Workspace</strong> view.
+
+              </span>
+
+            </div>
+
+            <Link
+
+              href="/admin"
+
+              className="flex items-center gap-1 text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 font-semibold text-xs hover:underline"
+
+            >
+
+              <span>Switch to Admin Console</span>
+
+              <ArrowRight className="w-3 h-3" />
+
+            </Link>
+
+          </div>
+
+        )}
+
+        {children}
+
+      </main>
+
+    </div>
+
+  );
+
+}
+
