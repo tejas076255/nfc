@@ -66,12 +66,6 @@ export async function GET(
           type: "image/png",
           purpose: "maskable",
         },
-        {
-          src: `${origin}/api/avatar/${slug}.jpg`,
-          sizes: "192x192",
-          type: "image/jpeg",
-          purpose: "any",
-        },
       ],
     };
 
@@ -79,7 +73,7 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": "application/manifest+json",
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
   } catch (err: any) {

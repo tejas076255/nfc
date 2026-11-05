@@ -62,12 +62,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     icons: {
       icon: [
-        { url: avatarEndpoint, type: "image/jpeg" },
+        { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
       ],
       apple: [
-        { url: avatarEndpoint, sizes: "180x180", type: "image/jpeg" },
+        { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       ],
-      shortcut: [avatarEndpoint],
+      shortcut: ["/favicon.ico"],
     },
     openGraph: {
       title,
@@ -152,9 +153,11 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
           __html: `try{localStorage.setItem('last_profile_slug','${slug}');localStorage.setItem('installed_profile_slug','${slug}');document.cookie="last_profile_slug=${slug}; path=/; max-age=31536000; SameSite=Lax";}catch(e){}`,
         }}
       />
-      <link rel="icon" href={avatarEndpoint} />
-      <link rel="shortcut icon" href={avatarEndpoint} />
-      <link rel="apple-touch-icon" href={avatarEndpoint} />
+      <link rel="manifest" href={`/api/manifest/${slug}`} />
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+      <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+      <link rel="shortcut icon" href="/favicon.ico" />
       <link rel="image_src" href={avatarEndpoint} />
       <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />
     </>
