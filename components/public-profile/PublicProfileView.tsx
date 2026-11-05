@@ -1159,7 +1159,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
   const handleDownloadShortcutFile = () => {
     const cleanTitle = (companyName || personName || "Digital Profile").trim().replace(/[/\\?%*:|"<>]/g, "");
     const pubUrl = typeof window !== "undefined" ? window.location.href : `https://tapbez.in/p/${profile.slug}`;
-    const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconFile=https://tapbez.in/favicon.ico\r\nIconIndex=0\r\n`;
+    const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconFile=https://tapbez.in/api/avatar/${profile.slug}.ico\r\nIconIndex=0\r\n`;
     const blob = new Blob([shortcutContent], { type: "application/internet-shortcut" });
     const dlUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -4424,14 +4424,14 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               >
                 <div className={`w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-slate-900 shadow-sm border shrink-0 flex items-center justify-center ${isLightMode ? "border-slate-200/80" : "border-white/10"}`}>
                   <img
-                    src="/icon-192x192.png"
-                    alt="tapbez icon"
+                    src={effectiveAvatar || `/api/avatar/${profile.slug}.png`}
+                    alt={personName}
                     className="w-full h-full object-cover rounded-2xl"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={`text-sm font-bold truncate ${isLightMode ? "text-slate-900" : "text-white"}`}>
-                    tapbez • {companyName || personName}
+                    {personName || companyName}
                   </p>
                   <p className="text-[11px] text-slate-500 font-mono truncate">
                     https://{typeof window !== "undefined" ? window.location.host : "tapbez.in"}/p/{profile.slug}
@@ -4440,7 +4440,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               </div>
 
               <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-600" : "text-slate-300"}`}>
-                Windows Desktop screen par <strong>tapbez</strong> ka app icon lagayein. User jab bhi icon par click karega, turant yeh profile khul jayegi!
+                Home screen par <strong>{personName || companyName}</strong> ka personal app icon install karein. Aapki photo aur name ke sath direct icon ban jayega!
               </p>
 
               {/* Real App Icon Instructions */}

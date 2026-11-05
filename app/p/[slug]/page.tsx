@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!profile) {
     return {
-      title: "Profile Not Found | TapSync NFC",
-      description: "Digital business card and profile on TapSync.",
+      title: "Profile Not Found | tapbez",
+      description: "Digital business card and profile on tapbez.",
     };
   }
 
@@ -36,11 +36,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const headerBlock = blocks.find((b) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
   const themeConfig = profile.themeConfig || {};
 
-  const title = themeConfig.seoTitle || `${profile.name} | TapSync NFC`;
-  const description = themeConfig.seoDescription || profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
+  const title = themeConfig.seoTitle || `${profile.name} | tapbez`;
+  const description = themeConfig.seoDescription || profile.bio || headerBlock.tagline || `Connect with ${profile.name} on tapbez.`;
 
-  // High-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
-  const avatarEndpoint = `https://tapbez.in/api/avatar/${slug}.jpg`;
+  // High-resolution user avatar endpoints for mobile home screen icon, PWA, WhatsApp & Twitter crawlers
+  const avatarPng = `https://tapbez.in/api/avatar/${slug}.png`;
+  const avatarJpg = `https://tapbez.in/api/avatar/${slug}.jpg`;
 
   return {
     title,
@@ -62,37 +63,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     icons: {
       icon: [
+        { url: avatarPng, sizes: "192x192", type: "image/png" },
+        { url: avatarPng, sizes: "512x512", type: "image/png" },
         { url: "/favicon.ico" },
         { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-        { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-        { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
       ],
       apple: [
-        { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        { url: avatarPng, sizes: "180x180", type: "image/png" },
       ],
-      shortcut: ["/favicon.ico"],
+      shortcut: [avatarPng],
     },
     openGraph: {
       title,
       description,
       type: "profile",
-      siteName: "TapSync NFC",
+      siteName: "tapbez",
       images: [
         {
-          url: avatarEndpoint,
-          secureUrl: avatarEndpoint,
-          width: 300,
-          height: 300,
+          url: avatarJpg,
+          secureUrl: avatarJpg,
+          width: 500,
+          height: 500,
           type: "image/jpeg",
           alt: profile.name,
         },
       ],
     },
     twitter: {
-      card: "summary", // "summary" renders square image on the LEFT side of text
+      card: "summary", // "summary" renders square avatar on the LEFT side of text
       title,
       description,
-      images: [avatarEndpoint],
+      images: [avatarJpg],
     },
   };
 }
@@ -146,7 +147,8 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
     // Analytics should never crash public profile rendering
   }
 
-  const avatarEndpoint = `https://tapbez.in/api/avatar/${slug}.jpg`;
+  const avatarPng = `https://tapbez.in/api/avatar/${slug}.png`;
+  const avatarJpg = `https://tapbez.in/api/avatar/${slug}.jpg`;
 
   return (
     <>
@@ -156,13 +158,13 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
         }}
       />
       <link rel="manifest" href={`/api/manifest/${slug}`} />
+      <link rel="apple-touch-icon" sizes="180x180" href={avatarPng} />
+      <link rel="icon" type="image/png" sizes="192x192" href={avatarPng} />
+      <link rel="icon" type="image/png" sizes="512x512" href={avatarPng} />
       <link rel="icon" href="/favicon.ico" sizes="any" />
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
-      <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
-      <link rel="shortcut icon" href="/favicon.ico" />
-      <link rel="image_src" href={avatarEndpoint} />
+      <link rel="shortcut icon" href={avatarPng} />
+      <link rel="image_src" href={avatarJpg} />
       <PublicProfileView profile={profile} sourceType={src} sourceToken={token} />
     </>
   );

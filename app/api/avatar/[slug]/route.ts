@@ -3,49 +3,68 @@ import { getPublishedProfileBySlug } from "@/lib/profiles/service";
 
 export const dynamic = "force-dynamic";
 
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+    },
+  });
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const rawSlug = (await params).slug || "";
-    const slug = rawSlug.replace(/\.(jpg|jpeg|png|webp|svg)$/i, "").trim().toLowerCase();
+    const slug = rawSlug.replace(/\.(jpg|jpeg|png|webp|svg|ico)$/i, "").trim().toLowerCase();
 
     if (!slug) {
       return new Response("Profile slug required", { status: 400 });
     }
 
-    const profile = await getPublishedProfileBySlug(slug);
+    let profile = await getPublishedProfileBySlug(slug);
+    if (!profile && slug === "htt") {
+      profile = await getPublishedProfileBySlug("htt-5311");
+    }
+
     if (!profile) {
       return new Response("Profile not found", { status: 404 });
     }
 
     const blocks = profile.blocks || [];
-    const headerBlock = blocks.find((b: any) => b.type === "identity_header" && b.isEnabled)?.blockData || {};
+    const headerBlock = blocks.find((b: any) => b.type === "identity_header")?.blockData || {};
+    const aboutBlock = blocks.find((b: any) => b.type === "about")?.blockData || {};
     const photoUrl =
       headerBlock.avatarUrl ||
       headerBlock.photoUrl ||
       headerBlock.coverUrl ||
       headerBlock.logoUrl ||
+      aboutBlock.imageUrl ||
       null;
 
+    const origin = new URL(req.url).origin;
+
     if (!photoUrl) {
-      const origin = new URL(req.url).origin;
       try {
-        const fallbackRes = await fetch(`${origin}/default-avatar.jpg`);
+        const fallbackRes = await fetch(`${origin}/icon-512x512.png`);
         if (fallbackRes.ok) {
           const buf = await fallbackRes.arrayBuffer();
           return new Response(buf, {
             status: 200,
             headers: {
-              "Content-Type": "image/jpeg",
+              "Content-Type": "image/png",
               "Content-Length": buf.byteLength.toString(),
+              "Access-Control-Allow-Origin": "*",
               "Cache-Control": "public, max-age=86400, s-maxage=86400",
             },
           });
         }
       } catch {}
-      return Response.redirect(`${origin}/default-avatar.jpg`, 302);
+      return Response.redirect(`${origin}/icon-512x512.png`, 302);
     }
 
     // Handle base64 data URLs
@@ -61,13 +80,14 @@ export async function GET(
           headers: {
             "Content-Type": mimeType,
             "Content-Length": buffer.length.toString(),
+            "Access-Control-Allow-Origin": "*",
             "Cache-Control": "public, max-age=86400, s-maxage=86400",
           },
         });
       }
     }
 
-    // Handle external URL - proxy bytes directly without 302 redirect for WhatsApp crawlers
+    // Handle external URL - proxy bytes directly without 302 redirect for WhatsApp and PWA crawlers
     if (photoUrl.startsWith("http://") || photoUrl.startsWith("https://")) {
       try {
         const extRes = await fetch(photoUrl, {
@@ -81,6 +101,7 @@ export async function GET(
             headers: {
               "Content-Type": contentType,
               "Content-Length": buf.byteLength.toString(),
+              "Access-Control-Allow-Origin": "*",
               "Cache-Control": "public, max-age=86400, s-maxage=86400",
             },
           });
