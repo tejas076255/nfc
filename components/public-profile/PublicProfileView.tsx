@@ -926,7 +926,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
     }
 
-    return `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
+    return `https://tapbez.in/p/${profile.slug}`;
 
   };
 
@@ -1111,7 +1111,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     const cleanTitle = (companyName || personName || "Digital Profile").trim().replace(/[/\\?%*:|"<>]/g, "");
     const pubUrl = typeof window !== "undefined" 
       ? (sourceType === "preview" ? `${window.location.origin}/p/${profile.slug}` : window.location.href)
-      : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
+      : `https://tapbez.in/p/${profile.slug}`;
 
     if (sourceType === "preview") {
       window.open(pubUrl, "_blank", "popup=yes,width=440,height=850");
@@ -1158,8 +1158,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
   const handleDownloadShortcutFile = () => {
     const cleanTitle = (companyName || personName || "Digital Profile").trim().replace(/[/\\?%*:|"<>]/g, "");
-    const pubUrl = typeof window !== "undefined" ? window.location.href : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
-    const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconFile=https://nfc-business-card-saas.tejasgogavale5.workers.dev/favicon.ico\r\nIconIndex=0\r\n`;
+    const pubUrl = typeof window !== "undefined" ? window.location.href : `https://tapbez.in/p/${profile.slug}`;
+    const shortcutContent = `[InternetShortcut]\r\nURL=${pubUrl}\r\nIconFile=https://tapbez.in/favicon.ico\r\nIconIndex=0\r\n`;
     const blob = new Blob([shortcutContent], { type: "application/internet-shortcut" });
     const dlUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -4434,7 +4434,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     tapbez • {companyName || personName}
                   </p>
                   <p className="text-[11px] text-slate-500 font-mono truncate">
-                    https://{typeof window !== "undefined" ? window.location.host : "nfc-business-card-saas.tejasgogavale5.workers.dev"}/p/{profile.slug}
+                    https://{typeof window !== "undefined" ? window.location.host : "tapbez.in"}/p/{profile.slug}
                   </p>
                 </div>
               </div>
@@ -4524,7 +4524,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         onClick={() => {
                           const pubUrl = typeof window !== "undefined"
                             ? (sourceType === "preview" ? `${window.location.origin}/p/${profile.slug}` : window.location.href)
-                            : `https://nfc-business-card-saas.tejasgogavale5.workers.dev/p/${profile.slug}`;
+                            : `https://tapbez.in/p/${profile.slug}`;
                           window.open(pubUrl, "_blank");
                         }}
                         className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}

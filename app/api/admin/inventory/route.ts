@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const batch = await adminGenerateInventory(qty, validVariant, session!.user.id);
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nfc-business-card-saas.tejasgogavale5.workers.dev";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in";
     const formatted = batch.map((c) => ({
       ...c,
       ndefUrl: `${baseUrl}/t/${c.publicToken}`,

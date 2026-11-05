@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = themeConfig.seoDescription || profile.bio || headerBlock.tagline || `Connect with ${profile.name} on TapSync NFC.`;
 
   // High-resolution .jpg avatar endpoint for WhatsApp, iMessage & Twitter crawlers
-  const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
+  const avatarEndpoint = `https://tapbez.in/api/avatar/${slug}.jpg`;
 
   return {
     title,
@@ -144,7 +144,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
     // Analytics should never crash public profile rendering
   }
 
-  const avatarEndpoint = `https://nfc-business-card-saas.tejasgogavale5.workers.dev/api/avatar/${slug}.jpg`;
+  const avatarEndpoint = `https://tapbez.in/api/avatar/${slug}.jpg`;
 
   return (
     <>

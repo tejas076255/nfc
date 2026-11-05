@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required QA fields" }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nfc-business-card-saas.tejasgogavale5.workers.dev";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in";
     await adminRecordQA({
       cardId,
       operatorId: session!.user.id,

@@ -344,7 +344,7 @@ export function AdminStationView({
           cardId: targetCard.id,
           step: qaStep,
           result: qaResult,
-          readbackUrl: `https://nfc-business-card-saas.tejasgogavale5.workers.dev/t/${targetCard.publicToken}`,
+          readbackUrl: `https://tapbez.in/t/${targetCard.publicToken}`,
           verifiedQrToken: targetCard.publicToken,
           notes: qaNotes,
         }),

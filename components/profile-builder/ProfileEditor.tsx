@@ -2849,7 +2849,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               <span>Google Result Snippet</span>
             </span>
             <p className="text-xs text-emerald-700 dark:text-emerald-400 font-mono truncate">
-              {typeof window !== "undefined" ? window.location.origin : "https://nfc-business-card-saas.tejasgogavale5.workers.dev"}/p/{profile.slug}
+              {typeof window !== "undefined" ? window.location.origin : "https://tapbez.in"}/p/{profile.slug}
             </p>
             <p className="text-sm font-bold text-blue-700 dark:text-blue-400 truncate hover:underline cursor-pointer">
               {profile.themeConfig?.seoTitle?.trim() || `${profile.name} — ${profile.title || "Business Profile"} | TapSync`}

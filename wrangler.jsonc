@@ -5,6 +5,10 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2024-12-30",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "tapbez.in", "custom_domain": true },
+    { "pattern": "www.tapbez.in", "custom_domain": true }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -26,8 +30,8 @@
     ]
   },
   "vars": {
-    "APP_URL": "https://nfc-business-card-saas.tejasgogavale5.workers.dev",
-    "NEXT_PUBLIC_APP_URL": "https://nfc-business-card-saas.tejasgogavale5.workers.dev",
+    "APP_URL": "https://tapbez.in",
+    "NEXT_PUBLIC_APP_URL": "https://tapbez.in",
     "JWT_SECRET": "nfc-saas-production-jwt-secret-key-32charsmin",
     "ENVIRONMENT": "production"
   }
