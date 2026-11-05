@@ -105,14 +105,10 @@ export default function RootLayout({
               }
               (function() {
                 try {
-                  var saved = localStorage.getItem('theme');
-                  if (saved === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                  } else {
-                    document.documentElement.classList.add('light');
-                    document.documentElement.classList.remove('dark');
-                  }
+                  // Website is strictly locked to Light Mode
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                  localStorage.setItem('theme', 'light');
                 } catch(e) {}
               })();
             `,
