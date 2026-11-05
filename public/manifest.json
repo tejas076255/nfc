@@ -1,13 +1,13 @@
 {
-  "name": "Digital Business Card",
-  "short_name": "Digital Card",
+  "name": "tapbez - Digital NFC Profile",
+  "short_name": "tapbez",
   "description": "Smart Contactless NFC Digital Business Card & Profile",
   "start_url": "/?mode=app",
   "id": "/?mode=app",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#d97706",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0d9488",
   "icons": [
     {
       "src": "/icon-192x192.png",

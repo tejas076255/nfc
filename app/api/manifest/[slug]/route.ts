@@ -31,8 +31,8 @@ export async function GET(
     const avatarIconUrl = `${origin}/api/avatar/${slug}.png`;
 
         const manifestData = {
-      name: `${displayName}`,
-      short_name: shortName,
+      name: `tapbez - ${displayName}`,
+      short_name: "tapbez",
       description: description,
       start_url: `/p/${slug}?source=pwa`,
       id: `/p/${slug}`,
@@ -40,7 +40,7 @@ export async function GET(
       display: "standalone",
       orientation: "portrait",
       background_color: themeConfig.backgroundColor || "#ffffff",
-      theme_color: themeConfig.accentColor || "#d97706",
+      theme_color: themeConfig.accentColor || "#0d9488",
       icons: [
         {
           src: `${origin}/icon-192x192.png`,

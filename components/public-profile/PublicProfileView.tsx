@@ -4414,7 +4414,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 </button>
               </div>
 
-              {/* App Summary Card Box (Fixed Image & Layout strictly matching Image 2) */}
+              {/* App Summary Card Box */}
               <div
                 className={`p-3 rounded-2xl flex items-center gap-3 border overflow-hidden ${
                   isLightMode
@@ -4422,20 +4422,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     : "bg-slate-800/80 border-white/10"
                 }`}
               >
-                <div className={`w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-white shadow-sm border shrink-0 flex items-center justify-center ${isLightMode ? "border-slate-200/80" : "border-white/10"}`}>
-                  {effectiveAvatar || effectiveCompanyLogo || effectiveBadge ? (
-                    <img
-                      src={effectiveAvatar || effectiveCompanyLogo || effectiveBadge || "/default-avatar.jpg"}
-                      alt={personName}
-                      className="w-full h-full object-cover rounded-2xl"
-                    />
-                  ) : (
-                    <Smartphone className="w-7 h-7 text-blue-600" />
-                  )}
+                <div className={`w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-slate-900 shadow-sm border shrink-0 flex items-center justify-center ${isLightMode ? "border-slate-200/80" : "border-white/10"}`}>
+                  <img
+                    src="/icon-192x192.png"
+                    alt="tapbez icon"
+                    className="w-full h-full object-cover rounded-2xl"
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={`text-sm font-bold truncate ${isLightMode ? "text-slate-900" : "text-white"}`}>
-                    {companyName || personName}
+                    tapbez • {companyName || personName}
                   </p>
                   <p className="text-[11px] text-slate-500 font-mono truncate">
                     https://{typeof window !== "undefined" ? window.location.host : "nfc-business-card-saas.tejasgogavale5.workers.dev"}/p/{profile.slug}
@@ -4443,16 +4439,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 </div>
               </div>
 
-              {/* Description matching Image 2 */}
               <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-600" : "text-slate-300"}`}>
-                Add &apos;{companyName || personName}&apos; directly to your Windows Desktop or Phone Home Screen as an app icon — no file download required!
+                Windows Desktop screen par <strong>tapbez</strong> ka app icon lagayein. User jab bhi icon par click karega, turant yeh profile khul jayegi!
               </p>
 
-              {/* Real App Icon Instructions (NO FILE DOWNLOADS!) */}
+              {/* Real App Icon Instructions */}
               <div className={`p-3.5 rounded-2xl text-xs space-y-2.5 animate-in fade-in duration-200 ${isLightMode ? "bg-blue-50/90 border border-blue-200/80 text-blue-950" : "bg-blue-950/50 border border-blue-900/60 text-blue-100"}`}>
                 <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-blue-900" : "text-blue-300"}`}>
                   {isDesktopDevice ? (
-                    <span>🖥️ Windows Screen (Desktop) par App Icon:</span>
+                    <span>🖥️ Windows Desktop par Tapbez Icon lane ke 2 Tarike:</span>
                   ) : isIosDevice ? (
                     <span>🍏 iPhone Screen par App Icon:</span>
                   ) : (
@@ -4462,23 +4457,23 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                 {isDesktopDevice ? (
                   <div className="space-y-2 text-[11px] leading-relaxed">
-                    <div className={`p-2.5 rounded-xl border ${isLightMode ? "bg-amber-500/10 border-amber-500/30 text-amber-950" : "bg-amber-500/10 border-amber-500/25 text-amber-200"}`}>
-                      <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-amber-800" : "text-amber-300"}`}>
-                        <span>⚡</span>
-                        <span>Option 1 (Sabse Fast - 1 Second Shortcut):</span>
+                    <div className={`p-2.5 rounded-xl border ${isLightMode ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-200"}`}>
+                      <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-emerald-800" : "text-emerald-300"}`}>
+                        <span>⭐</span>
+                        <span>Tarika 1 (Direct App Icon on Desktop):</span>
                       </p>
                       <p className="mt-1 leading-normal text-[11px]">
-                        Address bar me URL ke aage bane <strong>🔒 Lock icon</strong> ko mouse se pakad kar (drag karke) seedha apne <strong>Windows Desktop (screen)</strong> par chhod dein! Turant desktop par icon aa jayega!
+                        Browser menu <strong>(⋮)</strong> &rarr; <strong>&apos;Save and share&apos;</strong> &rarr; <strong>&apos;Install page as app...&apos;</strong> (ya &apos;Create shortcut&apos;) chunein. Seedha Windows Desktop screen par <strong>tapbez</strong> ka real App Icon ban jayega!
                       </p>
                     </div>
 
                     <div className={`p-2.5 rounded-xl border ${isLightMode ? "bg-blue-500/10 border-blue-500/30 text-blue-950" : "bg-blue-500/10 border-blue-500/25 text-blue-200"}`}>
                       <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-blue-800" : "text-blue-300"}`}>
-                        <span>🖥️</span>
-                        <span>Option 2 (Brave / Chrome App Install):</span>
+                        <span>⚡</span>
+                        <span>Tarika 2 (1-Second Drag Shortcut):</span>
                       </p>
                       <p className="mt-1 leading-normal text-[11px]">
-                        Browser top-right <strong>3 dots (⋮) Menu</strong> &rarr; <strong>&apos;Save and share&apos;</strong> &rarr; <strong>&apos;Install page as app...&apos;</strong> (ya &apos;Create shortcut&apos;) chunein. Windows screen par Real App Icon ban jayega!
+                        Address bar me link ke aage bane <strong>🔒 Lock icon</strong> ko mouse se pakad kar (drag karke) seedha apne <strong>Windows Desktop (screen)</strong> par drop karein!
                       </p>
                     </div>
                   </div>
@@ -4522,7 +4517,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                         className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <Smartphone className="w-3.5 h-3.5 shrink-0" />
-                        <span>Launch App Window</span>
+                        <span>Launch Tapbez App</span>
                       </button>
                       <button
                         type="button"
