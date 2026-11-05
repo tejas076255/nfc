@@ -32,11 +32,11 @@ export async function GET(
 
         const manifestData = {
       name: `tapbez - ${displayName}`,
-      short_name: "tapbez",
+      short_name: shortName,
       description: description,
       start_url: `/p/${slug}?source=pwa`,
       id: `/p/${slug}`,
-      scope: `/`,
+      scope: `/p/${slug}`,
       display: "standalone",
       orientation: "portrait",
       background_color: themeConfig.backgroundColor || "#ffffff",
