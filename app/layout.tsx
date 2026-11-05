@@ -28,6 +28,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "tapbez | Smart Contactless NFC Business Cards & Executive Identity",
+  manifest: "/manifest.json",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
   icons: {
@@ -62,16 +63,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="light scroll-smooth" suppressHydrationWarning>
       <head>
-        <link rel="manifest" href="/manifest.json" id="app-manifest" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="tapbez" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
