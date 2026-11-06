@@ -468,6 +468,30 @@ export async function userPurchaseExtraSlots(workspaceId: string, quantity: numb
 
   if (!ws) throw new Error("Workspace not found");
 
+  // Get current plan base limit
+  const [sub] = await db
+    .select()
+    .from(schema.subscriptions)
+    .where(eq(schema.subscriptions.workspaceId, workspaceId))
+    .limit(1);
+
+  let planBaseLimit = 1;
+  if (sub) {
+    const [plan] = await db
+      .select()
+      .from(schema.plans)
+      .where(eq(schema.plans.id, sub.planId))
+      .limit(1);
+    if (plan) planBaseLimit = plan.profileLimit;
+  }
+
+  const currentTotal = planBaseLimit + (ws.extraSlots || 0);
+  if (currentTotal + quantity > 25) {
+    throw new Error(
+      "Self-serve extra slots are capped at 25 total cards. For 25+ corporate card slots, please contact Tapbez Admin."
+    );
+  }
+
   const newExtra = (ws.extraSlots || 0) + quantity;
   await db
     .update(schema.workspaces)

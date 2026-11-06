@@ -26,6 +26,8 @@ import {
   Copy,
   Lock,
   CreditCard,
+  ShieldCheck,
+  MessageSquare,
 } from "lucide-react";
 
 interface PlanItem {
@@ -1121,47 +1123,102 @@ export function BillingClientView({
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Select Number of Extra Slots to Add
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 5].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setSlotsQty(num)}
-                      className={`py-2 rounded-xl text-xs font-black border transition-all cursor-pointer ${
-                        slotsQty === num
-                          ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
-                          : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-amber-500/50"
-                      }`}
-                    >
-                      +{num} {num === 1 ? "Slot" : "Slots"}
-                    </button>
-                  ))}
+              {currentPlan.profileLimit >= 25 ? (
+                <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center mx-auto">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                      25+ Slots Enterprise Threshold
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Your workspace has reached the self-serve maximum of 25 card slots. To expand further for large corporate teams, please contact Tapbez Admin directly.
+                    </p>
+                  </div>
+                  <a
+                    href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                      `Hello Tapbez Admin, I would like to request 25+ extra card slots for my workspace: ${workspaceName}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00b39d] hover:bg-[#009c88] text-white text-xs font-bold shadow-md transition"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Contact Admin on WhatsApp (25+ Slots)
+                  </a>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Select Number of Extra Slots to Add
+                      </label>
+                      <span className="text-[10px] font-bold text-slate-500">
+                        Current: {currentPlan.profileLimit} / 25 Max
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[1, 2, 3, 5]
+                        .filter((num) => currentPlan.profileLimit + num <= 25)
+                        .map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setSlotsQty(num)}
+                            className={`py-2 rounded-xl text-xs font-black border transition-all cursor-pointer ${
+                              slotsQty === num
+                                ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                                : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-amber-500/50"
+                            }`}
+                          >
+                            +{num} {num === 1 ? "Slot" : "Slots"}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
 
-              {/* Price Calculation Box */}
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
-                  <span>Unit Price per Extra Slot</span>
-                  <span>₹199</span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span>Quantity</span>
-                  <span className="font-bold">{slotsQty} Slot(s)</span>
-                </div>
-                <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-amber-900 dark:text-amber-200">
-                    Total Amount
-                  </span>
-                  <span className="text-xl font-black text-amber-500">
-                    ₹{(199 * slotsQty).toLocaleString("en-IN")}
-                  </span>
-                </div>
-              </div>
+                  {/* Price Calculation Box */}
+                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <span>Unit Price per Extra Slot</span>
+                      <span>₹199</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span>Quantity</span>
+                      <span className="font-bold">{slotsQty} Slot(s)</span>
+                    </div>
+                    <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
+                      <span className="text-xs font-black uppercase text-amber-900 dark:text-amber-200">
+                        Total Amount
+                      </span>
+                      <span className="text-xl font-black text-amber-500">
+                        ₹{(199 * slotsQty).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 25+ Contact Notice */}
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/10 flex items-start gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      Need more than 25 slots for corporate teams?{" "}
+                      <a
+                        href={`https://wa.me/919999999999?text=${encodeURIComponent(
+                          `Hello Tapbez Admin, I need 25+ slots for my team in workspace: ${workspaceName}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-500 font-bold hover:underline"
+                      >
+                        Contact Admin directly
+                      </a>{" "}
+                      for customized volume enterprise pricing.
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-white/10">
@@ -1170,16 +1227,18 @@ export function BillingClientView({
                 onClick={() => setShowBuySlotsModal(false)}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                Cancel
+                Close
               </button>
-              <button
-                type="button"
-                onClick={handleBuyExtraSlots}
-                disabled={buyingSlots}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {buyingSlots ? "Activating Slots..." : `Pay ₹${199 * slotsQty} & Activate Slots`}
-              </button>
+              {currentPlan.profileLimit < 25 && (
+                <button
+                  type="button"
+                  onClick={handleBuyExtraSlots}
+                  disabled={buyingSlots}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {buyingSlots ? "Activating Slots..." : `Pay ₹${199 * slotsQty} & Activate Slots`}
+                </button>
+              )}
             </div>
           </div>
         </div>

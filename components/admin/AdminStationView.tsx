@@ -324,23 +324,30 @@ export function AdminStationView({
     setSelectedExtraSlots(ws.extraSlots || 0);
   };
 
-  // 6. Save Slot Allocation
-  const handleSaveSlotAllocation = async () => {
-    if (!allocatingWorkspace) return;
-    setIsAllocating(true);
+  // Auto-Save Slot Allocation State
+  const [savingSlotWsId, setSavingSlotWsId] = useState<string | null>(null);
+  const [savedSlotWsId, setSavedSlotWsId] = useState<string | null>(null);
+
+  // 6. Inline / Direct Auto-Save Slot Allocation
+  const handleAutoSaveSlot = async (
+    workspaceId: string,
+    planCode: string,
+    extraSlots: number
+  ) => {
+    setSavingSlotWsId(workspaceId);
     setAlert(null);
     try {
       const res = await fetch("/api/admin/slots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workspaceId: allocatingWorkspace.id,
-          extraSlots: selectedExtraSlots,
-          planCode: selectedPlan,
+          workspaceId,
+          extraSlots: Math.max(0, extraSlots),
+          planCode,
         }),
       });
       const data = (await res.json()) as any;
-      if (!res.ok) throw new Error(data.error || "Failed to save slot allocation");
+      if (!res.ok) throw new Error(data.error || "Failed to auto-save slot allocation");
 
       const planLimitMap: Record<string, { name: string; limit: number }> = {
         free: { name: "Free Digital Identity", limit: 1 },
@@ -348,32 +355,39 @@ export function AdminStationView({
         professional: { name: "Professional Plan", limit: 10 },
         business_pro: { name: "Business Pro", limit: 25 },
       };
-      const pInfo = planLimitMap[selectedPlan] || { name: selectedPlan, limit: 1 };
+      const pInfo = planLimitMap[planCode] || { name: planCode, limit: 1 };
 
       setWorkspaces((prev) =>
         prev.map((w) =>
-          w.id === allocatingWorkspace.id
+          w.id === workspaceId
             ? {
                 ...w,
-                planCode: selectedPlan,
+                planCode,
                 planName: pInfo.name,
                 baseLimit: pInfo.limit,
-                extraSlots: selectedExtraSlots,
-                totalAllottedSlots: pInfo.limit + selectedExtraSlots,
+                extraSlots: Math.max(0, extraSlots),
+                totalAllottedSlots: pInfo.limit + Math.max(0, extraSlots),
               }
             : w
         )
       );
 
-      setAlert({
-        type: "success",
-        text: `Successfully allotted slots for '${allocatingWorkspace.name}'. Total Active Slots: ${
-          pInfo.limit + selectedExtraSlots
-        }.`,
-      });
-      setAllocatingWorkspace(null);
+      setSavedSlotWsId(workspaceId);
+      setTimeout(() => setSavedSlotWsId(null), 3000);
     } catch (err: any) {
-      setAlert({ type: "error", text: err.message || "Failed to allocate slots" });
+      setAlert({ type: "error", text: err.message || "Failed to auto-save slots" });
+    } finally {
+      setSavingSlotWsId(null);
+    }
+  };
+
+  // 7. Save Slot Allocation from Modal
+  const handleSaveSlotAllocation = async () => {
+    if (!allocatingWorkspace) return;
+    setIsAllocating(true);
+    try {
+      await handleAutoSaveSlot(allocatingWorkspace.id, selectedPlan, selectedExtraSlots);
+      setAllocatingWorkspace(null);
     } finally {
       setIsAllocating(false);
     }
@@ -1615,32 +1629,98 @@ export function AdminStationView({
                         <div className="text-[10px] text-slate-400">{ws.ownerName}</div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                          <Sparkles className="w-3 h-3 text-amber-500" />
-                          {ws.planName}
-                        </span>
+                        <select
+                          value={ws.planCode || "free"}
+                          onChange={(e) =>
+                            handleAutoSaveSlot(ws.id, e.target.value, ws.extraSlots || 0)
+                          }
+                          disabled={savingSlotWsId === ws.id}
+                          className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 focus:outline-none focus:border-amber-500 cursor-pointer shadow-xs disabled:opacity-50"
+                        >
+                          <option value="free">Free (1 Card)</option>
+                          <option value="starter">Starter (3 Cards)</option>
+                          <option value="professional">Professional (10 Cards)</option>
+                          <option value="business_pro">Business Pro (25 Cards)</option>
+                        </select>
                       </td>
                       <td className="py-3.5 px-4 text-center font-bold text-slate-700 dark:text-slate-300">
                         {ws.baseLimit || 1}
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span className={`font-mono font-bold ${ws.extraSlots > 0 ? "text-emerald-500" : "text-slate-400"}`}>
-                          +{ws.extraSlots || 0}
-                        </span>
+                        <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-white/10 shadow-xs">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAutoSaveSlot(
+                                ws.id,
+                                ws.planCode || "free",
+                                Math.max(0, (ws.extraSlots || 0) - 1)
+                              )
+                            }
+                            disabled={savingSlotWsId === ws.id || (ws.extraSlots || 0) <= 0}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-slate-950 transition-colors disabled:opacity-30 cursor-pointer"
+                            title="Decrease extra slot"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="0"
+                            value={ws.extraSlots || 0}
+                            onChange={(e) => {
+                              const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+                              handleAutoSaveSlot(ws.id, ws.planCode || "free", val);
+                            }}
+                            disabled={savingSlotWsId === ws.id}
+                            className="w-12 text-center text-xs font-mono font-bold bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleAutoSaveSlot(
+                                ws.id,
+                                ws.planCode || "free",
+                                (ws.extraSlots || 0) + 1
+                              )
+                            }
+                            disabled={savingSlotWsId === ws.id}
+                            className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-amber-500 hover:text-slate-950 transition-colors disabled:opacity-30 cursor-pointer"
+                            title="Increase extra slot"
+                          >
+                            +
+                          </button>
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-900 dark:text-amber-200 font-black border border-amber-500/30">
-                          {ws.totalAllottedSlots || 1} Cards
+                        <span className="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-900 dark:text-amber-200 font-black border border-amber-500/30">
+                          {(ws.baseLimit || 1) + (ws.extraSlots || 0)} Cards
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => openAllocationModal(ws)}
-                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Allot Slots</span>
-                        </button>
+                        {savingSlotWsId === ws.id ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs animate-pulse border border-amber-500/20">
+                            <Clock className="w-3.5 h-3.5 animate-spin" />
+                            <span>Auto-Saving...</span>
+                          </span>
+                        ) : savedSlotWsId === ws.id ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20 animate-in fade-in">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Auto-Saved ✓</span>
+                          </span>
+                        ) : (
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                              Auto-Saves
+                            </span>
+                            <button
+                              onClick={() => openAllocationModal(ws)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                              title="Detailed Allotment Modal"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
