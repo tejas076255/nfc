@@ -200,11 +200,11 @@ const CARD_STYLES = [
   {
     id: "corporate",
     label: "Minimal Corporate",
-    cardClass: "bg-white text-slate-900 border border-slate-200 shadow-xl",
+    cardClass: "bg-white text-slate-950 border border-slate-200/90 shadow-2xl",
     accentClass: "bg-[#00b39d]",
-    nameClass: "text-slate-900",
-    titleClass: "text-slate-500",
-    badgeClass: "bg-slate-100 text-slate-700",
+    nameClass: "text-slate-950 font-black",
+    titleClass: "text-slate-500 font-bold",
+    badgeClass: "bg-slate-100 text-slate-800 font-extrabold border border-slate-200/60",
   },
   {
     id: "bold",
@@ -420,9 +420,9 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
 
   // Customizer state
   const [cardStyleIdx, setCardStyleIdx] = useState(0);
-  const [customName, setCustomName] = useState("Your Name");
-  const [customDesignation, setCustomDesignation] = useState("Your Designation");
-  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>(null);
+  const [customName, setCustomName] = useState("Rikesh Panchal");
+  const [customDesignation, setCustomDesignation] = useState("Founder & CEO");
+  const [customLogoUrl, setCustomLogoUrl] = useState<string | null>("/landing/tapbez-logo-header.png");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Corporate quote state
@@ -911,32 +911,32 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   </div>
 
                   {/* Header Gradient */}
-                  <div className="h-28 bg-gradient-to-br from-[#00b39d]/80 via-teal-700/40 to-slate-900" />
+                  <div className="h-28 bg-gradient-to-br from-[#00b39d] via-teal-700/60 to-slate-900" />
 
                   <div className="px-5 pb-6">
                     {/* Avatar & Company Pill */}
                     <div className="-mt-12 flex items-end gap-3">
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-[#0b182d] bg-[#00b39d] font-display text-2xl font-bold text-white shadow-lg">
+                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-[#0b182d] bg-[#00b39d] font-display text-2xl font-black text-white shadow-xl">
                         {activePersona.name
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </div>
                       <div className="pb-1">
-                        <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-800/90 px-2.5 py-1 text-[11px] font-bold text-slate-200">
-                          <span className="h-2 w-2 rounded-sm bg-[#00b39d]" />
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-sm border border-white/25 backdrop-blur-md">
+                          <span className="h-2 w-2 rounded-full bg-[#00b39d]" />
                           {activePersona.company}
                         </span>
                       </div>
                     </div>
 
-                    <h3 className="mt-3 font-display text-xl font-bold text-white">
+                    <h3 className="mt-3 font-display text-xl font-black text-white tracking-tight">
                       {activePersona.name}
                     </h3>
-                    <p className="text-xs font-semibold text-[#00b39d]">
+                    <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
                       {activePersona.designation}
                     </p>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-300">
+                    <p className="mt-2 text-xs leading-relaxed text-slate-100 font-medium">
                       {activePersona.intro}
                     </p>
 
@@ -944,23 +944,23 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                     <div className="mt-4 grid grid-cols-3 gap-2">
                       <button
                         type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-slate-800/80 py-2.5 text-[11px] font-semibold text-slate-200 transition hover:bg-slate-700"
+                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
                       >
-                        <Phone className="h-4 w-4 text-[#00b39d]" />
+                        <Phone className="h-4 w-4 text-emerald-300" />
                         Call
                       </button>
                       <button
                         type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-slate-800/80 py-2.5 text-[11px] font-semibold text-slate-200 transition hover:bg-slate-700"
+                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
                       >
-                        <MessageSquare className="h-4 w-4 text-[#00b39d]" />
+                        <MessageSquare className="h-4 w-4 text-emerald-300" />
                         WhatsApp
                       </button>
                       <button
                         type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-slate-800/80 py-2.5 text-[11px] font-semibold text-slate-200 transition hover:bg-slate-700"
+                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
                       >
-                        <Mail className="h-4 w-4 text-[#00b39d]" />
+                        <Mail className="h-4 w-4 text-emerald-300" />
                         Email
                       </button>
                     </div>
@@ -968,7 +968,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                     {/* Save Contact CTA */}
                     <button
                       type="button"
-                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00b39d] py-2.5 text-xs font-bold text-white shadow"
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00b39d] hover:bg-[#009c88] py-2.5 text-xs font-black text-white shadow-lg shadow-[#00b39d]/40 transition"
                     >
                       <UserCheck className="h-4 w-4" />
                       Save Contact (vCard)
@@ -976,14 +976,14 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
 
                     {/* Services Tags */}
                     <div className="mt-5">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
                         Specialties & Services
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {activePersona.services.map((srv) => (
                           <span
                             key={srv}
-                            className="rounded-lg bg-slate-800/90 px-2.5 py-1 text-[11px] font-medium text-slate-200 border border-slate-700"
+                            className="rounded-lg bg-white/20 px-3 py-1 text-xs font-semibold text-white border border-white/25 shadow-sm backdrop-blur-sm"
                           >
                             {srv}
                           </span>
@@ -992,14 +992,14 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                     </div>
 
                     {/* Links list */}
-                    <div className="mt-4 flex flex-col gap-1.5 text-xs text-slate-300">
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-800/40 p-2">
-                        <Globe className="h-3.5 w-3.5 text-[#00b39d]" />
-                        <span>{activePersona.company.toLowerCase().replace(/\s/g, "")}.com</span>
+                    <div className="mt-4 flex flex-col gap-2 text-xs">
+                      <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
+                        <Globe className="h-4 w-4 text-emerald-300 shrink-0" />
+                        <span className="font-semibold text-white">{activePersona.company.toLowerCase().replace(/\s/g, "")}.com</span>
                       </div>
-                      <div className="flex items-center gap-2 rounded-lg bg-slate-800/40 p-2">
-                        <MapPin className="h-3.5 w-3.5 text-[#00b39d]" />
-                        <span>Mumbai, Maharashtra · India</span>
+                      <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
+                        <MapPin className="h-4 w-4 text-emerald-300 shrink-0" />
+                        <span className="font-semibold text-white">Mumbai, Maharashtra · India</span>
                       </div>
                     </div>
                   </div>
@@ -1064,7 +1064,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                       onChange={(e) => setCustomName(e.target.value)}
                       maxLength={32}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm focus:border-[#00b39d] focus:outline-none focus:ring-1 focus:ring-[#00b39d]"
-                      placeholder="e.g. Rajiv Sharma"
+                      placeholder="e.g. Rikesh Panchal"
                     />
                   </div>
 
@@ -1079,14 +1079,25 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                       onChange={(e) => setCustomDesignation(e.target.value)}
                       maxLength={32}
                       className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 shadow-sm focus:border-[#00b39d] focus:outline-none focus:ring-1 focus:ring-[#00b39d]"
-                      placeholder="e.g. Managing Director"
+                      placeholder="e.g. Founder & CEO"
                     />
                   </div>
                 </div>
 
                 {/* Logo Upload Input */}
                 <div>
-                  <label className="text-sm font-bold text-slate-800">Company Logo Preview</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-bold text-slate-800">Company Logo Preview</label>
+                    {customLogoUrl && customLogoUrl !== "/landing/tapbez-logo-header.png" && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomLogoUrl("/landing/tapbez-logo-header.png")}
+                        className="text-xs font-bold text-[#00b39d] hover:underline"
+                      >
+                        Reset to Tapbez Logo
+                      </button>
+                    )}
+                  </div>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1097,21 +1108,15 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-5 text-sm font-semibold text-slate-600 transition hover:border-[#00b39d] hover:text-[#00b39d]"
+                    className="mt-1.5 flex w-full items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-4 py-3.5 text-sm font-semibold text-slate-600 transition hover:border-[#00b39d] hover:text-[#00b39d]"
                   >
-                    {customLogoUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={customLogoUrl}
-                        alt="Uploaded logo"
-                        className="h-10 w-auto rounded object-contain"
-                      />
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5" />
-                        <span>Upload a logo to preview on the card</span>
-                      </>
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={customLogoUrl || "/landing/tapbez-logo-header.png"}
+                      alt="Current logo"
+                      className="h-8 w-auto rounded object-contain"
+                    />
+                    <span>Upload custom logo to preview</span>
                   </button>
                 </div>
 
@@ -1124,25 +1129,18 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
             {/* Live Interactive Physical Card Display */}
             <div className="flex flex-col items-center justify-center gap-6">
               <div
-                className={`relative flex aspect-[1.586/1] w-full max-w-[380px] flex-col justify-between overflow-hidden rounded-2xl p-6 transition-all duration-300 ${activeCardStyle.cardClass}`}
+                className={`relative flex aspect-[1.586/1] w-full max-w-[390px] flex-col justify-between overflow-hidden rounded-[1.6rem] p-6 transition-all duration-300 ${activeCardStyle.cardClass}`}
               >
                 {/* Top Row: Logo & Contactless Wave */}
                 <div className="flex items-start justify-between">
-                  {customLogoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                  <div className="flex h-12 w-auto min-w-[76px] items-center justify-center rounded-2xl bg-white px-3 py-1.5 shadow-md border border-slate-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={customLogoUrl}
-                      alt="Logo"
-                      className="h-9 w-9 rounded-md bg-white object-contain p-1 shadow-sm"
+                      src={customLogoUrl || "/landing/tapbez-logo-header.png"}
+                      alt="Tapbez Logo"
+                      className="h-7 w-auto max-w-[90px] object-contain"
                     />
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <div className={`h-8 w-8 rounded-lg ${activeCardStyle.accentClass} flex items-center justify-center text-white font-black text-sm`}>
-                        T
-                      </div>
-                      <span className="font-display font-extrabold text-sm tracking-tight">Tapbez</span>
-                    </div>
-                  )}
+                  </div>
 
                   <div className="flex items-center gap-1.5 opacity-80" aria-label="NFC Contactless">
                     <Wifi className="h-5 w-5 rotate-90" />
@@ -1158,14 +1156,14 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                 <div className="flex items-end justify-between">
                   <div>
                     <p className={`font-display text-lg font-extrabold tracking-tight ${activeCardStyle.nameClass}`}>
-                      {customName || "Your Name"}
+                      {customName || "Rikesh Panchal"}
                     </p>
                     <p className={`text-xs font-semibold ${activeCardStyle.titleClass}`}>
-                      {customDesignation || "Your Designation"}
+                      {customDesignation || "Founder & CEO"}
                     </p>
                   </div>
 
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${activeCardStyle.badgeClass}`}>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${activeCardStyle.badgeClass}`}>
                     SMART NFC
                   </span>
                 </div>
@@ -1322,13 +1320,13 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                 Enterprise & Organizations
               </p>
-              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
                 Smart Networking for Your Entire Team.
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-white font-medium sm:text-lg">
                 Equip your employees with professionally branded NFC business cards and centrally
                 managed digital identities.
               </p>
@@ -1337,27 +1335,27 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                 {TEAM_BENEFITS.map((benefit) => (
                   <li
                     key={benefit}
-                    className="flex items-center gap-3 rounded-xl bg-slate-800/60 px-4 py-3 text-sm text-slate-200"
+                    className="flex items-center gap-3 rounded-xl bg-slate-800/90 border border-slate-700/80 px-4.5 py-3.5 text-sm text-white font-semibold shadow-sm transition hover:bg-slate-800 hover:border-slate-600"
                   >
-                    <CheckCircle2 className="h-4.5 w-4.5 shrink-0 text-[#00b39d]" />
-                    <span>{benefit}</span>
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-[#00b39d]" />
+                    <span className="text-white font-semibold">{benefit}</span>
                   </li>
                 ))}
               </ul>
 
               {/* Quantity Selector */}
               <div className="mt-8">
-                <p className="text-sm font-bold text-white">How many cards do you need?</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <p className="text-sm font-extrabold text-white">How many cards do you need?</p>
+                <div className="mt-3 flex flex-wrap gap-2.5">
                   {BULK_QUANTITIES.map((qty) => (
                     <button
                       key={qty}
                       type="button"
                       onClick={() => setSelectedQuantity(qty)}
-                      className={`rounded-xl border px-4 py-2 text-sm font-bold transition ${
+                      className={`rounded-xl border px-4.5 py-2.5 text-sm font-extrabold transition ${
                         selectedQuantity === qty
-                          ? "border-[#00b39d] bg-[#00b39d] text-white shadow"
-                          : "border-slate-700 bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700"
+                          ? "border-[#00b39d] bg-[#00b39d] text-white shadow-lg shadow-[#00b39d]/30"
+                          : "border-slate-700 bg-slate-800/90 text-white hover:text-white hover:bg-slate-700 hover:border-slate-500"
                       }`}
                     >
                       {qty}
@@ -1538,7 +1536,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
       </section>
 
       {/* 12. FREQUENTLY ASKED QUESTIONS */}
-      <section id="faqs" className="mx-auto max-w-4xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-24">
+      <section id="faqs" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-24">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Got Questions?</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
@@ -1549,33 +1547,35 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
           </p>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3.5">
+        <div className="mt-12 flex flex-col gap-4">
           {FAQS.map((faq, idx) => {
             const isOpen = openFaqIdx === idx;
             return (
               <div
                 key={faq.question}
-                className={`overflow-hidden rounded-2xl border bg-white transition-all ${
-                  isOpen ? "border-[#00b39d]/50 shadow-md ring-1 ring-[#00b39d]/20" : "border-slate-200"
+                className={`overflow-hidden rounded-[1.4rem] sm:rounded-[1.5rem] border bg-white transition-all duration-200 ${
+                  isOpen
+                    ? "border-[#00b39d]/60 shadow-[0_4px_20px_rgba(0,179,157,0.08)] ring-1 ring-[#00b39d]/20"
+                    : "border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.025)] hover:border-slate-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-4.5 text-left"
+                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left sm:px-8 sm:py-5.5"
                 >
-                  <span className="font-display text-base font-bold text-[#0b182d]">
+                  <span className="font-display text-[15px] sm:text-base font-bold text-[#0b182d] tracking-tight">
                     {faq.question}
                   </span>
                   <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 ${
+                    className={`h-4.5 w-4.5 shrink-0 text-slate-400 stroke-[2.2] transition-transform duration-200 ${
                       isOpen ? "rotate-180 text-[#00b39d]" : ""
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-5 pt-1 text-sm leading-relaxed text-slate-600 border-t border-slate-100">
+                  <div className="px-6 pb-6 pt-1 text-sm sm:text-[15px] leading-relaxed text-slate-600 border-t border-slate-100 sm:px-8">
                     {faq.answer}
                   </div>
                 )}
