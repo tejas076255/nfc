@@ -182,7 +182,6 @@ export function AdminStationView({
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
-  const [creatingSampleOrder, setCreatingSampleOrder] = useState(false);
 
   // Workspaces & Slots Quota State
   const [workspaces, setWorkspaces] = useState<AdminWorkspaceSlotInfo[]>(initialWorkspaces);
@@ -221,33 +220,7 @@ export function AdminStationView({
 
   // --- ACTIONS ---
 
-  // 1. Create Sample Test Order
-  const handleCreateSampleOrder = async () => {
-    setCreatingSampleOrder(true);
-    setAlert(null);
-    try {
-      const res = await fetch("/api/admin/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variant: "matte_pvc", quantity: 1 }),
-      });
-      const data = (await res.json()) as any;
-      if (!res.ok) throw new Error(data.error || "Failed to create test order");
-
-      setOrders((prev) => [data.order, ...prev]);
-      setStats((prev) => ({ ...prev, totalOrders: prev.totalOrders + 1 }));
-      setAlert({
-        type: "success",
-        text: `Live test order ${data.order.orderNumber} created! You can now test state transitions in the queue below.`,
-      });
-    } catch (err: any) {
-      setAlert({ type: "error", text: err.message || "Error creating sample order" });
-    } finally {
-      setCreatingSampleOrder(false);
-    }
-  };
-
-  // 2. Update Order Status
+  // 1. Update Order Status
   const handleUpdateOrderStatus = async (
     orderId: string,
     newStatus: string,
@@ -674,18 +647,6 @@ export function AdminStationView({
                   Real-time Cloudflare D1 telemetry for user profiles, subscription slot allocation, physical NFC fulfillment, customer support tickets, and cryptographic QA records.
                 </p>
               </div>
-              <button
-                onClick={handleCreateSampleOrder}
-                disabled={creatingSampleOrder}
-                className="self-start sm:self-center px-4 py-2.5 rounded-xl bg-slate-950 text-amber-400 hover:bg-slate-900 text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer shrink-0 border border-amber-500/40"
-              >
-                {creatingSampleOrder ? (
-                  <Clock className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Plus className="w-4 h-4" />
-                )}
-                <span>+ Create Test Order</span>
-              </button>
             </div>
           </div>
 
@@ -1076,44 +1037,23 @@ export function AdminStationView({
                   </button>
                 ))}
               </div>
-
-              <button
-                onClick={handleCreateSampleOrder}
-                disabled={creatingSampleOrder}
-                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                {creatingSampleOrder ? (
-                  <Clock className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Plus className="w-4 h-4" />
-                )}
-                <span>+ Test Order</span>
-              </button>
             </div>
           </div>
 
           {/* If 0 Orders */}
           {orders.length === 0 ? (
-            <div className="p-10 rounded-2xl border-2 border-dashed border-slate-200 dark:border-amber-500/20 text-center space-y-4 bg-white dark:bg-slate-900/30">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto">
-                <Package className="w-6 h-6" />
+            <div className="p-12 rounded-2xl border border-slate-200 dark:border-amber-500/20 text-center space-y-4 bg-white dark:bg-slate-900/30 shadow-xs">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto">
+                <Package className="w-7 h-7" />
               </div>
-              <div className="space-y-1 max-w-sm mx-auto">
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  No Physical Card Orders Yet
+              <div className="space-y-1.5 max-w-md mx-auto">
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  No Customer Card Orders Yet
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Customer NFC card orders will show up here. You can click below to generate a live test order in the database to test the factory pipeline.
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Real card orders placed by users from the website checkout will automatically appear here in real time for laser engraving, chip programming, and courier fulfillment.
                 </p>
               </div>
-              <button
-                onClick={handleCreateSampleOrder}
-                disabled={creatingSampleOrder}
-                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-md transition-all active:scale-95 inline-flex items-center gap-2 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Live Test Order</span>
-              </button>
             </div>
           ) : (
             <div className="space-y-4">
