@@ -38,6 +38,7 @@ export const workspaces = sqliteTable("workspaces", {
   type: text("type", { enum: ["personal", "organization", "reseller"] }).notNull().default("personal"),
   ownerId: text("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status", { enum: ["active", "suspended"] }).notNull().default("active"),
+  extraSlots: integer("extra_slots").notNull().default(0),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => [
@@ -322,6 +323,7 @@ export const subscriptions = sqliteTable("subscriptions", {
   currentPeriodEnd: integer("current_period_end").notNull(),
   gracePeriodEnd: integer("grace_period_end"),
   fallbackProfileId: text("fallback_profile_id").references(() => profiles.id),
+  extraSlots: integer("extra_slots").notNull().default(0),
   razorpaySubscriptionId: text("razorpay_subscription_id"),
   razorpayCustomerId: text("razorpay_customer_id"),
   createdAt: integer("created_at").notNull(),
@@ -393,4 +395,21 @@ export const auditLogs = sqliteTable("audit_logs", {
   index("idx_audit_logs_workspace").on(table.workspaceId),
   index("idx_audit_logs_actor").on(table.actorId),
   index("idx_audit_logs_created_at").on(table.createdAt),
+]);
+
+// Support Tickets / Problem Inquiries
+export const supportTickets = sqliteTable("support_tickets", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id"),
+  userId: text("user_id"),
+  userName: text("user_name").notNull(),
+  userEmail: text("user_email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status", { enum: ["open", "in_progress", "resolved", "closed"] }).notNull().default("open"),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull(),
+}, (table) => [
+  index("idx_support_tickets_status").on(table.status),
+  index("idx_support_tickets_created_at").on(table.createdAt),
 ]);

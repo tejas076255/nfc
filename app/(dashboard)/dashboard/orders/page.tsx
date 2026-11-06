@@ -225,46 +225,112 @@ export default async function DashboardOrdersPage() {
                   </div>
                 </div>
 
-                {/* State Progress Bar */}
-                <div className="pt-2">
-                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3">Fulfillment Journey</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
-                    <div
-                      className={`p-2 rounded-lg border font-bold ${
-                        ["paid", "production", "qa", "ready_to_ship", "shipped", "delivered"].includes(order.status)
-                          ? "bg-blue-50 dark:bg-blue-600/20 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"
-                          : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-400"
-                      }`}
-                    >
-                      1. Paid & Queued
+                {/* State Progress Bar / Fulfillment Stepper */}
+                <div className="pt-4 border-t border-slate-100 dark:border-white/10 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Live Manufacturing & Shipping Progress
+                    </span>
+                    <span className="text-xs font-bold text-teal-600 dark:text-teal-400">
+                      Current Stage: {badge.label}
+                    </span>
+                  </div>
+
+                  {/* 5-Stage Stepper */}
+                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-2.5">
+                    {[
+                      {
+                        step: "1",
+                        name: "Paid & Queued",
+                        desc: "Payment verified, design queued",
+                        isPassed: ["paid", "production", "qa", "ready_to_ship", "shipped", "delivered"].includes(order.status),
+                        isCurrent: order.status === "paid",
+                      },
+                      {
+                        step: "2",
+                        name: "UV Printing",
+                        desc: "High-res finish & color curing",
+                        isPassed: ["production", "qa", "ready_to_ship", "shipped", "delivered"].includes(order.status),
+                        isCurrent: order.status === "production",
+                      },
+                      {
+                        step: "3",
+                        name: "NDEF Encoding",
+                        desc: "Cryptographic NFC chip QA",
+                        isPassed: ["qa", "ready_to_ship", "shipped", "delivered"].includes(order.status),
+                        isCurrent: order.status === "qa",
+                      },
+                      {
+                        step: "4",
+                        name: "Dispatched",
+                        desc: order.trackingNumber ? `${order.trackingCarrier || "Courier"}` : "Packed & handoff",
+                        isPassed: ["ready_to_ship", "shipped", "delivered"].includes(order.status),
+                        isCurrent: ["ready_to_ship", "shipped"].includes(order.status),
+                      },
+                      {
+                        step: "5",
+                        name: "Delivered",
+                        desc: "Handed over to customer",
+                        isPassed: order.status === "delivered",
+                        isCurrent: order.status === "delivered",
+                      },
+                    ].map((st) => (
+                      <div
+                        key={st.step}
+                        className={`p-3 rounded-xl border transition-all text-left flex flex-col justify-between ${
+                          st.isCurrent
+                            ? "bg-teal-500/10 border-teal-500 text-teal-900 dark:text-teal-200 shadow-sm ring-1 ring-teal-500/30"
+                            : st.isPassed
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                            : "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-white/5 text-slate-400 dark:text-slate-500 opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/70 dark:bg-slate-900/70 border border-current">
+                            Step {st.step}
+                          </span>
+                          {st.isCurrent && (
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                            </span>
+                          )}
+                          {st.isPassed && !st.isCurrent && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          )}
+                        </div>
+                        <div className="font-bold text-xs truncate mt-1 text-slate-900 dark:text-white">
+                          {st.name}
+                        </div>
+                        <div className="text-[10px] leading-tight text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                          {st.desc}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions / Courier Status info */}
+                  <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                    <div className="text-slate-500 dark:text-slate-400">
+                      Need custom changes or have questions about delivery?{" "}
+                      <Link href="/dashboard/support" className="text-teal-600 dark:text-teal-400 font-bold hover:underline">
+                        Message Tapbez Support
+                      </Link>
                     </div>
-                    <div
-                      className={`p-2 rounded-lg border font-bold ${
-                        ["production", "qa", "ready_to_ship", "shipped", "delivered"].includes(order.status)
-                          ? "bg-blue-50 dark:bg-blue-600/20 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"
-                          : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-400"
-                      }`}
-                    >
-                      2. UV Printing & NDEF
-                    </div>
-                    <div
-                      className={`p-2 rounded-lg border font-bold ${
-                        ["qa", "ready_to_ship", "shipped", "delivered"].includes(order.status)
-                          ? "bg-blue-50 dark:bg-blue-600/20 border-blue-200 dark:border-blue-500/40 text-blue-700 dark:text-blue-300"
-                          : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-400"
-                      }`}
-                    >
-                      3. Hardware QA Pass
-                    </div>
-                    <div
-                      className={`p-2 rounded-lg border font-bold ${
-                        ["shipped", "delivered"].includes(order.status)
-                          ? "bg-emerald-50 dark:bg-emerald-600/20 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300"
-                          : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-white/5 text-slate-400"
-                      }`}
-                    >
-                      4. Dispatched
-                    </div>
+
+                    {order.trackingNumber && (
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(
+                          (order.trackingCarrier || "courier") + " " + order.trackingNumber
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-500/30 font-bold hover:bg-teal-100 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Track on {order.trackingCarrier || "Courier"}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

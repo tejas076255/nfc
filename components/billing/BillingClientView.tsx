@@ -25,6 +25,7 @@ import {
   ExternalLink,
   Copy,
   Lock,
+  CreditCard,
 } from "lucide-react";
 
 interface PlanItem {
@@ -121,6 +122,36 @@ export function BillingClientView({
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState<string | null>(null);
   const [savedWebhookToast, setSavedWebhookToast] = useState(false);
+
+  // Extra Slots Purchase
+  const [buyingSlots, setBuyingSlots] = useState(false);
+  const [slotsQty, setSlotsQty] = useState(1);
+  const [showBuySlotsModal, setShowBuySlotsModal] = useState(false);
+
+  const handleBuyExtraSlots = async () => {
+    setBuyingSlots(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/billing/buy-slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity: slotsQty }),
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok) throw new Error(data.error || "Failed to purchase slots");
+
+      setMessage({
+        type: "success",
+        text: data.message || `Successfully purchased ${slotsQty} extra card slot(s)!`,
+      });
+      setShowBuySlotsModal(false);
+      router.refresh();
+    } catch (err: any) {
+      setMessage({ type: "error", text: err.message || "Failed to purchase extra slots" });
+    } finally {
+      setBuyingSlots(false);
+    }
+  };
 
   const handleUpgrade = async (planCode: string) => {
     if (planCode === currentPlan.code) return;
@@ -378,11 +409,21 @@ export function BillingClientView({
                 <div className="flex flex-wrap items-center gap-2.5 pt-2">
                   <Link
                     href="/dashboard/profiles/new"
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md shadow-blue-600/25 flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/25 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>+ Add New Profile ({Math.max(0, (currentPlan.profileLimit >= 999 ? 999 : currentPlan.profileLimit) - activeProfilesCount)} slots remaining)</span>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowBuySlotsModal(true)}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>+ Purchase Extra Card Slots</span>
+                  </button>
+
                   <Link
                     href="/dashboard/profiles"
                     className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
@@ -1052,6 +1093,93 @@ export function BillingClientView({
                   Configure Slack Webhook
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BUY EXTRA SLOTS MODAL */}
+      {showBuySlotsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200 dark:border-amber-500/30 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-amber-500" />
+                  <span>Purchase Extra Card Slots</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Need more digital profiles & cards beyond your {currentPlan.name}? Add permanent slots instantly.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowBuySlotsModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Select Number of Extra Slots to Add
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 5].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setSlotsQty(num)}
+                      className={`py-2 rounded-xl text-xs font-black border transition-all cursor-pointer ${
+                        slotsQty === num
+                          ? "bg-amber-500 text-slate-950 border-amber-500 shadow-sm"
+                          : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-amber-500/50"
+                      }`}
+                    >
+                      +{num} {num === 1 ? "Slot" : "Slots"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Calculation Box */}
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-slate-200">
+                  <span>Unit Price per Extra Slot</span>
+                  <span>₹199</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>Quantity</span>
+                  <span className="font-bold">{slotsQty} Slot(s)</span>
+                </div>
+                <div className="pt-2 border-t border-amber-500/20 flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-amber-900 dark:text-amber-200">
+                    Total Amount
+                  </span>
+                  <span className="text-xl font-black text-amber-500">
+                    ₹{(199 * slotsQty).toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setShowBuySlotsModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBuyExtraSlots}
+                disabled={buyingSlots}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {buyingSlots ? "Activating Slots..." : `Pay ₹${199 * slotsQty} & Activate Slots`}
+              </button>
             </div>
           </div>
         </div>

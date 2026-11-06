@@ -31,7 +31,9 @@ export function SupportClientView({ user }: SupportClientViewProps) {
   const [ticketSubject, setTicketSubject] = useState("Profile Customization & Links");
   const [ticketMessage, setTicketMessage] = useState("");
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
+  const [submittedTicketId, setSubmittedTicketId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const copyEmail = () => {
     navigator.clipboard.writeText("support@tapbez.in");
@@ -39,16 +41,35 @@ export function SupportClientView({ user }: SupportClientViewProps) {
     setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const handleTicketSubmit = (e: React.FormEvent) => {
+  const handleTicketSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ticketMessage.trim()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject: ticketSubject,
+          message: ticketMessage.trim(),
+        }),
+      });
+
+      const data = (await res.json()) as any;
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit ticket");
+      }
+
+      setSubmittedTicketId(data.ticketId);
       setTicketSubmitted(true);
       setTicketMessage("");
-    }, 600);
+    } catch (err: any) {
+      setSubmitError(err.message || "An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const faqs = [
@@ -245,14 +266,17 @@ export function SupportClientView({ user }: SupportClientViewProps) {
           <div className="p-5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 space-y-2">
             <div className="flex items-center gap-2 font-bold text-sm">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <span>Support Ticket #TBZ-{Math.floor(1000 + Math.random() * 9000)} Submitted!</span>
+              <span>Support Ticket #{submittedTicketId || "TBZ-RECEIVED"} Dispatched!</span>
             </div>
             <p className="text-xs text-emerald-700 dark:text-emerald-200/80">
-              Thank you, {user.name}. A confirmation email has been logged for <strong className="text-slate-900 dark:text-white">{user.email}</strong>. Our team will get back to you shortly.
+              Thank you, {user.name}. Your message has been logged directly into the Administrator Console for review. Our team will get back to you at <strong className="text-slate-900 dark:text-white">{user.email}</strong> shortly.
             </p>
             <button
               type="button"
-              onClick={() => setTicketSubmitted(false)}
+              onClick={() => {
+                setTicketSubmitted(false);
+                setSubmittedTicketId(null);
+              }}
               className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
             >
               Submit Another Inquiry
@@ -260,6 +284,11 @@ export function SupportClientView({ user }: SupportClientViewProps) {
           </div>
         ) : (
           <form onSubmit={handleTicketSubmit} className="space-y-4">
+            {submitError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs">
+                {submitError}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Your Name</label>

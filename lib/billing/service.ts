@@ -1,5 +1,6 @@
 import { getDb, schema } from "../db";
 import { eq, desc } from "drizzle-orm";
+import { fastCache } from "../cache";
 
 export const CARD_PRODUCTS = {
   standard_pvc: {
@@ -334,4 +335,162 @@ export async function adminCreateSampleOrder(
     notes: "Direct Admin Provisioning Order for Hardware QA Demonstration",
     createdAt: now,
   };
+}
+
+export async function getAllSupportTickets() {
+  const db = await getDb();
+  return db
+    .select()
+    .from(schema.supportTickets)
+    .orderBy(desc(schema.supportTickets.createdAt));
+}
+
+export async function adminUpdateSupportTicketStatus(
+  ticketId: string,
+  status: "open" | "in_progress" | "resolved" | "closed"
+) {
+  const db = await getDb();
+  const now = Math.floor(Date.now() / 1000);
+  await db
+    .update(schema.supportTickets)
+    .set({ status, updatedAt: now })
+    .where(eq(schema.supportTickets.id, ticketId));
+  return { success: true };
+}
+
+export async function getAllWorkspacesForAdmin() {
+  const db = await getDb();
+  const rows = await db
+    .select({
+      id: schema.workspaces.id,
+      name: schema.workspaces.name,
+      slug: schema.workspaces.slug,
+      extraSlots: schema.workspaces.extraSlots,
+      status: schema.workspaces.status,
+      ownerEmail: schema.users.email,
+      ownerName: schema.users.name,
+      planCode: schema.plans.code,
+      planName: schema.plans.name,
+      planBaseLimit: schema.plans.profileLimit,
+      subscriptionExtraSlots: schema.subscriptions.extraSlots,
+      subscriptionStatus: schema.subscriptions.status,
+      createdAt: schema.workspaces.createdAt,
+    })
+    .from(schema.workspaces)
+    .leftJoin(schema.users, eq(schema.workspaces.ownerId, schema.users.id))
+    .leftJoin(schema.subscriptions, eq(schema.workspaces.id, schema.subscriptions.workspaceId))
+    .leftJoin(schema.plans, eq(schema.subscriptions.planId, schema.plans.id))
+    .orderBy(desc(schema.workspaces.createdAt));
+
+  return rows.map((r) => {
+    const base = r.planBaseLimit ?? 1;
+    const extra = (r.extraSlots ?? 0) + (r.subscriptionExtraSlots ?? 0);
+    return {
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      extraSlots: extra,
+      status: r.status,
+      ownerEmail: r.ownerEmail || "N/A",
+      ownerName: r.ownerName || "User",
+      planCode: r.planCode || "free",
+      planName: r.planName || "Free Digital Identity",
+      baseLimit: base,
+      totalAllottedSlots: base + extra,
+      createdAt: r.createdAt,
+    };
+  });
+}
+
+export async function adminSetWorkspaceSlots(
+  workspaceId: string,
+  extraSlots: number,
+  planCode?: string
+) {
+  const db = await getDb();
+  const now = Math.floor(Date.now() / 1000);
+
+  // Update workspace extra slots
+  await db
+    .update(schema.workspaces)
+    .set({ extraSlots, updatedAt: now })
+    .where(eq(schema.workspaces.id, workspaceId));
+
+  // If a plan code is provided, update or create subscription
+  if (planCode) {
+    const [targetPlan] = await db
+      .select()
+      .from(schema.plans)
+      .where(eq(schema.plans.code, planCode as any))
+      .limit(1);
+
+    if (targetPlan) {
+      const [existingSub] = await db
+        .select()
+        .from(schema.subscriptions)
+        .where(eq(schema.subscriptions.workspaceId, workspaceId))
+        .limit(1);
+
+      if (existingSub) {
+        await db
+          .update(schema.subscriptions)
+          .set({ planId: targetPlan.id, updatedAt: now })
+          .where(eq(schema.subscriptions.id, existingSub.id));
+      } else {
+        await db.insert(schema.subscriptions).values({
+          id: crypto.randomUUID(),
+          workspaceId,
+          planId: targetPlan.id,
+          status: "active",
+          currentPeriodStart: now,
+          currentPeriodEnd: now + 365 * 86400,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+  }
+
+  // Invalidate fast cache
+  fastCache.delete(`plan:${workspaceId}`);
+  return { success: true };
+}
+
+export async function userPurchaseExtraSlots(workspaceId: string, quantity: number = 1) {
+  const db = await getDb();
+  const now = Math.floor(Date.now() / 1000);
+
+  const [ws] = await db
+    .select()
+    .from(schema.workspaces)
+    .where(eq(schema.workspaces.id, workspaceId))
+    .limit(1);
+
+  if (!ws) throw new Error("Workspace not found");
+
+  const newExtra = (ws.extraSlots || 0) + quantity;
+  await db
+    .update(schema.workspaces)
+    .set({ extraSlots: newExtra, updatedAt: now })
+    .where(eq(schema.workspaces.id, workspaceId));
+
+  const invoiceId = crypto.randomUUID();
+  const unitPrice = 199;
+  const totalInr = unitPrice * quantity;
+  await db.insert(schema.invoices).values({
+    id: invoiceId,
+    workspaceId,
+    invoiceNumber: `INV-SLOT-${Math.floor(100000 + Math.random() * 900000)}`,
+    amountInr: totalInr,
+    taxInr: Math.round(totalInr * 0.18),
+    totalInr: Math.round(totalInr * 1.18),
+    status: "paid",
+    lineItems: JSON.stringify([
+      { description: `Extra Card / Profile Slots (${quantity} slot)`, amount: totalInr }
+    ]),
+    createdAt: now,
+  });
+
+  fastCache.delete(`plan:${workspaceId}`);
+  return { success: true, newExtraSlots: newExtra };
 }

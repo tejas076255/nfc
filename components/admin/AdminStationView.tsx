@@ -34,7 +34,40 @@ import {
   ToggleRight,
   ChevronRight,
   Eye,
+  MessageSquare,
+  Mail,
+  Sparkles,
+  Filter,
+  Edit3,
 } from "lucide-react";
+
+interface AdminSupportTicket {
+  id: string;
+  workspaceId: string | null;
+  userId: string | null;
+  userName: string;
+  userEmail: string;
+  subject: string;
+  message: string;
+  status: "open" | "in_progress" | "resolved" | "closed";
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface AdminWorkspaceSlotInfo {
+  id: string;
+  name: string;
+  slug: string;
+  extraSlots: number;
+  status: string;
+  ownerEmail: string;
+  ownerName: string;
+  planCode: string;
+  planName: string;
+  baseLimit: number;
+  totalAllottedSlots: number;
+  createdAt: number;
+}
 
 interface AdminOrder {
   id: string;
@@ -88,6 +121,8 @@ export function AdminStationView({
   auditLogs: initialAuditLogs,
   profiles: initialProfiles = [],
   stats: initialStats,
+  initialSupportTickets = [],
+  initialWorkspaces = [],
 }: {
   orders: AdminOrder[];
   cards: AdminCard[];
@@ -100,15 +135,17 @@ export function AdminStationView({
     totalCards: number;
     totalOrders: number;
   };
+  initialSupportTickets?: AdminSupportTicket[];
+  initialWorkspaces?: AdminWorkspaceSlotInfo[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab") as any;
 
-  const validTabs = ["overview", "profiles", "orders", "qa", "inventory", "logs"];
-  const [activeTab, setActiveTab] = useState<"overview" | "profiles" | "orders" | "inventory" | "qa" | "logs">(
-    validTabs.includes(urlTab) ? urlTab : "overview"
-  );
+  const validTabs = ["overview", "orders", "slots", "support", "profiles", "qa", "inventory", "logs"];
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "orders" | "slots" | "support" | "profiles" | "qa" | "inventory" | "logs"
+  >(validTabs.includes(urlTab) ? urlTab : "overview");
 
   useEffect(() => {
     if (urlTab && validTabs.includes(urlTab)) {
@@ -116,7 +153,9 @@ export function AdminStationView({
     }
   }, [urlTab]);
 
-  const handleTabChange = (tab: "overview" | "profiles" | "orders" | "inventory" | "qa" | "logs") => {
+  const handleTabChange = (
+    tab: "overview" | "orders" | "slots" | "support" | "profiles" | "qa" | "inventory" | "logs"
+  ) => {
     setActiveTab(tab);
     router.replace(`/admin?tab=${tab}`, { scroll: false });
   };
@@ -125,8 +164,8 @@ export function AdminStationView({
   const [stats, setStats] = useState(
     initialStats || {
       totalProfiles: initialProfiles.length,
-      totalUsers: 0,
-      totalWorkspaces: 0,
+      totalUsers: initialWorkspaces.length,
+      totalWorkspaces: initialWorkspaces.length,
       totalCards: initialCards.length,
       totalOrders: initialOrders.length,
     }
@@ -141,8 +180,23 @@ export function AdminStationView({
   // Orders State
   const [orders, setOrders] = useState<AdminOrder[]>(initialOrders);
   const [orderSearch, setOrderSearch] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [creatingSampleOrder, setCreatingSampleOrder] = useState(false);
+
+  // Workspaces & Slots Quota State
+  const [workspaces, setWorkspaces] = useState<AdminWorkspaceSlotInfo[]>(initialWorkspaces);
+  const [workspaceSearch, setWorkspaceSearch] = useState("");
+  const [allocatingWorkspace, setAllocatingWorkspace] = useState<AdminWorkspaceSlotInfo | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<string>("free");
+  const [selectedExtraSlots, setSelectedExtraSlots] = useState<number>(0);
+  const [isAllocating, setIsAllocating] = useState(false);
+
+  // Support Tickets State
+  const [supportTickets, setSupportTickets] = useState<AdminSupportTicket[]>(initialSupportTickets);
+  const [supportSearch, setSupportSearch] = useState("");
+  const [supportStatusFilter, setSupportStatusFilter] = useState<string>("all");
+  const [updatingTicketId, setUpdatingTicketId] = useState<string | null>(null);
 
   // Cards & Inventory State
   const [cards, setCards] = useState<AdminCard[]>(initialCards);
@@ -260,6 +314,95 @@ export function AdminStationView({
       setAlert({ type: "error", text: err.message || "Failed to update profile status" });
     } finally {
       setTogglingProfileId(null);
+    }
+  };
+
+  // 4. Update Support Ticket Status
+  const handleUpdateTicketStatus = async (
+    ticketId: string,
+    newStatus: "open" | "in_progress" | "resolved" | "closed"
+  ) => {
+    setUpdatingTicketId(ticketId);
+    setAlert(null);
+    try {
+      const res = await fetch("/api/admin/support", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId, status: newStatus }),
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok) throw new Error(data.error || "Failed to update ticket status");
+
+      setSupportTickets((prev) =>
+        prev.map((t) => (t.id === ticketId ? { ...t, status: newStatus } : t))
+      );
+      setAlert({ type: "success", text: `Support Ticket #${ticketId} status changed to '${newStatus}'.` });
+    } catch (err: any) {
+      setAlert({ type: "error", text: err.message || "Failed to update ticket status" });
+    } finally {
+      setUpdatingTicketId(null);
+    }
+  };
+
+  // 5. Open Allocation Modal
+  const openAllocationModal = (ws: AdminWorkspaceSlotInfo) => {
+    setAllocatingWorkspace(ws);
+    setSelectedPlan(ws.planCode || "free");
+    setSelectedExtraSlots(ws.extraSlots || 0);
+  };
+
+  // 6. Save Slot Allocation
+  const handleSaveSlotAllocation = async () => {
+    if (!allocatingWorkspace) return;
+    setIsAllocating(true);
+    setAlert(null);
+    try {
+      const res = await fetch("/api/admin/slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workspaceId: allocatingWorkspace.id,
+          extraSlots: selectedExtraSlots,
+          planCode: selectedPlan,
+        }),
+      });
+      const data = (await res.json()) as any;
+      if (!res.ok) throw new Error(data.error || "Failed to save slot allocation");
+
+      const planLimitMap: Record<string, { name: string; limit: number }> = {
+        free: { name: "Free Digital Identity", limit: 1 },
+        starter: { name: "Starter Plan", limit: 3 },
+        professional: { name: "Professional Plan", limit: 10 },
+        business_pro: { name: "Business Pro", limit: 25 },
+      };
+      const pInfo = planLimitMap[selectedPlan] || { name: selectedPlan, limit: 1 };
+
+      setWorkspaces((prev) =>
+        prev.map((w) =>
+          w.id === allocatingWorkspace.id
+            ? {
+                ...w,
+                planCode: selectedPlan,
+                planName: pInfo.name,
+                baseLimit: pInfo.limit,
+                extraSlots: selectedExtraSlots,
+                totalAllottedSlots: pInfo.limit + selectedExtraSlots,
+              }
+            : w
+        )
+      );
+
+      setAlert({
+        type: "success",
+        text: `Successfully allotted slots for '${allocatingWorkspace.name}'. Total Active Slots: ${
+          pInfo.limit + selectedExtraSlots
+        }.`,
+      });
+      setAllocatingWorkspace(null);
+    } catch (err: any) {
+      setAlert({ type: "error", text: err.message || "Failed to allocate slots" });
+    } finally {
+      setIsAllocating(false);
     }
   };
 
@@ -414,71 +557,101 @@ export function AdminStationView({
       )}
 
       {/* TOP TABS NAVIGATION */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-2 border-b border-slate-200 dark:border-white/10 pb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex lg:flex-wrap gap-2 border-b border-slate-200 dark:border-amber-500/20 pb-4">
         <button
           onClick={() => handleTabChange("overview")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "overview"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "overview"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
+          }`}
         >
-          <BarChart3 className="w-4 h-4" />
-          <span>System Overview</span>
-        </button>
-
-        <button
-          onClick={() => handleTabChange("profiles")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "profiles"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
-              : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
-        >
-          <Smartphone className="w-4 h-4" />
-          <span>Profiles Directory ({profiles.length})</span>
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>Executive Overview</span>
         </button>
 
         <button
           onClick={() => handleTabChange("orders")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "orders"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "orders"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
+          }`}
         >
-          <Truck className="w-4 h-4" />
-          <span>Fulfillment & Orders ({orders.length})</span>
+          <Package className="w-3.5 h-3.5" />
+          <span>Card Orders ({orders.length})</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange("slots")}
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "slots"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
+              : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
+          }`}
+        >
+          <CreditCard className="w-3.5 h-3.5" />
+          <span>User Slots & Quotas ({workspaces.length})</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange("support")}
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "support"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
+              : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
+          }`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>Support Inquiries ({supportTickets.length})</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange("profiles")}
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "profiles"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
+              : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
+          }`}
+        >
+          <Smartphone className="w-3.5 h-3.5" />
+          <span>Profiles Directory ({profiles.length})</span>
         </button>
 
         <button
           onClick={() => handleTabChange("qa")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "qa"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "qa"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
+          }`}
         >
-          <Cpu className="w-4 h-4" />
-          <span>Hardware QA Terminal</span>
+          <Cpu className="w-3.5 h-3.5" />
+          <span>Hardware QA</span>
         </button>
 
         <button
           onClick={() => handleTabChange("inventory")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "inventory"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "inventory"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
+          }`}
         >
-          <Layers className="w-4 h-4" />
-          <span>Factory Batch Mint</span>
+          <Layers className="w-3.5 h-3.5" />
+          <span>Factory Mint</span>
         </button>
 
         <button
           onClick={() => handleTabChange("logs")}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === "logs"
-              ? "bg-purple-600 text-white shadow-md shadow-purple-600/25"
+          className={`flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === "logs"
+              ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
               : "bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/5"
-            }`}
+          }`}
         >
-          <History className="w-4 h-4" />
-          <span>Security Audit Trail</span>
+          <History className="w-3.5 h-3.5" />
+          <span>Audit Logs</span>
         </button>
       </div>
 
@@ -488,23 +661,23 @@ export function AdminStationView({
       {activeTab === "overview" && (
         <div className="space-y-8 animate-in fade-in duration-150">
           {/* Welcome Banner */}
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md space-y-2">
+          <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 text-slate-950 shadow-lg space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/20 border border-white/30 inline-block mb-1">
-                  Master Operations Hub
+                <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-950/20 border border-slate-950/30 inline-block mb-1 text-slate-950">
+                  Tapbez Sovereign Operations Hub
                 </span>
-                <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950">
                   Platform Operations & Hardware Control
                 </h2>
-                <p className="text-xs text-purple-100 max-w-2xl leading-relaxed">
-                  Real-time Cloudflare D1 telemetry for user profiles, physical NFC provisioning, BlueDart dispatch pipelines, and cryptographic QA records.
+                <p className="text-xs text-slate-900/90 font-medium max-w-2xl leading-relaxed">
+                  Real-time Cloudflare D1 telemetry for user profiles, subscription slot allocation, physical NFC fulfillment, customer support tickets, and cryptographic QA records.
                 </p>
               </div>
               <button
                 onClick={handleCreateSampleOrder}
                 disabled={creatingSampleOrder}
-                className="self-start sm:self-center px-4 py-2.5 rounded-xl bg-white text-purple-700 hover:bg-purple-50 text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer shrink-0"
+                className="self-start sm:self-center px-4 py-2.5 rounded-xl bg-slate-950 text-amber-400 hover:bg-slate-900 text-xs font-black shadow-md transition-all active:scale-95 flex items-center gap-2 cursor-pointer shrink-0 border border-amber-500/40"
               >
                 {creatingSampleOrder ? (
                   <Clock className="w-4 h-4 animate-spin" />
@@ -519,8 +692,8 @@ export function AdminStationView({
           {/* 5 KPI Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Profiles Card */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center font-bold">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200/80 dark:border-amber-500/15 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
@@ -534,8 +707,8 @@ export function AdminStationView({
             </div>
 
             {/* Users Card */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 flex items-center justify-center font-bold">
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200/80 dark:border-amber-500/15 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
                 <Users className="w-5 h-5" />
               </div>
               <div>
@@ -543,49 +716,49 @@ export function AdminStationView({
                   {stats.totalUsers}
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Registered Users
+                  Users / Workspaces
                 </div>
               </div>
             </div>
 
-            {/* Workspaces Card */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 flex items-center justify-center font-bold">
-                <Building2 className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
-                  {stats.totalWorkspaces}
-                </div>
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  Active Workspaces
-                </div>
-              </div>
-            </div>
-
-            {/* Hardware Cards */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 flex items-center justify-center font-bold">
+            {/* Total Active Slots Card */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200/80 dark:border-amber-500/15 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <div className="text-2xl font-black text-slate-900 dark:text-white">
-                  {stats.totalCards}
+                <div className="text-2xl font-black text-amber-500">
+                  {workspaces.reduce((acc, w) => acc + (w.totalAllottedSlots || 1), 0)}
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  NFC Physical Cards
+                  Total Active Slots
+                </div>
+              </div>
+            </div>
+
+            {/* Support Inquiries Card */}
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200/80 dark:border-amber-500/15 shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900 dark:text-white">
+                  {supportTickets.length}
+                </div>
+                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  Support Inquiries
                 </div>
               </div>
             </div>
 
             {/* Orders Card */}
-            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 shadow-xs space-y-3 col-span-2 lg:col-span-1">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 flex items-center justify-center font-bold">
-                <Truck className="w-5 h-5" />
+            <div className="p-5 rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200/80 dark:border-amber-500/15 shadow-xs space-y-3 col-span-2 lg:col-span-1">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                <Package className="w-5 h-5" />
               </div>
               <div>
                 <div className="text-2xl font-black text-slate-900 dark:text-white">
-                  {stats.totalOrders}
+                  {orders.length}
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   Card Orders
@@ -597,15 +770,63 @@ export function AdminStationView({
           {/* Quick Hub Navigation Cards */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Quick Operations Actions
+              Quick Executive Actions
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <button
-                onClick={() => handleTabChange("profiles")}
-                className="p-5 rounded-2xl bg-white hover:bg-purple-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border border-slate-200 dark:border-white/10 text-left transition-all group shadow-xs cursor-pointer"
+                onClick={() => handleTabChange("orders")}
+                className="p-5 rounded-2xl bg-white hover:bg-amber-50/40 dark:bg-[#0c101d] dark:hover:bg-[#12182b] border border-slate-200 dark:border-amber-500/20 text-left transition-all group shadow-xs cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Smartphone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <Package className="w-5 h-5 text-amber-500" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  Fulfillment Pipeline
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Progress physical card orders from UV Print to Courier Dispatch. ({orders.length} orders)
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleTabChange("slots")}
+                className="p-5 rounded-2xl bg-white hover:bg-amber-50/40 dark:bg-[#0c101d] dark:hover:bg-[#12182b] border border-slate-200 dark:border-amber-500/20 text-left transition-all group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <CreditCard className="w-5 h-5 text-amber-500" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  User Slots & Quotas
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Allot card slots per user subscription or assign add-on slots.
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleTabChange("support")}
+                className="p-5 rounded-2xl bg-white hover:bg-emerald-50/40 dark:bg-[#0c101d] dark:hover:bg-[#12182b] border border-slate-200 dark:border-amber-500/20 text-left transition-all group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <MessageSquare className="w-5 h-5 text-emerald-500" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white">
+                  Support Inquiries
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  Review customer helpdesk tickets and problem messages. ({supportTickets.length} tickets)
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleTabChange("profiles")}
+                className="p-5 rounded-2xl bg-white hover:bg-amber-50/40 dark:bg-[#0c101d] dark:hover:bg-[#12182b] border border-slate-200 dark:border-amber-500/20 text-left transition-all group shadow-xs cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Smartphone className="w-5 h-5 text-amber-500" />
                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                 </div>
                 <div className="text-sm font-bold text-slate-900 dark:text-white">
@@ -613,54 +834,6 @@ export function AdminStationView({
                 </div>
                 <div className="text-xs text-slate-500 mt-1">
                   Inspect & toggle live status for all {profiles.length} member profiles.
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleTabChange("orders")}
-                className="p-5 rounded-2xl bg-white hover:bg-blue-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border border-slate-200 dark:border-white/10 text-left transition-all group shadow-xs cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
-                  Fulfillment Pipeline
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Progress physical card orders from UV Print to Courier Dispatch.
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleTabChange("qa")}
-                className="p-5 rounded-2xl bg-white hover:bg-emerald-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border border-slate-200 dark:border-white/10 text-left transition-all group shadow-xs cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Cpu className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
-                  Hardware QA Terminal
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Verify NTAG213 cryptographic readback before customer delivery.
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleTabChange("inventory")}
-                className="p-5 rounded-2xl bg-white hover:bg-amber-50/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border border-slate-200 dark:border-white/10 text-left transition-all group shadow-xs cursor-pointer"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Layers className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
-                </div>
-                <div className="text-sm font-bold text-slate-900 dark:text-white">
-                  Factory Batch Mint
-                </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  Generate unassigned batch tokens and download factory printing CSV.
                 </div>
               </button>
             </div>
@@ -674,7 +847,7 @@ export function AdminStationView({
               </h3>
               <button
                 onClick={() => handleTabChange("logs")}
-                className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+                className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
               >
                 View Full Audit Trail ({auditLogs.length}) →
               </button>
@@ -866,30 +1039,48 @@ export function AdminStationView({
         <div className="space-y-6 animate-in fade-in duration-150">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                Physical Card Production & Dispatch Queue
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Package className="w-5 h-5 text-amber-500" />
+                <span>Physical Card Fulfillment & Production Queue</span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Move custom physical cards from verified payment through UV printing, NDEF encoding, and BlueDart courier dispatch.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative w-full sm:w-64">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-56">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search order #..."
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-purple-600"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-500/20 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
                 />
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-0.5 shrink-0 overflow-x-auto">
+                {(["all", "paid", "production", "qa", "shipped", "delivered"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setOrderStatusFilter(filter)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${
+                      orderStatusFilter === filter
+                        ? "bg-amber-500 text-slate-950 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
 
               <button
                 onClick={handleCreateSampleOrder}
                 disabled={creatingSampleOrder}
-                className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 {creatingSampleOrder ? (
                   <Clock className="w-4 h-4 animate-spin" />
@@ -903,8 +1094,8 @@ export function AdminStationView({
 
           {/* If 0 Orders */}
           {orders.length === 0 ? (
-            <div className="p-10 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 text-center space-y-4 bg-white dark:bg-slate-900/30">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center mx-auto">
+            <div className="p-10 rounded-2xl border-2 border-dashed border-slate-200 dark:border-amber-500/20 text-center space-y-4 bg-white dark:bg-slate-900/30">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto">
                 <Package className="w-6 h-6" />
               </div>
               <div className="space-y-1 max-w-sm mx-auto">
@@ -918,7 +1109,7 @@ export function AdminStationView({
               <button
                 onClick={handleCreateSampleOrder}
                 disabled={creatingSampleOrder}
-                className="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md transition-all active:scale-95 inline-flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-md transition-all active:scale-95 inline-flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Create Live Test Order</span>
@@ -927,7 +1118,11 @@ export function AdminStationView({
           ) : (
             <div className="space-y-4">
               {orders
-                .filter((o) => o.orderNumber.toLowerCase().includes(orderSearch.toLowerCase()))
+                .filter((o) => {
+                  if (orderStatusFilter !== "all" && o.status !== orderStatusFilter) return false;
+                  if (orderSearch && !o.orderNumber.toLowerCase().includes(orderSearch.toLowerCase())) return false;
+                  return true;
+                })
                 .map((order) => {
                   let address: any = {};
                   try {
@@ -939,15 +1134,15 @@ export function AdminStationView({
                   return (
                     <div
                       key={order.id}
-                      className="p-6 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 shadow-xs space-y-4"
+                      className="p-6 rounded-2xl border border-slate-200 dark:border-amber-500/15 bg-white dark:bg-[#0c101d] shadow-xs space-y-4"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/10 pb-4">
                         <div>
                           <div className="flex items-center gap-3">
-                            <span className="text-base font-extrabold text-slate-900 dark:text-white">
+                            <span className="text-base font-black text-slate-900 dark:text-white">
                               {order.orderNumber}
                             </span>
-                            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-500/10 dark:text-purple-300 dark:border-purple-500/30">
+                            <span className="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                               {order.status}
                             </span>
                           </div>
@@ -963,7 +1158,7 @@ export function AdminStationView({
                             <button
                               onClick={() => handleUpdateOrderStatus(order.id, "production")}
                               disabled={isUpdating}
-                              className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-xs transition-colors cursor-pointer"
                             >
                               Send to UV Print & Encode →
                             </button>
@@ -973,7 +1168,7 @@ export function AdminStationView({
                             <button
                               onClick={() => handleUpdateOrderStatus(order.id, "qa")}
                               disabled={isUpdating}
-                              className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                             >
                               Send to QA Inspection →
                             </button>
@@ -983,7 +1178,7 @@ export function AdminStationView({
                             <button
                               onClick={() => handleUpdateOrderStatus(order.id, "ready_to_ship")}
                               disabled={isUpdating}
-                              className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                             >
                               Pack & Ready to Ship →
                             </button>
@@ -1000,7 +1195,7 @@ export function AdminStationView({
                                 )
                               }
                               disabled={isUpdating}
-                              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                             >
                               Dispatch with BlueDart →
                             </button>
@@ -1010,14 +1205,14 @@ export function AdminStationView({
                             <button
                               onClick={() => handleUpdateOrderStatus(order.id, "delivered")}
                               disabled={isUpdating}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                             >
                               ✓ Mark Delivered
                             </button>
                           )}
 
                           {order.status === "delivered" && (
-                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                            <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
                               <CheckCircle2 className="w-4 h-4" /> Delivered to Customer
                             </span>
                           )}
@@ -1395,6 +1590,389 @@ export function AdminStationView({
                   ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 7: USER SLOTS & SUBSCRIPTION QUOTAS                   */}
+      {/* ======================================================== */}
+      {activeTab === "slots" && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-amber-500" />
+                <span>User Slots & Subscription Quotas</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Manage card slots for each user/workspace according to subscription plan. (1 user = 1 card baseline. Free=1, Starter=3, Professional=10, Business Pro=25). Extra slots can be allocated here or purchased by user.
+              </p>
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search user, email or workspace..."
+                value={workspaceSearch}
+                onChange={(e) => setWorkspaceSearch(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-500/20 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+          </div>
+
+          {/* Quick Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-amber-500/15 shadow-xs">
+              <div className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500">Total Workspaces</div>
+              <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{workspaces.length}</div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-amber-500/15 shadow-xs">
+              <div className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">Total Allotted Slots</div>
+              <div className="text-2xl font-black text-amber-500 mt-1">
+                {workspaces.reduce((acc, w) => acc + (w.totalAllottedSlots || 1), 0)}
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-amber-500/15 shadow-xs">
+              <div className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Extra Paid/Granted Slots</div>
+              <div className="text-2xl font-black text-emerald-500 mt-1">
+                {workspaces.reduce((acc, w) => acc + (w.extraSlots || 0), 0)}
+              </div>
+            </div>
+          </div>
+
+          {/* Workspaces Slots Table */}
+          <div className="rounded-2xl border border-slate-200 dark:border-amber-500/20 bg-white dark:bg-slate-900/40 overflow-hidden shadow-xs">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-amber-500/20 text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold text-[10px]">
+                <tr>
+                  <th className="py-3 px-4">User / Workspace</th>
+                  <th className="py-3 px-4">Owner Email</th>
+                  <th className="py-3 px-4">Subscription Plan</th>
+                  <th className="py-3 px-4 text-center">Plan Baseline</th>
+                  <th className="py-3 px-4 text-center">Extra Slots</th>
+                  <th className="py-3 px-4 text-center">Total Allotted</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                {workspaces
+                  .filter(
+                    (w) =>
+                      w.name.toLowerCase().includes(workspaceSearch.toLowerCase()) ||
+                      w.slug.toLowerCase().includes(workspaceSearch.toLowerCase()) ||
+                      w.ownerEmail.toLowerCase().includes(workspaceSearch.toLowerCase())
+                  )
+                  .map((ws) => (
+                    <tr key={ws.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-slate-900 dark:text-white">{ws.name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">/{ws.slug}</div>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                        <div className="font-medium">{ws.ownerEmail}</div>
+                        <div className="text-[10px] text-slate-400">{ws.ownerName}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          <Sparkles className="w-3 h-3 text-amber-500" />
+                          {ws.planName}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center font-bold text-slate-700 dark:text-slate-300">
+                        {ws.baseLimit || 1}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className={`font-mono font-bold ${ws.extraSlots > 0 ? "text-emerald-500" : "text-slate-400"}`}>
+                          +{ws.extraSlots || 0}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-900 dark:text-amber-200 font-black border border-amber-500/30">
+                          {ws.totalAllottedSlots || 1} Cards
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => openAllocationModal(ws)}
+                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Allot Slots</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 8: USER SUPPORT INQUIRIES & MESSAGES                  */}
+      {/* ======================================================== */}
+      {activeTab === "support" && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-amber-500" />
+                <span>User Support Inquiries & Problem Messages</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                All messages and problem reports submitted by users from the Help & Support center are logged here for executive resolution.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search user messages or email..."
+                  value={supportSearch}
+                  onChange={(e) => setSupportSearch(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-amber-500/20 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-0.5 shrink-0">
+                {(["all", "open", "in_progress", "resolved"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setSupportStatusFilter(filter)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${
+                      supportStatusFilter === filter
+                        ? "bg-amber-500 text-slate-950 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    {filter.replace("_", " ")}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Support Tickets List */}
+          {supportTickets.length === 0 ? (
+            <div className="p-12 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 text-center space-y-3 bg-white dark:bg-slate-900/40">
+              <MessageSquare className="w-10 h-10 text-slate-400 mx-auto" />
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">No Support Messages Yet</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                When a user encounters any problem or submits a ticket in their Support page, their inquiry will appear here with instant resolution controls.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {supportTickets
+                .filter((t) => {
+                  if (supportStatusFilter !== "all" && t.status !== supportStatusFilter) return false;
+                  if (supportSearch) {
+                    const q = supportSearch.toLowerCase();
+                    return (
+                      t.userName.toLowerCase().includes(q) ||
+                      t.userEmail.toLowerCase().includes(q) ||
+                      t.subject.toLowerCase().includes(q) ||
+                      t.message.toLowerCase().includes(q) ||
+                      t.id.toLowerCase().includes(q)
+                    );
+                  }
+                  return true;
+                })
+                .map((ticket) => {
+                  const isUpdating = updatingTicketId === ticket.id;
+                  return (
+                    <div
+                      key={ticket.id}
+                      className="p-5 rounded-2xl border border-slate-200 dark:border-amber-500/15 bg-white dark:bg-slate-900/50 shadow-xs space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-white/10 pb-3">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="font-mono text-xs font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                            {ticket.id}
+                          </span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
+                            {ticket.subject}
+                          </span>
+                          <span
+                            className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                              ticket.status === "resolved"
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30"
+                                : ticket.status === "in_progress"
+                                ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200 dark:border-blue-500/30"
+                                : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/30"
+                            }`}
+                          >
+                            {ticket.status.replace("_", " ")}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {ticket.status !== "in_progress" && ticket.status !== "resolved" && (
+                            <button
+                              onClick={() => handleUpdateTicketStatus(ticket.id, "in_progress")}
+                              disabled={isUpdating}
+                              className="px-3 py-1 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              In Progress
+                            </button>
+                          )}
+                          {ticket.status !== "resolved" && (
+                            <button
+                              onClick={() => handleUpdateTicketStatus(ticket.id, "resolved")}
+                              disabled={isUpdating}
+                              className="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              ✓ Mark Resolved
+                            </button>
+                          )}
+                          {ticket.status === "resolved" && (
+                            <button
+                              onClick={() => handleUpdateTicketStatus(ticket.id, "open")}
+                              disabled={isUpdating}
+                              className="px-3 py-1 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                            >
+                              Reopen
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Ticket Message Content */}
+                      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-100 dark:border-white/5 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
+                        {ticket.message}
+                      </div>
+
+                      {/* Ticket Reporter Metadata */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            Customer: {ticket.userName}
+                          </span>
+                          <span>•</span>
+                          <span className="font-mono">{ticket.userEmail}</span>
+                        </div>
+                        <div className="font-mono">
+                          Submitted on {new Date(ticket.createdAt * 1000).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* SLOT ALLOCATION MODAL                                     */}
+      {/* ======================================================== */}
+      {allocatingWorkspace && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#0c101d] border border-slate-200 dark:border-amber-500/30 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-amber-500" />
+                  <span>Allot Slots & Plan Quota</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Workspace: <strong className="text-slate-900 dark:text-white">{allocatingWorkspace.name}</strong> ({allocatingWorkspace.ownerEmail})
+                </p>
+              </div>
+              <button
+                onClick={() => setAllocatingWorkspace(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Subscription Plan Selection */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Subscription Plan Tier (Base Slots)
+                </label>
+                <select
+                  value={selectedPlan}
+                  onChange={(e) => setSelectedPlan(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer"
+                >
+                  <option value="free">Free Digital Identity (1 Slot Baseline)</option>
+                  <option value="starter">Starter Plan (3 Slots)</option>
+                  <option value="professional">Professional Plan (10 Slots)</option>
+                  <option value="business_pro">Business Pro Plan (25 Slots)</option>
+                </select>
+              </div>
+
+              {/* Extra Slots Add-on Input */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Additional Allotted Slots (Beyond Plan)
+                  </label>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 5, 10].map((inc) => (
+                      <button
+                        key={inc}
+                        type="button"
+                        onClick={() => setSelectedExtraSlots((prev) => prev + inc)}
+                        className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-[10px] font-bold hover:bg-amber-500/20 cursor-pointer"
+                      >
+                        +{inc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  max={500}
+                  value={selectedExtraSlots}
+                  onChange={(e) => setSelectedExtraSlots(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-bold focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              {/* Total Calculation Preview */}
+              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-amber-900 dark:text-amber-200">
+                    Total Active Card Slots
+                  </div>
+                  <div className="text-[11px] text-amber-700 dark:text-amber-300/80">
+                    {selectedPlan === "free" ? 1 : selectedPlan === "starter" ? 3 : selectedPlan === "professional" ? 10 : 25} (Base Plan) + {selectedExtraSlots} (Extra)
+                  </div>
+                </div>
+                <div className="text-2xl font-black text-amber-500">
+                  {(selectedPlan === "free" ? 1 : selectedPlan === "starter" ? 3 : selectedPlan === "professional" ? 10 : 25) + selectedExtraSlots}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => setAllocatingWorkspace(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveSlotAllocation}
+                disabled={isAllocating}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isAllocating ? "Saving..." : "Confirm & Save Allocation"}
+              </button>
+            </div>
           </div>
         </div>
       )}

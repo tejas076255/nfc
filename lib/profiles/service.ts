@@ -20,19 +20,31 @@ export async function getWorkspaceSubscriptionPlan(workspaceId: string) {
     .where(eq(schema.subscriptions.workspaceId, workspaceId))
     .limit(1);
 
+  const [ws] = await db
+    .select({ extraSlots: schema.workspaces.extraSlots })
+    .from(schema.workspaces)
+    .where(eq(schema.workspaces.id, workspaceId))
+    .limit(1);
+
+  const extraSlots = (ws?.extraSlots || 0) + (sub?.subscription?.extraSlots || 0);
+
   let result;
   if (!sub) {
     // Default to free
     result = {
       planCode: "free" as const,
-      profileLimit: 1,
+      baseLimit: 1,
+      extraSlots,
+      profileLimit: 1 + extraSlots,
       status: "active",
       planName: "Free Digital Identity",
     };
   } else {
     result = {
       planCode: sub.plan.code,
-      profileLimit: sub.plan.profileLimit,
+      baseLimit: sub.plan.profileLimit,
+      extraSlots,
+      profileLimit: sub.plan.profileLimit + extraSlots,
       status: sub.subscription.status,
       planName: sub.plan.name,
     };
