@@ -15,18 +15,72 @@ import {
 } from "lucide-react";
 
 interface CardOrderCheckoutProps {
-  initialVariant?: "standard_pvc" | "matte_pvc";
+  initialVariant?: "standard_pvc" | "custom_pvc" | "custom_metal" | "matte_pvc";
   userEmail: string;
   userName: string;
 }
 
+const SELECTABLE_CARDS = [
+  {
+    id: "standard_pvc",
+    name: "Standard PVC NFC Card",
+    price: 999,
+    priceLabel: "₹999",
+    tagline: "Simple. Smart. Professional.",
+    image: "/landing/card-standard.jpg",
+    imageAlt: "Standard white PVC NFC business card",
+    badge: null,
+    features: [
+      "NFC-enabled PVC card",
+      "Standard design selection",
+      "Linked digital business profile",
+      "Tap-to-share functionality",
+      "QR sharing option",
+    ],
+  },
+  {
+    id: "custom_pvc",
+    name: "Customized PVC NFC Card",
+    price: 1499,
+    priceLabel: "₹1,499",
+    tagline: "Your brand. Your identity. Your smart card.",
+    image: "/landing/card-custom-pvc.jpg",
+    imageAlt: "Customized PVC NFC business card with company branding",
+    badge: "Recommended",
+    features: [
+      "NFC-enabled PVC card",
+      "Personalized name & branding",
+      "Custom logo and artwork",
+      "Digital business profile",
+      "Tap and QR sharing",
+    ],
+  },
+  {
+    id: "custom_metal",
+    name: "Customized Metal NFC Card",
+    price: 1999,
+    priceLabel: "₹1,999",
+    tagline: "Make a premium first impression.",
+    image: "/landing/card-metal.jpg",
+    imageAlt: "Premium champagne-gold metal NFC business card",
+    badge: "Ultra Premium",
+    features: [
+      "Premium metal card",
+      "Custom laser branding",
+      "NFC-enabled sharing",
+      "Digital business profile",
+      "Premium product presentation",
+    ],
+  },
+];
+
 export function CardOrderCheckout({
-  initialVariant = "matte_pvc",
+  initialVariant = "custom_pvc",
   userEmail,
   userName,
 }: CardOrderCheckoutProps) {
   const router = useRouter();
-  const [variant, setVariant] = useState<"standard_pvc" | "matte_pvc">(initialVariant);
+  const [variant, setVariant] = useState<"standard_pvc" | "custom_pvc" | "custom_metal" | "matte_pvc">(initialVariant);
   const [quantity, setQuantity] = useState(1);
 
   // Customization
@@ -48,7 +102,7 @@ export function CardOrderCheckout({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const product = CARD_PRODUCTS[variant];
+  const product = CARD_PRODUCTS[variant as keyof typeof CARD_PRODUCTS] || CARD_PRODUCTS.custom_pvc;
   const unitPrice = product.priceInr;
   const totalAmount = unitPrice * quantity;
 
@@ -184,44 +238,121 @@ export function CardOrderCheckout({
             </div>
           )}
 
-          {/* 1. Hardware Variant Selection */}
+          {/* 1. Hardware Variant Selection - 3 Options with Images */}
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">1. Select Card Hardware Variant</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div
-                onClick={() => setVariant("standard_pvc")}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                  variant === "standard_pvc"
-                    ? "border-2 border-blue-600 bg-blue-50 dark:bg-blue-600/10 shadow-sm"
-                    : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">Standard PVC</span>
-                    <span className="text-sm font-bold text-slate-900 dark:text-white">₹499</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-500 dark:text-slate-400">High-gloss durable PVC</p>
-                </div>
-              </div>
-
-              <div
-                onClick={() => setVariant("matte_pvc")}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
-                  variant === "matte_pvc"
-                    ? "border-2 border-amber-500 bg-amber-50 dark:bg-amber-500/10 shadow-sm"
-                    : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">Premium Matte PVC</span>
-                    <span className="text-sm font-bold text-amber-400">₹999</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-500 dark:text-slate-400">Velvet soft-touch luxury finish</p>
-                </div>
-              </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>1. Select Card Hardware Option</span>
+                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  3 Options Available
+                </span>
+              </h3>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">Click a card to select</span>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {SELECTABLE_CARDS.map((card) => {
+                const isSelected =
+                  variant === card.id ||
+                  (card.id === "custom_pvc" && variant === "matte_pvc");
+
+                return (
+                  <div
+                    key={card.id}
+                    onClick={() => setVariant(card.id as any)}
+                    className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between ${
+                      isSelected
+                        ? "border-[#00b39d] ring-2 ring-[#00b39d] bg-[#00b39d]/5 dark:bg-[#00b39d]/10 shadow-lg shadow-[#00b39d]/15"
+                        : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-100/70 dark:hover:bg-slate-800/80"
+                    }`}
+                  >
+                    {/* Badge */}
+                    {card.badge && (
+                      <span className="absolute top-2.5 right-2.5 z-10 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#00b39d] text-white shadow-md">
+                        {card.badge}
+                      </span>
+                    )}
+
+                    {/* Card Product Image */}
+                    <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-950">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={card.image}
+                        alt={card.imageAlt}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute bottom-2 left-2.5 right-2.5 flex items-baseline justify-between">
+                        <span className="text-base font-black text-white drop-shadow-md">
+                          {card.priceLabel}
+                        </span>
+                        {isSelected && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-white text-[#00b39d] px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-[#00b39d]" />
+                            Selected
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Content & Features */}
+                    <div className="p-3.5 flex flex-col flex-1 justify-between space-y-3">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                          {card.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                          {card.tagline}
+                        </p>
+                      </div>
+
+                      {/* Feature Checklist */}
+                      <ul className="space-y-1.5 pt-2 border-t border-slate-200/60 dark:border-white/5">
+                        {card.features.map((feat, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-1.5 text-[11px] text-slate-600 dark:text-slate-300"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-[#00b39d] shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* Selection Button */}
+                      <div className="pt-1">
+                        <div
+                          className={`w-full py-1.5 rounded-lg text-xs font-bold text-center transition-colors ${
+                            isSelected
+                              ? "bg-[#00b39d] text-white shadow-sm"
+                              : "bg-slate-200/80 dark:bg-white/10 text-slate-700 dark:text-slate-300 group-hover:bg-[#00b39d] group-hover:text-white"
+                          }`}
+                        >
+                          {isSelected ? "✓ Option Selected" : "Select Option"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Helper Notice based on selection */}
+            {variant === "standard_pvc" ? (
+              <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-400 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Standard PVC Tier (₹999):</strong> High-gloss durable PVC with standard typographic layout. For custom company logos, artwork & foil accents, select <strong>Customized PVC</strong> or <strong>Customized Metal</strong> above.
+                </span>
+              </div>
+            ) : variant === "custom_metal" ? (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-400 flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong>Customized Metal Tier (₹1,999):</strong> Aerospace-grade metal card with precision laser engraving, luxury weight, and presentation sleeve included.
+                </span>
+              </div>
+            ) : null}
           </div>
 
           {/* 2. Personalized Print Typography */}

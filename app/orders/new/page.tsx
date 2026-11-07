@@ -17,7 +17,14 @@ export default async function NewOrderPage({ searchParams }: PageProps) {
     return redirect(`/login?returnTo=${encodeURIComponent("/orders/new")}`);
   }
 
-  const selectedVariant = variant === "matte_pvc" ? "matte_pvc" : "standard_pvc";
+  let selectedVariant: "standard_pvc" | "custom_pvc" | "custom_metal" = "custom_pvc";
+  if (variant === "standard_pvc" || variant === "standard") {
+    selectedVariant = "standard_pvc";
+  } else if (variant === "custom_metal" || variant === "metal") {
+    selectedVariant = "custom_metal";
+  } else if (variant === "custom_pvc" || variant === "custom-pvc" || variant === "matte_pvc") {
+    selectedVariant = "custom_pvc";
+  }
 
   return (
     <div className="min-h-screen bg-[#080a10] text-slate-100 p-6 sm:p-12 selection:bg-blue-600 selection:text-white">

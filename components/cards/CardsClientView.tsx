@@ -201,8 +201,12 @@ export function CardsClientView({ initialCards, profiles }: CardsClientViewProps
                     <Wifi className="w-5 h-5 rotate-90" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white capitalize">
-                      {card.productVariant?.replace("_", " ") || "Standard PVC"}
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {card.productVariant === "custom_metal"
+                        ? "Customized Metal NFC Card"
+                        : card.productVariant === "custom_pvc" || card.productVariant === "matte_pvc"
+                        ? "Customized PVC NFC Card"
+                        : "Standard PVC NFC Card"}
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                       Token: <code className="text-blue-600 dark:text-blue-400 font-bold">{card.publicToken}</code>

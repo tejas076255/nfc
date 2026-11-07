@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
     const { quantity = 10, variant = "standard_pvc" } = body;
 
     const qty = Math.min(Math.max(1, parseInt(quantity, 10) || 1), 100);
-    const validVariant = variant === "matte_pvc" ? "matte_pvc" : "standard_pvc";
+    const validVariants = ["standard_pvc", "custom_pvc", "custom_metal", "matte_pvc"] as const;
+    const validVariant = (validVariants as readonly string[]).includes(variant)
+      ? (variant as (typeof validVariants)[number])
+      : "standard_pvc";
 
     const batch = await adminGenerateInventory(qty, validVariant, session!.user.id);
 

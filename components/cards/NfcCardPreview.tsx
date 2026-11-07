@@ -8,7 +8,7 @@ interface NfcCardPreviewProps {
   name?: string;
   title?: string;
   company?: string;
-  variant?: "standard_pvc" | "matte_pvc";
+  variant?: "standard_pvc" | "matte_pvc" | "custom_pvc" | "custom_metal";
   colorPalette?: string;
   qrPosition?: "back_center" | "back_bottom_right";
   isInteractive?: boolean;
@@ -18,7 +18,7 @@ export function NfcCardPreview({
   name = "Siddharth Mehta",
   title = "Senior Corporate Counsel",
   company = "Vertex Legal Advisory",
-  variant = "matte_pvc",
+  variant = "custom_pvc",
   colorPalette = "noir_gold",
   qrPosition = "back_bottom_right",
   isInteractive = true,
@@ -27,6 +27,22 @@ export function NfcCardPreview({
   const [isTapped, setIsTapped] = useState(false);
 
   const getCardStyle = () => {
+    if (variant === "custom_metal") {
+      return {
+        background: "linear-gradient(135deg, #181715 0%, #2f271d 30%, #151310 60%, #3a3020 100%)",
+        accent: "#eab308",
+        foil: "linear-gradient(135deg, #fef08a 0%, #eab308 50%, #fef08a 100%)",
+        border: "rgba(234, 179, 8, 0.45)",
+      };
+    }
+    if (variant === "standard_pvc") {
+      return {
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0b1120 100%)",
+        accent: "#38bdf8",
+        foil: "linear-gradient(135deg, #ffffff 0%, #94a3b8 100%)",
+        border: "rgba(255, 255, 255, 0.15)",
+      };
+    }
     switch (colorPalette) {
       case "emerald_gold":
         return {
@@ -112,7 +128,11 @@ export function NfcCardPreview({
                 </span>
               </div>
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white/10 text-white/80 border border-white/10 backdrop-blur-md">
-                {variant === "matte_pvc" ? "Matte Luxe" : "Gloss PVC"}
+                {variant === "custom_metal"
+                  ? "Metal Luxe"
+                  : variant === "custom_pvc" || variant === "matte_pvc"
+                  ? "Custom PVC"
+                  : "Standard PVC"}
               </span>
             </div>
 

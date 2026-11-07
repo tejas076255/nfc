@@ -200,7 +200,7 @@ export function AdminStationView({
   // Cards & Inventory State
   const [cards, setCards] = useState<AdminCard[]>(initialCards);
   const [batchQty, setBatchQty] = useState(10);
-  const [batchVariant, setBatchVariant] = useState<"standard_pvc" | "matte_pvc">("standard_pvc");
+  const [batchVariant, setBatchVariant] = useState<"standard_pvc" | "matte_pvc" | "custom_pvc" | "custom_metal">("standard_pvc");
   const [generatingBatch, setGeneratingBatch] = useState(false);
   const [generatedBatch, setGeneratedBatch] = useState<any[] | null>(null);
 
@@ -1425,8 +1425,9 @@ export function AdminStationView({
                   onChange={(e) => setBatchVariant(e.target.value as any)}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 cursor-pointer font-semibold"
                 >
-                  <option value="standard_pvc">Standard Gloss PVC</option>
-                  <option value="matte_pvc">Premium Matte PVC</option>
+                  <option value="standard_pvc">Standard PVC NFC Card (₹999)</option>
+                  <option value="custom_pvc">Customized PVC NFC Card (₹1,499)</option>
+                  <option value="custom_metal">Customized Metal NFC Card (₹1,999)</option>
                 </select>
               </div>
             </div>

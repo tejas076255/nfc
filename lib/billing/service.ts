@@ -5,33 +5,96 @@ import { fastCache } from "../cache";
 export const CARD_PRODUCTS = {
   standard_pvc: {
     id: "standard_pvc",
-    name: "Standard Gloss PVC NFC Card",
-    priceInr: 499,
-    description: "Durable high-gloss PVC with embedded NTAG213 chip and precision edge-to-edge full color print.",
+    name: "Standard PVC NFC Card",
+    priceInr: 999,
+    priceLabel: "₹999",
+    tagline: "Simple. Smart. Professional.",
+    image: "/landing/card-standard.jpg",
+    imageAlt: "Standard white PVC NFC business card",
+    material: "PVC",
+    design: "Standard design selection",
+    logoPersonalization: false,
+    badge: null,
     features: [
-      "Waterproof & scratch resistant",
-      "Dynamic HTTPS URL NDEF tap",
-      "High-contrast printed QR backup",
-      "Instant tap-to-profile redirect",
+      "NFC-enabled PVC card",
+      "Standard design selection",
+      "Linked digital business profile",
+      "Tap-to-share functionality",
+      "QR sharing option",
     ],
+    description: "Durable high-gloss PVC with embedded NTAG213 chip and standard layout design.",
   },
+  custom_pvc: {
+    id: "custom_pvc",
+    name: "Customized PVC NFC Card",
+    priceInr: 1499,
+    priceLabel: "₹1,499",
+    tagline: "Your brand. Your identity. Your smart card.",
+    image: "/landing/card-custom-pvc.jpg",
+    imageAlt: "Customized PVC NFC business card with company branding",
+    material: "PVC",
+    design: "Fully custom design",
+    logoPersonalization: true,
+    badge: "Recommended",
+    features: [
+      "NFC-enabled PVC card",
+      "Personalized name and branding",
+      "Custom logo and artwork",
+      "Digital business profile",
+      "Tap and QR sharing",
+    ],
+    description: "Ultra-luxury velvet soft-touch finish with custom full-color logo, personal name, and artwork.",
+  },
+  custom_metal: {
+    id: "custom_metal",
+    name: "Customized Metal NFC Card",
+    priceInr: 1999,
+    priceLabel: "₹1,999",
+    tagline: "Make a premium first impression.",
+    image: "/landing/card-metal.jpg",
+    imageAlt: "Premium champagne-gold metal NFC business card",
+    material: "Metal",
+    design: "Fully custom design",
+    logoPersonalization: true,
+    badge: "Ultra Premium",
+    features: [
+      "Premium metal card",
+      "Custom branding",
+      "NFC-enabled sharing",
+      "Digital business profile",
+      "Premium product presentation",
+    ],
+    description: "Laser-etched aerospace-grade metal card with precision gold/dark finish and presentation sleeve.",
+  },
+  // Backward compatibility alias for any existing orders:
   matte_pvc: {
     id: "matte_pvc",
-    name: "Premium Matte PVC NFC Card",
-    priceInr: 999,
-    description: "Ultra-luxury velvet soft-touch matte finish with metallic foil accents and premium weighted core.",
+    name: "Customized PVC NFC Card",
+    priceInr: 1499,
+    priceLabel: "₹1,499",
+    tagline: "Your brand. Your identity. Your smart card.",
+    image: "/landing/card-custom-pvc.jpg",
+    imageAlt: "Customized PVC NFC business card with company branding",
+    material: "PVC",
+    design: "Fully custom design",
+    logoPersonalization: true,
+    badge: "Recommended",
     features: [
-      "Velvet soft-touch matte finish",
-      "Anti-fingerprint oleophobic coating",
-      "Premium weighted PVC core",
-      "Priority encode & QA inspection",
+      "NFC-enabled PVC card",
+      "Personalized name and branding",
+      "Custom logo and artwork",
+      "Digital business profile",
+      "Tap and QR sharing",
     ],
+    description: "Ultra-luxury velvet soft-touch finish with custom full-color logo, personal name, and artwork.",
   },
-};
+} as const;
+
+export type CardVariantKey = "standard_pvc" | "custom_pvc" | "custom_metal" | "matte_pvc";
 
 export async function createPhysicalCardOrder(data: {
   workspaceId: string;
-  variant: "standard_pvc" | "matte_pvc";
+  variant: CardVariantKey;
   quantity: number;
   printDesignData: {
     printedName: string;
@@ -287,7 +350,7 @@ export async function adminUpdateOrderStatus(
 
 export async function adminCreateSampleOrder(
   workspaceId: string,
-  variant: "standard_pvc" | "matte_pvc" = "matte_pvc",
+  variant: CardVariantKey = "custom_pvc",
   quantity: number = 1
 ) {
   const db = await getDb();
@@ -295,8 +358,8 @@ export async function adminCreateSampleOrder(
   const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
   const orderId = crypto.randomUUID();
 
-  const validVariant: "standard_pvc" | "matte_pvc" = variant === "standard_pvc" ? "standard_pvc" : "matte_pvc";
-  const unitPrice = validVariant === "matte_pvc" ? 1499 : 999;
+  const product = CARD_PRODUCTS[variant as keyof typeof CARD_PRODUCTS] || CARD_PRODUCTS.custom_pvc;
+  const unitPrice = product.priceInr;
   const totalAmount = unitPrice * quantity;
 
   const sampleAddress = JSON.stringify({
@@ -313,7 +376,7 @@ export async function adminCreateSampleOrder(
     workspaceId,
     orderNumber,
     status: "paid",
-    cardVariant: validVariant,
+    cardVariant: variant,
     quantity,
     totalAmountInr: totalAmount,
     shippingAddress: sampleAddress,
@@ -326,7 +389,7 @@ export async function adminCreateSampleOrder(
     id: orderId,
     orderNumber,
     status: "paid",
-    cardVariant: validVariant,
+    cardVariant: variant,
     quantity,
     totalAmountInr: totalAmount,
     shippingAddress: sampleAddress,

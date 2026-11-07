@@ -302,7 +302,7 @@ export async function setCardActiveState(
 // Admin inventory generation
 export async function adminGenerateInventory(
   quantity: number,
-  variant: "standard_pvc" | "matte_pvc",
+  variant: "standard_pvc" | "matte_pvc" | "custom_pvc" | "custom_metal",
   operatorId: string
 ) {
   const db = await getDb();

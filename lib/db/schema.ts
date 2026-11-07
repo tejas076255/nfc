@@ -123,7 +123,7 @@ export const cards = sqliteTable("cards", {
   workspaceId: text("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
   publicToken: text("public_token").notNull().unique(), // short opaque token for /t/[token]
   claimSecretHash: text("claim_secret_hash"),
-  productVariant: text("product_variant", { enum: ["standard_pvc", "matte_pvc"] }).notNull().default("standard_pvc"),
+  productVariant: text("product_variant", { enum: ["standard_pvc", "matte_pvc", "custom_pvc", "custom_metal"] }).notNull().default("standard_pvc"),
   printDesignData: text("print_design_data"), // JSON
   activeProfileId: text("active_profile_id").references(() => profiles.id, { onDelete: "set null" }),
   inventoryStatus: text("inventory_status", {
@@ -345,7 +345,7 @@ export const orders = sqliteTable("orders", {
       "ready_to_ship", "shipped", "delivered", "failed", "refunded"
     ],
   }).notNull().default("paid"),
-  cardVariant: text("card_variant", { enum: ["standard_pvc", "matte_pvc"] }).notNull().default("standard_pvc"),
+  cardVariant: text("card_variant", { enum: ["standard_pvc", "matte_pvc", "custom_pvc", "custom_metal"] }).notNull().default("standard_pvc"),
   quantity: integer("quantity").notNull().default(1),
   shippingAddress: text("shipping_address").notNull(), // JSON
   trackingCarrier: text("tracking_carrier"),
