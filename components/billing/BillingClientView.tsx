@@ -475,7 +475,7 @@ export function BillingClientView({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {sortedPlans.map((plan) => {
                 const isCurrent = currentPlan.code === plan.code;
-                const isPopular = plan.code === "professional";
+                const isPopular = plan.code === "custom_pvc" || plan.code === "professional";
                 let featuresList: string[] = [];
                 try {
                   featuresList = JSON.parse(plan.features);

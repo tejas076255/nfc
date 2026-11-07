@@ -173,18 +173,120 @@ export async function createPhysicalCardOrder(data: {
   return { orderId, orderNumber, totalAmount, invoiceNumber };
 }
 
+export const LANDING_PLANS = [
+  {
+    id: "plan_free",
+    code: "free",
+    name: "Free Digital Identity",
+    priceAnnualInr: 0,
+    profileLimit: 1,
+    features: JSON.stringify([
+      "1 Dynamic Digital Profile",
+      "Instant vCard 1-Tap Save",
+      "Downloadable Profile QR Code",
+      "Standard Social & Bio Blocks",
+      "Basic Scan Counter",
+    ]),
+    isActive: 1,
+  },
+  {
+    id: "plan_standard_pvc",
+    code: "standard_pvc",
+    name: "Standard PVC NFC Card",
+    priceAnnualInr: 999,
+    profileLimit: 3,
+    features: JSON.stringify([
+      "NFC-enabled PVC card",
+      "Standard design selection",
+      "3 Published Digital Profiles",
+      "Tap and QR sharing",
+      "Linked digital business profile",
+      "Free Delivery Across India",
+    ]),
+    isActive: 1,
+  },
+  {
+    id: "plan_custom_pvc",
+    code: "custom_pvc",
+    name: "Customized PVC NFC Card",
+    priceAnnualInr: 1499,
+    profileLimit: 10,
+    features: JSON.stringify([
+      "Customized PVC NFC card",
+      "Personalized name and branding",
+      "Custom logo and artwork",
+      "Remove Tapbez Footer Branding",
+      "10 Published Digital Profiles",
+      "Appointment & Calendly Booking",
+      "Live Tap Analytics & Telemetry",
+    ]),
+    isActive: 1,
+  },
+  {
+    id: "plan_custom_metal",
+    code: "custom_metal",
+    name: "Customized Metal NFC Card",
+    priceAnnualInr: 1999,
+    profileLimit: 25,
+    features: JSON.stringify([
+      "Premium laser-etched metal card",
+      "Custom laser branding & artwork",
+      "Remove Tapbez Footer Branding",
+      "25 Published Digital Profiles",
+      "Centralized Team Console Support",
+      "Custom Corporate Domain Support",
+      "VIP Concierge Priority Support",
+    ]),
+    isActive: 1,
+  },
+];
+
 export async function upgradeSubscriptionPlan(
   workspaceId: string,
-  targetPlanCode: "free" | "starter" | "professional" | "business_pro"
+  targetPlanCode: string
 ) {
   const db = await getDb();
-  const [targetPlan] = await db
+
+  // Normalize code aliases:
+  let canonicalCode = targetPlanCode;
+  if (targetPlanCode === "starter") canonicalCode = "standard_pvc";
+  else if (targetPlanCode === "professional") canonicalCode = "custom_pvc";
+  else if (targetPlanCode === "business_pro") canonicalCode = "custom_metal";
+
+  let [targetPlan] = await db
     .select()
     .from(schema.plans)
-    .where(eq(schema.plans.code, targetPlanCode))
+    .where(eq(schema.plans.code, canonicalCode as any))
     .limit(1);
 
-  if (!targetPlan) throw new Error("Target plan not found");
+  if (!targetPlan && canonicalCode !== targetPlanCode) {
+    [targetPlan] = await db
+      .select()
+      .from(schema.plans)
+      .where(eq(schema.plans.code, targetPlanCode as any))
+      .limit(1);
+  }
+
+  if (!targetPlan) {
+    const landingPlan = LANDING_PLANS.find(
+      (p) => p.code === canonicalCode || p.code === targetPlanCode
+    ) || LANDING_PLANS[0];
+
+    try {
+      await db.insert(schema.plans).values({
+        id: landingPlan.id,
+        code: landingPlan.code as any,
+        name: landingPlan.name,
+        priceAnnualInr: landingPlan.priceAnnualInr,
+        profileLimit: landingPlan.profileLimit,
+        features: landingPlan.features,
+        isActive: 1,
+      });
+      targetPlan = landingPlan as any;
+    } catch {
+      targetPlan = landingPlan as any;
+    }
+  }
 
   const [existingSub] = await db
     .select()
@@ -283,14 +385,7 @@ export async function getWorkspaceSubscription(workspaceId: string) {
 
     return {
       subscription: null,
-      plan: freePlan || {
-        id: "free_plan",
-        code: "free",
-        name: "Free Forever",
-        priceAnnualInr: 0,
-        profileLimit: 1,
-        features: JSON.stringify(["1 Digital Profile", "Basic Analytics", "vCard Downloads", "Standard QR Backup"]),
-      },
+      plan: freePlan || LANDING_PLANS[0],
     };
   }
 
@@ -300,22 +395,42 @@ export async function getWorkspaceSubscription(workspaceId: string) {
     .where(eq(schema.plans.id, sub.planId))
     .limit(1);
 
+  // Match canonical landing plan details
+  const matchedLandingPlan = LANDING_PLANS.find(
+    (lp) =>
+      lp.code === plan?.code ||
+      (lp.code === "standard_pvc" && plan?.code === "starter") ||
+      (lp.code === "custom_pvc" && plan?.code === "professional") ||
+      (lp.code === "custom_metal" && plan?.code === "business_pro")
+  );
+
   return {
     subscription: sub,
-    plan: plan || {
-      id: "free_plan",
-      code: "free",
-      name: "Free Forever",
-      priceAnnualInr: 0,
-      profileLimit: 1,
-      features: JSON.stringify(["1 Digital Profile", "Basic Analytics", "vCard Downloads"]),
-    },
+    plan: matchedLandingPlan
+      ? { ...matchedLandingPlan, id: plan?.id || matchedLandingPlan.id }
+      : plan || LANDING_PLANS[0],
   };
 }
 
 export async function getAllPlans() {
   const db = await getDb();
-  return db.select().from(schema.plans);
+  const dbPlans = await db.select().from(schema.plans);
+  if (!dbPlans || dbPlans.length === 0) {
+    return LANDING_PLANS;
+  }
+  return LANDING_PLANS.map((lp) => {
+    const matched = dbPlans.find(
+      (p) =>
+        p.code === lp.code ||
+        (lp.code === "standard_pvc" && p.code === "starter") ||
+        (lp.code === "custom_pvc" && p.code === "professional") ||
+        (lp.code === "custom_metal" && p.code === "business_pro")
+    );
+    return {
+      ...lp,
+      id: matched?.id || lp.id,
+    };
+  });
 }
 
 export async function getAllOrders() {

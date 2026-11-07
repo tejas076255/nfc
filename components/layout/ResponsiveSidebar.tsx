@@ -168,8 +168,6 @@ export function ResponsiveSidebar({
 
     { id: "billing", label: "Billing", href: "/dashboard/billing", icon: ShoppingBag },
 
-    { id: "views", label: "Profile Views", href: "/dashboard/analytics?tab=views", icon: Eye },
-
     { id: "support", label: "Help & Support", href: "/dashboard/support", icon: HelpCircle },
 
   ];

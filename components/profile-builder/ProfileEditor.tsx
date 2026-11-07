@@ -67,13 +67,28 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { compressImageFile } from "@/lib/utils/image";
+import { UpgradePlanModal } from "@/components/modals/UpgradePlanModal";
+
+function extractMapEmbedSrc(embedInput?: string): string | null {
+  if (!embedInput) return null;
+  const trimmed = embedInput.trim();
+  if (trimmed.includes("<iframe")) {
+    const match = trimmed.match(/src=["']([^"']+)["']/i);
+    if (match && match[1]) return match[1];
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return null;
+}
 
 interface ProfileEditorProps {
   initialProfile: any;
   workspaceId: string;
+  isPremium?: boolean;
 }
 
-export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProps) {
+export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }: ProfileEditorProps) {
   const [profile, setProfile] = useState<any>(initialProfile);
   const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
@@ -82,6 +97,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [planLimitError, setPlanLimitError] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [portfolioTab, setPortfolioTab] = useState<"images" | "videos" | "mix">("images");
@@ -133,7 +149,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
   const [editingProjectIndex, setEditingProjectIndex] = useState<number | null>(null);
   const [projectFormData, setProjectFormData] = useState({
     title: "",
-    category: "Web Development",
+    category: "",
     imageUrl: "",
     linkUrl: "",
     description: "",
@@ -774,7 +790,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     updateBlockData("portfolio_gallery", { items: updated });
     setShowProjectModal(false);
     setEditingProjectIndex(null);
-    setProjectFormData({ title: "", category: "Web Development", imageUrl: "", linkUrl: "", description: "" });
+    setProjectFormData({ title: "", category: "", imageUrl: "", linkUrl: "", description: "" });
     setSaveMessage("Project saved successfully!");
     setTimeout(() => setSaveMessage(null), 2500);
   };
@@ -1057,12 +1073,12 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
 
   const STEPS = [
     { id: 1, label: "Header & Identity", short: "Header", icon: "👤", desc: "Avatar, banner, name, role & brand logo" },
-    { id: 2, label: "Action Buttons", short: "Actions", icon: "⚡", desc: "Direct call, WhatsApp, email & map directions" },
+    { id: 2, label: "Contacts", short: "Contacts", icon: "📞", desc: "Direct call, WhatsApp, email, map & location" },
     { id: 3, label: "Social Links", short: "Socials", icon: "🔗", desc: "Instagram, YouTube, LinkedIn & web channels" },
     { id: 4, label: "About & Story", short: "About", icon: "📝", desc: "Bio narrative, headline & key highlights" },
     { id: 5, label: "Services & Products", short: "Services", icon: "💼", desc: "Service packages, pricing & descriptions" },
     { id: 6, label: "Featured Portfolio", short: "Portfolio", icon: "🎨", desc: "Project gallery, photos & video media" },
-    { id: 7, label: "Reviews, FAQ & Map", short: "Reviews & FAQ", icon: "⭐", desc: "Client testimonials, FAQs & Google Map location" },
+    { id: 7, label: "Reviews, FAQ & Map", short: "Reviews & Map", icon: "⭐", desc: "Client testimonials, FAQs & Google Map location" },
     { id: 8, label: "Theme, SEO & Files", short: "Theme & SEO", icon: "✨", desc: "Industry templates, colors, PDFs & SEO" },
   ];
 
@@ -1240,113 +1256,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
     </div>
   );
 
-  // SECTION 2: QUICK ACTION BUTTONS & CONTACT
+  // SECTION 2: CONTACTS & QUICK ACTIONS
   const renderQuickActionsSection = () => (
-    <div id="sections" className="space-y-6">
-      {/* SECTION ORDER MANAGER CARD (DRAG & DROP / UP-DOWN) */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
-              <ArrowUpDown className="w-4 h-4" />
-            </span>
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">Profile Sections Order (Drag & Drop / Up Down)</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Reorder sections on your public card. Changes preview in real-time.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowReorderModal(true)}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
-          >
-            <span>Full View</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Interactive Order List */}
-        <div className="space-y-2">
-          {orderedBlockTypes.map((type, idx) => {
-            const meta = SECTION_METADATA[type] || { title: type, desc: "", icon: Layers, step: 1 };
-            const Icon = meta.icon;
-            const isEnabled = isBlockEnabled(type);
-
-            return (
-              <div
-                key={type}
-                draggable
-                onDragStart={(e) => handleDragStart(e, type)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, type)}
-                className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                  draggedBlockType === type
-                    ? "opacity-50 border-blue-500 bg-blue-50"
-                    : isEnabled
-                    ? "bg-slate-50/80 hover:bg-slate-50 border-slate-200"
-                    : "bg-slate-100/50 border-dashed border-slate-200 opacity-60"
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700">
-                    <GripVertical className="w-4 h-4" />
-                  </div>
-                  <span className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{meta.title}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{meta.desc}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    disabled={idx === 0}
-                    onClick={() => moveSection(type, "up")}
-                    className="p-1 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    title="Move Up"
-                  >
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    disabled={idx === orderedBlockTypes.length - 1}
-                    onClick={() => moveSection(type, "down")}
-                    className="p-1 rounded-lg border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                    title="Move Down"
-                  >
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleBlockEnabled(type)}
-                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer transition-colors ${
-                      isEnabled
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-slate-200 text-slate-600"
-                    }`}
-                  >
-                    {isEnabled ? "Visible" : "Hidden"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => goToStep(meta.step)}
-                    className="text-[10px] text-blue-600 font-bold hover:underline px-1 cursor-pointer"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
+    <div id="contacts" className="space-y-6">
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -1354,7 +1266,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
             2
           </span>
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Quick Action Buttons & Contact Info</h2>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">Contacts & Quick Action Buttons</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Configure phone call, WhatsApp, email, map, and meeting booking links.</p>
           </div>
         </div>
@@ -1810,7 +1722,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 cursor-pointer active:scale-95 transition-all"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>Add Service</span>
+          <span>Add</span>
         </button>
       </div>
 
@@ -2008,7 +1920,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 onClick={handleSaveService}
                 className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer active:scale-95"
               >
-                {editingServiceIndex !== null ? "Update Service" : "Add Service"}
+                {editingServiceIndex !== null ? "Update Service" : "Add"}
               </button>
             </div>
           </div>
@@ -2057,8 +1969,8 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               <div className="h-32 sm:h-36 bg-slate-200 overflow-hidden relative">
                 <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 
-                {/* Category Pill */}
-                {item.category && (
+                {/* Category / Tag Pill */}
+                {item.category && item.category.trim() && (
                   <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/75 text-white text-[10px] font-semibold backdrop-blur-xs">
                     {item.category}
                   </span>
@@ -2072,7 +1984,7 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                       setEditingProjectIndex(idx);
                       setProjectFormData({
                         title: item.title || "",
-                        category: item.category || "Web Development",
+                        category: item.category || "",
                         imageUrl: item.imageUrl || "",
                         linkUrl: item.linkUrl || item.projectUrl || item.url || "",
                         description: item.description || "",
@@ -2156,31 +2068,18 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 />
               </div>
 
-              {/* Category */}
+              {/* Manual Tag (Optional) */}
               <div className="space-y-1">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Category / Tag</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {["Web Design", "Branding", "Social Media", "App Development", "Photography", "Case Study"].map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setProjectFormData({ ...projectFormData, category: cat })}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all text-center ${
-                        projectFormData.category === cat
-                          ? "bg-blue-600 border-blue-600 text-white shadow-xs"
-                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Tag (Optional)</label>
+                  <span className="text-[10px] text-slate-400">Optional custom badge for project</span>
                 </div>
                 <input
                   type="text"
                   value={projectFormData.category}
                   onChange={(e) => setProjectFormData({ ...projectFormData, category: e.target.value })}
-                  placeholder="Or type custom category tag"
-                  className="w-full mt-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
+                  placeholder="e.g. Case Study, Commercial, Mobile App (Optional)"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
                 />
               </div>
 
@@ -2550,27 +2449,95 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
         </div>
       </div>
 
-      {/* Google Map & Contact Form */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
-        <h3 className="text-sm font-bold text-slate-900">Google Map Location & Direction Card</h3>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Google Map Location & Address Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MapPin className="w-6 h-6 text-red-500 shrink-0" />
+            <span className="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
+              <MapPin className="w-4 h-4" />
+            </span>
             <div>
-              <p className="text-xs font-bold text-slate-800">{locationBlock.address || "Surat, Gujarat, India"}</p>
-              <p className="text-[10px] text-slate-500">Live directions pin shown on public business card</p>
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">Business Location & Google Map Embed</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Type your physical office address and embed a live interactive Google Map.</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              const newAddress = prompt("Enter Office City / Address:", locationBlock.address || "");
-              if (newAddress) updateBlockData("location", { address: newAddress });
-            }}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold cursor-pointer"
-          >
-            Update Address
-          </button>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-xs text-slate-500 font-medium">Show on Card</span>
+            <input
+              type="checkbox"
+              checked={isBlockEnabled("location")}
+              onChange={() => toggleBlockEnabled("location")}
+              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+            />
+          </label>
+        </div>
+
+        <div className="space-y-4 pt-1">
+          {/* 1. Type Office Address */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Office / Business Address
+              </label>
+              <span className="text-[10px] text-slate-400">Full physical street address</span>
+            </div>
+            <input
+              type="text"
+              value={locationBlock.address || ""}
+              onChange={(e) => {
+                updateBlockData("location", { address: e.target.value });
+                updateBlockData("contact_actions", { location: e.target.value });
+              }}
+              placeholder="e.g. 102, Skyline Business Hub, Ring Road, Surat, Gujarat 395002"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-medium focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors"
+            />
+          </div>
+
+          {/* 2. Google Maps Embed Code or Map URL */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Google Maps Embed Code (HTML iframe) or Map URL
+              </label>
+              <span className="text-[10px] text-slate-400">Google Maps &gt; Share &gt; Embed a map</span>
+            </div>
+            <textarea
+              rows={3}
+              value={locationBlock.embedCode || locationBlock.mapUrl || ""}
+              onChange={(e) => {
+                const val = e.target.value;
+                updateBlockData("location", { embedCode: val, mapUrl: val });
+              }}
+              placeholder={'Paste <iframe src="https://www.google.com/maps/embed?..." ...></iframe> or direct Google Map link'}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors resize-y"
+            />
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              💡 <strong>How to get Embed code:</strong> In Google Maps on PC/browser, search your place, click <strong>Share</strong> &rarr; select <strong>Embed a map</strong> &rarr; click <strong>Copy HTML</strong> and paste it directly above.
+            </p>
+          </div>
+
+          {/* 3. Live Embedded Map Preview */}
+          {(() => {
+            const previewEmbedSrc = extractMapEmbedSrc(locationBlock.embedCode || locationBlock.mapUrl);
+            if (!previewEmbedSrc) return null;
+            return (
+              <div className="space-y-1.5 pt-2">
+                <span className="block text-xs font-bold text-slate-700 dark:text-slate-300">Live Map Preview</span>
+                <div className="w-full h-48 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-inner bg-slate-100 dark:bg-slate-800">
+                  <iframe
+                    src={previewEmbedSrc}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen={false}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Editor Google Map Preview"
+                  />
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -2836,6 +2803,51 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
               </select>
             </div>
           </div>
+        </div>
+
+        {/* White-Label: Remove Tapbez Footer Branding */}
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-900 dark:text-white">Remove &quot;Tapbez&quot; Footer Branding</span>
+              <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                Premium
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Hide the &quot;Powered by Tapbez&quot; branding in the footer of your public digital card for a 100% white-label identity.
+            </p>
+          </div>
+          {isPremium ? (
+            <label className="relative inline-flex items-center cursor-pointer shrink-0">
+              <input
+                type="checkbox"
+                checked={Boolean((profile.themeConfig as any)?.hideBranding)}
+                onChange={(e) => {
+                  setProfile((prev: any) => ({
+                    ...prev,
+                    themeConfig: {
+                      ...(prev.themeConfig || {}),
+                      hideBranding: e.target.checked,
+                    },
+                  }));
+                }}
+                className="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 cursor-pointer"
+              />
+              <span className="ml-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                {(profile.themeConfig as any)?.hideBranding ? "Hidden" : "Visible"}
+              </span>
+            </label>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowUpgradeModal(true)}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold shrink-0 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Unlock with Premium</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -3297,42 +3309,9 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
       )}
 
       {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
-      <div className="shrink-0 bg-white/95 dark:bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 z-20 shadow-xs transition-colors">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-200 shrink-0">
-            Step {currentStep} of {STEPS.length}
-          </span>
-          <div className="min-w-0">
-            <span className="text-xs font-black text-slate-900 dark:text-white block truncate">
-              {STEPS[currentStep - 1].label}
-            </span>
-          </div>
-
-          {/* Step Completion Score */}
-          <div className="flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-bold">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-            <span>{completionStats.percent}% Setup Complete</span>
-            <div className="w-12 bg-emerald-200/60 h-1.5 rounded-full overflow-hidden shrink-0">
-              <div
-                className="bg-emerald-600 h-full rounded-full transition-all duration-300"
-                style={{ width: `${completionStats.percent}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Stepper Nav Quick Pills & Reorder Trigger */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
-          <button
-            type="button"
-            onClick={() => setShowReorderModal(true)}
-            className="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer shadow-2xs"
-            title="Reorder profile sections (Drag & Drop or Move Up/Down)"
-          >
-            <ArrowUpDown className="w-3 h-3 text-amber-600" />
-            <span>Reorder Sections</span>
-          </button>
-
+      <div className="shrink-0 bg-white/95 dark:bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 z-20 shadow-xs transition-colors">
+        {/* Left: Steps 1 to 8 without horizontal scrolling */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           {STEPS.map((s) => {
             const isActive = currentStep === s.id;
             const isCompleted = completionStats.stepChecks[s.id];
@@ -3341,22 +3320,49 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
                 key={s.id}
                 type="button"
                 onClick={() => goToStep(s.id)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
                   isActive && isCompleted
                     ? "bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30"
                     : isActive
                     ? "bg-blue-600 text-white shadow-xs"
                     : isCompleted
                     ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-500/30"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-white/5"
                 }`}
                 title={s.label}
               >
-                <span className="text-[10px]">{isCompleted ? "✓" : s.id}</span>
+                <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black bg-black/10 dark:bg-white/10">
+                  {isCompleted ? "✓" : s.id}
+                </span>
                 <span>{s.short}</span>
               </button>
             );
           })}
+        </div>
+
+        {/* Right: Reorder & Progress Score */}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-between sm:justify-end">
+          <button
+            type="button"
+            onClick={() => setShowReorderModal(true)}
+            className="px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer shadow-2xs"
+            title="Reorder profile sections (Drag & Drop or Move Up/Down)"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <span>Reorder Sections</span>
+          </button>
+
+          {/* Step Completion Score */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
+            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>{completionStats.percent}% Setup Complete</span>
+            <div className="w-12 bg-emerald-200/60 dark:bg-emerald-800/40 h-1.5 rounded-full overflow-hidden shrink-0">
+              <div
+                className="bg-emerald-600 dark:bg-emerald-400 h-full rounded-full transition-all duration-300"
+                style={{ width: `${completionStats.percent}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3947,6 +3953,13 @@ export function ProfileEditor({ initialProfile, workspaceId }: ProfileEditorProp
           </div>
         </div>
       )}
+
+      {/* Upgrade Plan Modal for Premium Features */}
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        planName="Current"
+      />
     </div>
   );
 }

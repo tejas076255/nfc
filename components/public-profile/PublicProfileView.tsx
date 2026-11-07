@@ -293,6 +293,19 @@ function TelegramIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 // Ensures links have proper protocol (https://), handles handles/numbers, and falls back to label if url was pasted into label
 
+export function extractMapEmbedSrc(embedInput?: string): string | null {
+  if (!embedInput) return null;
+  const trimmed = embedInput.trim();
+  if (trimmed.includes("<iframe")) {
+    const match = trimmed.match(/src=["']([^"']+)["']/i);
+    if (match && match[1]) return match[1];
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+  return null;
+}
+
 export function resolveValidUrl(url?: string, label?: string, platform?: string): string {
 
   let raw = (url || "").trim();
@@ -1424,7 +1437,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
       case "website":
 
-        return "Official Website";
+        return "Website";
 
       default:
 
@@ -3742,7 +3755,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               case "location": {
 
-                if (!locationBlock.address) return null;
+                if (!locationBlock.address && !locationBlock.embedCode && !locationBlock.mapUrl) return null;
+                const mapEmbedSrc = extractMapEmbedSrc(locationBlock.embedCode || locationBlock.mapEmbedUrl || locationBlock.mapUrl);
 
                 return (
 
@@ -3774,11 +3788,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         </p>
 
-                        <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
+                        {locationBlock.address && (
+                          <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
 
-                          {locationBlock.address}
+                            {locationBlock.address}
 
-                        </p>
+                          </p>
+                        )}
 
                         {(() => {
 
@@ -3786,7 +3802,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             ? resolveValidUrl(locationBlock.mapUrl)
 
-                            : `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`;
+                            : locationBlock.address
+                            ? `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`
+                            : null;
+
+                          if (!dirUrl) return null;
 
                           return (
 
@@ -3823,6 +3843,21 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                       </div>
 
                     </div>
+
+                    {mapEmbedSrc && (
+                      <div className="w-full h-48 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-inner bg-slate-100 dark:bg-slate-800">
+                        <iframe
+                          src={mapEmbedSrc}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen={false}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          title="Office Location Map"
+                        />
+                      </div>
+                    )}
 
 
 
@@ -4050,33 +4085,37 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
         >
 
-          <div className="flex items-center gap-1.5 text-xs">
+          {!(profile.themeConfig as any)?.hideBranding && (
+            <>
+              <div className="flex items-center gap-1.5 text-xs">
 
-            <span>Powered by</span>
+                <span>Powered by</span>
 
-            <Link
+                <Link
 
-              href="/"
+                  href="/"
 
-              className={`font-bold transition-colors ${
+                  className={`font-bold transition-colors ${
 
-                isLightMode ? "text-slate-800 hover:text-teal-600" : "text-slate-300 hover:text-teal-400"
+                    isLightMode ? "text-slate-800 hover:text-teal-600" : "text-slate-300 hover:text-teal-400"
 
-              }`}
+                  }`}
 
-            >
+                >
 
-              Tapbez
+                  Tapbez
 
-            </Link>
+                </Link>
 
-          </div>
+              </div>
 
-          <p className={`text-[10px] ${isLightMode ? "text-slate-500" : "text-slate-600"}`}>
+              <p className={`text-[10px] ${isLightMode ? "text-slate-500" : "text-slate-600"}`}>
 
-            Smart Contactless Digital Identities & NFC Solutions
+                Smart Contactless Digital Identities & NFC Solutions
 
-          </p>
+              </p>
+            </>
+          )}
 
           <div className={`pt-2 flex items-center gap-4 text-[11px] ${isLightMode ? "text-slate-500" : "text-slate-500"}`}>
 

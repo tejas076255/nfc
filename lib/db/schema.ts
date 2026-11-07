@@ -305,7 +305,7 @@ export const analyticsDailyAggregates = sqliteTable("analytics_daily_aggregates"
 // Plans
 export const plans = sqliteTable("plans", {
   id: text("id").primaryKey(),
-  code: text("code", { enum: ["free", "starter", "professional", "business_pro"] }).notNull().unique(),
+  code: text("code", { enum: ["free", "starter", "professional", "business_pro", "standard_pvc", "custom_pvc", "custom_metal"] }).notNull().unique(),
   name: text("name").notNull(),
   priceAnnualInr: integer("price_annual_inr").notNull(),
   profileLimit: integer("profile_limit").notNull(),
