@@ -65,9 +65,22 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <link rel="manifest" href="/manifest.json" id="app-manifest" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Dynamically point manifest to user profile if on /p/[slug]
+              (function() {
+                try {
+                  var p = window.location.pathname;
+                  var match = p.match(/^\\/p\\/([^/?#]+)/);
+                  if (match && match[1]) {
+                    var tag = document.getElementById('app-manifest');
+                    if (tag) tag.href = '/api/manifest/' + match[1];
+                  }
+                } catch(e) {}
+              })();
+
               // Standalone app launcher redirect: Always open the user profile instead of marketing website
               (function() {
                 try {

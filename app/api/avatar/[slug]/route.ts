@@ -64,7 +64,7 @@ export async function GET(
             },
           });
         }
-      } catch {}
+      } catch { }
       return Response.redirect(`${origin}/icon-512x512.png`, 302);
     }
 
@@ -107,7 +107,7 @@ export async function GET(
             },
           });
         }
-      } catch {}
+      } catch { }
       return Response.redirect(photoUrl, 302);
     }
 

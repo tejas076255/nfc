@@ -157,6 +157,7 @@ export default async function PublicProfilePage({ params, searchParams }: PagePr
           __html: `try{localStorage.setItem('last_profile_slug','${slug}');localStorage.setItem('installed_profile_slug','${slug}');document.cookie="last_profile_slug=${slug}; path=/; max-age=31536000; SameSite=Lax";}catch(e){}`,
         }}
       />
+      <link rel="manifest" href={`/api/manifest/${slug}`} />
       <link rel="apple-touch-icon" sizes="180x180" href={avatarPng} />
       <link rel="icon" type="image/png" sizes="192x192" href={avatarPng} />
       <link rel="icon" type="image/png" sizes="512x512" href={avatarPng} />
