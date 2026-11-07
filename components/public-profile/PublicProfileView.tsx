@@ -29,6 +29,7 @@ import {
   CheckCircle2,
 
   ExternalLink,
+  AlertCircle,
 
   Sparkles,
 
@@ -523,6 +524,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
   const [installModalOpen, setInstallModalOpen] = useState(false);
   const [installInstructionStep, setInstallInstructionStep] = useState(false);
   const [isDesktopDevice, setIsDesktopDevice] = useState(false);
+  const [isIosDevice, setIsIosDevice] = useState(false);
+  const [installDeviceTab, setInstallDeviceTab] = useState<"android" | "ios" | "desktop">("android");
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   const [leadModalOpen, setLeadModalOpen] = useState(false);
 
@@ -588,24 +592,33 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
 
-    const [isIosDevice, setIsIosDevice] = useState(false);
-
   useEffect(() => {
     // Save active profile slug so standalone apps always open this user profile
     try {
       localStorage.setItem("last_profile_slug", profile.slug);
       localStorage.setItem("installed_profile_slug", profile.slug);
       document.cookie = `last_profile_slug=${profile.slug}; path=/; max-age=31536000; SameSite=Lax`;
-    } catch {}
+    } catch { }
 
-    // Detect device type
+    // Detect device type & browser environment
     if (typeof navigator !== "undefined") {
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const ua = navigator.userAgent || "";
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const isIos = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/i.test(ua);
+      const inApp = /FBAN|FBAV|Instagram|WhatsApp|Line|Telegram|Snapchat|BytedanceWebview/i.test(ua);
+
       setIsDesktopDevice(!isMobile);
-      setIsIosDevice(
-        /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
-      );
+      setIsIosDevice(isIos);
+      setIsInAppBrowser(inApp);
+
+      if (isIos) {
+        setInstallDeviceTab("ios");
+      } else if (isAndroid || isMobile) {
+        setInstallDeviceTab("android");
+      } else {
+        setInstallDeviceTab("desktop");
+      }
     }
 
     // Dynamically update manifest tag in head to this profile's slug
@@ -618,7 +631,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
     // Register PWA service worker
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      navigator.serviceWorker.register("/sw.js").catch(() => { });
     }
 
     const updatePrompt = (e?: any) => {
@@ -1112,7 +1125,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           showToast("✨ App icon added successfully to your device!");
           return;
         }
-      } catch (err) {}
+      } catch (err) { }
     }
 
     setInstallModalOpen(true);
@@ -1122,7 +1135,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     handleTrackAction("install_app_confirm");
 
     const cleanTitle = (companyName || personName || "Digital Profile").trim().replace(/[/\\?%*:|"<>]/g, "");
-    const pubUrl = typeof window !== "undefined" 
+    const pubUrl = typeof window !== "undefined"
       ? (sourceType === "preview" ? `${window.location.origin}/p/${profile.slug}` : window.location.href)
       : `https://tapbez.in/p/${profile.slug}`;
 
@@ -1147,22 +1160,31 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           setInstallModalOpen(false);
           try {
             sessionStorage.setItem("dismissed_install_" + profile.id, "true");
-          } catch {}
+          } catch { }
           showToast(`✨ '${cleanTitle}' app icon aapki screen par install ho gaya!`);
           return;
         }
-      } catch (err) {}
+      } catch (err) { }
     }
 
     // 2. Desktop: Open standalone App Popup Window directly!
-    if (isDesktopDevice) {
+    if (installDeviceTab === "desktop" || isDesktopDevice) {
       window.open(pubUrl, "_blank", "popup=yes,width=440,height=850");
       showToast("✨ Standalone App window khul gayi hai! Menu (⋮) -> 'Save and share' -> 'Create shortcut' se desktop icon banayein.");
       return;
     }
 
-    if (isIosDevice) {
+    if (installDeviceTab === "ios" || isIosDevice) {
       showToast("Safari bottom bar me Share 📤 -> 'Add to Home Screen ➕' tap karein!");
+      return;
+    }
+
+    // 3. Android fallback: try launching Chrome intent or guide user
+    if (typeof window !== "undefined" && /Android/i.test(navigator.userAgent)) {
+      try {
+        window.location.href = `intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`;
+      } catch {}
+      showToast("Chrome menu (⋮) me 'Install app' ya 'Add to Home screen 📲' select karein!");
       return;
     }
 
@@ -1653,18 +1675,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       data-profile-preview="true"
       data-theme-isolated="true"
       data-theme-mode={isLightMode ? "light" : "dark"}
-      className={`public-profile-root flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-300 ${
-
-
-        isLightMode
+      className={`public-profile-root flex flex-col items-center justify-start selection:bg-teal-500 selection:text-white transition-colors duration-300 ${isLightMode
           ? "text-slate-900"
           : "text-slate-100"
-      } ${sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"}`}
+        } ${sourceType === "preview" ? "min-h-full pb-28 relative" : "min-h-screen pb-28 relative"}`}
       style={{
-        backgroundColor: isLightMode 
-          ? (theme.backgroundColor && !["#07090e", "#090d16", "#0d090a", "#022c22", "#09090b", "#1c1917", "#0f0728"].includes(theme.backgroundColor.toLowerCase()) 
-              ? theme.backgroundColor 
-              : "#f8fafc")
+        backgroundColor: isLightMode
+          ? (theme.backgroundColor && !["#07090e", "#090d16", "#0d090a", "#022c22", "#09090b", "#1c1917", "#0f0728"].includes(theme.backgroundColor.toLowerCase())
+            ? theme.backgroundColor
+            : "#f8fafc")
           : (theme.backgroundColor || "#07090e"),
       }}
 
@@ -1684,11 +1703,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
             exit={{ opacity: 0, y: -20 }}
 
-            className={`fixed top-5 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-2xl backdrop-blur-xl flex items-center gap-2 ${
+            className={`fixed top-5 z-50 px-4 py-2.5 rounded-full text-xs font-semibold shadow-2xl backdrop-blur-xl flex items-center gap-2 ${isLightMode ? "bg-white text-slate-900 border border-slate-200" : "bg-slate-900/95 text-white border border-white/20"
 
-              isLightMode ? "bg-white text-slate-900 border border-slate-200" : "bg-slate-900/95 text-white border border-white/20"
-
-            }`}
+              }`}
 
           >
 
@@ -1708,23 +1725,19 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
       <div
 
-        className={`w-full max-w-md overflow-hidden relative flex flex-col transition-colors duration-300 ${
-
-          isLightMode
+        className={`w-full max-w-md overflow-hidden relative flex flex-col transition-colors duration-300 ${isLightMode
 
             ? "bg-white text-slate-900 border border-slate-200/90 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)]"
 
             : "bg-slate-950/85 text-white backdrop-blur-xl border border-white/10 shadow-2xl"
 
-        } ${
-
-          sourceType === "preview"
+          } ${sourceType === "preview"
 
             ? "border-0 my-0 rounded-2xl"
 
             : "min-h-screen sm:min-h-0 sm:my-8 sm:rounded-3xl"
 
-        }`}
+          }`}
 
       >
 
@@ -1795,15 +1808,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               onClick={handleShareProfile}
 
-              className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${
-
-                isLightMode
+              className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md transition-all shadow-md active:scale-95 cursor-pointer ${isLightMode
 
                   ? "bg-white/90 hover:bg-white border border-slate-200/90 text-slate-800 shadow-sm"
 
                   : "bg-black/60 hover:bg-black/80 border border-white/20 text-white shadow-sm"
 
-              }`}
+                }`}
 
               aria-label="Share profile"
 
@@ -1895,11 +1906,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                   title={cleanBadge}
 
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${isLightMode ? "bg-teal-50 border border-teal-200 text-teal-700" : "bg-teal-500/10 border border-teal-500/30 text-teal-400"
 
-                    isLightMode ? "bg-teal-50 border border-teal-200 text-teal-700" : "bg-teal-500/10 border border-teal-500/30 text-teal-400"
-
-                  }`}
+                    }`}
 
                 >
 
@@ -1933,11 +1942,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               <div className="flex justify-center pt-0.5">
 
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-xs ${
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shadow-xs ${isLightMode ? "bg-slate-100 border border-slate-200 text-slate-800" : "bg-white/10 backdrop-blur-md border border-white/15 text-slate-100"
 
-                  isLightMode ? "bg-slate-100 border border-slate-200 text-slate-800" : "bg-white/10 backdrop-blur-md border border-white/15 text-slate-100"
-
-                }`}>
+                  }`}>
 
                   <Building2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
 
@@ -2075,9 +2082,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                 : `https://maps.google.com/?q=${encodeURIComponent(
 
-                    locationBlock.address || contactBlock.location || ""
+                  locationBlock.address || contactBlock.location || ""
 
-                  )}`;
+                )}`;
 
               actions.push({
 
@@ -2155,17 +2162,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                 : actions.length === 2
 
-                ? "grid-cols-2"
+                  ? "grid-cols-2"
 
-                : actions.length === 3
+                  : actions.length === 3
 
-                ? "grid-cols-3"
+                    ? "grid-cols-3"
 
-                : actions.length === 4
+                    : actions.length === 4
 
-                ? "grid-cols-4"
+                      ? "grid-cols-4"
 
-                : "grid-cols-5";
+                      : "grid-cols-5";
 
 
 
@@ -2201,9 +2208,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       : isFour
 
-                      ? "text-[11px] font-semibold tracking-tight"
+                        ? "text-[11px] font-semibold tracking-tight"
 
-                      : "text-xs font-semibold";
+                        : "text-xs font-semibold";
 
 
 
@@ -2221,15 +2228,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         onClick={act.onClick}
 
-                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl shadow-xs hover:shadow-md active:scale-95 transition-all group cursor-pointer ${
-
-                          isLightMode
+                        className={`flex flex-col items-center justify-center ${cardPadding} rounded-2xl shadow-xs hover:shadow-md active:scale-95 transition-all group cursor-pointer ${isLightMode
 
                             ? "bg-slate-50/90 hover:bg-slate-100 border border-slate-200/90 text-slate-800"
 
                             : "bg-slate-900/90 hover:bg-slate-800/95 border border-white/10 hover:border-white/25 text-white"
 
-                        }`}
+                          }`}
 
                         title={act.label}
 
@@ -2247,11 +2252,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         <span
 
-                          className={`${labelSizeClass} mt-1 text-center w-full block whitespace-nowrap transition-colors leading-tight ${
+                          className={`${labelSizeClass} mt-1 text-center w-full block whitespace-nowrap transition-colors leading-tight ${isLightMode ? "text-slate-800 group-hover:text-slate-950 font-bold" : "text-slate-200 group-hover:text-white"
 
-                            isLightMode ? "text-slate-800 group-hover:text-slate-950 font-bold" : "text-slate-200 group-hover:text-white"
-
-                          }`}
+                            }`}
 
                         >
 
@@ -2301,11 +2304,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -2345,15 +2346,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           }}
 
-                          className={`p-3.5 rounded-2xl flex items-center justify-between transition-all group shadow-sm cursor-pointer ${
-
-                            isLightMode
+                          className={`p-3.5 rounded-2xl flex items-center justify-between transition-all group shadow-sm cursor-pointer ${isLightMode
 
                               ? "bg-gradient-to-r from-amber-500/15 via-white to-amber-50/50 border border-amber-300 hover:border-amber-400"
 
                               : "bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-900/80 border border-amber-500/30 hover:border-amber-400/60"
 
-                          }`}
+                            }`}
 
                         >
 
@@ -2371,11 +2370,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                 <span
 
-                                  className={`text-xs font-bold truncate ${
+                                  className={`text-xs font-bold truncate ${isLightMode ? "text-slate-900" : "text-white"
 
-                                    isLightMode ? "text-slate-900" : "text-white"
-
-                                  }`}
+                                    }`}
 
                                 >
 
@@ -2453,15 +2450,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             }}
 
-                            className={`p-3 rounded-xl flex items-center justify-between transition-all group cursor-pointer ${
-
-                              isLightMode
+                            className={`p-3 rounded-xl flex items-center justify-between transition-all group cursor-pointer ${isLightMode
 
                                 ? "bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
 
                                 : "bg-slate-900/80 hover:bg-slate-800/90 border border-white/10 hover:border-white/25"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -2469,11 +2464,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               <div
 
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isLightMode ? "bg-slate-100" : "bg-white/5"
 
-                                  isLightMode ? "bg-slate-100" : "bg-white/5"
-
-                                }`}
+                                  }`}
 
                               >
 
@@ -2483,15 +2476,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               <span
 
-                                className={`text-xs font-semibold capitalize truncate ${
-
-                                  isLightMode
+                                className={`text-xs font-semibold capitalize truncate ${isLightMode
 
                                     ? "text-slate-800 group-hover:text-slate-950 font-medium"
 
                                     : "text-slate-200 group-hover:text-white"
 
-                                }`}
+                                  }`}
 
                               >
 
@@ -2503,11 +2494,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             <ExternalLink
 
-                              className={`w-3.5 h-3.5 shrink-0 ml-1.5 ${
+                              className={`w-3.5 h-3.5 shrink-0 ml-1.5 ${isLightMode ? "text-slate-400 group-hover:text-slate-600" : "text-slate-500 group-hover:text-slate-300"
 
-                                isLightMode ? "text-slate-400 group-hover:text-slate-600" : "text-slate-500 group-hover:text-slate-300"
-
-                              }`}
+                                }`}
 
                             />
 
@@ -2545,15 +2534,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                     key="about"
 
-                    className={`p-5 rounded-2xl space-y-3 ${
-
-                      isLightMode
+                    className={`p-5 rounded-2xl space-y-3 ${isLightMode
 
                         ? "bg-slate-50 border border-slate-200/90 shadow-xs text-slate-800"
 
                         : "bg-slate-900/90 border border-white/10 text-white"
 
-                    }`}
+                      }`}
 
                   >
 
@@ -2563,11 +2550,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         <h3
 
-                          className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                          className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-700" : "text-slate-400"
 
-                            isLightMode ? "text-slate-700" : "text-slate-400"
-
-                          }`}
+                            }`}
 
                         >
 
@@ -2587,11 +2572,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <div
 
-                        className={`w-full h-44 rounded-xl overflow-hidden relative border ${
+                        className={`w-full h-44 rounded-xl overflow-hidden relative border ${isLightMode ? "border-slate-200" : "border-white/10"
 
-                          isLightMode ? "border-slate-200" : "border-white/10"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -2607,11 +2590,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <p
 
-                        className={`text-xs leading-relaxed whitespace-pre-line ${
+                        className={`text-xs leading-relaxed whitespace-pre-line ${isLightMode ? "text-slate-700 font-normal" : "text-slate-300"
 
-                          isLightMode ? "text-slate-700 font-normal" : "text-slate-300"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -2653,11 +2634,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <div
 
-                        className={`flex flex-wrap gap-1.5 pt-1 border-t ${
+                        className={`flex flex-wrap gap-1.5 pt-1 border-t ${isLightMode ? "border-slate-200" : "border-white/5"
 
-                          isLightMode ? "border-slate-200" : "border-white/5"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -2667,15 +2646,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             key={i}
 
-                            className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${
-
-                              isLightMode
+                            className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${isLightMode
 
                                 ? "bg-slate-100 text-slate-700 border border-slate-200"
 
                                 : "bg-slate-800 text-slate-300 border border-white/5"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -2709,11 +2686,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -2741,11 +2716,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         <Search
 
-                          className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${
+                          className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${isLightMode ? "text-slate-400" : "text-slate-500"
 
-                            isLightMode ? "text-slate-400" : "text-slate-500"
-
-                          }`}
+                            }`}
 
                         />
 
@@ -2759,15 +2732,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           placeholder="Search services or products..."
 
-                          className={`w-full pl-8 pr-3 py-1.5 rounded-xl text-xs focus:outline-none focus:border-teal-500 ${
-
-                            isLightMode
+                          className={`w-full pl-8 pr-3 py-1.5 rounded-xl text-xs focus:outline-none focus:border-teal-500 ${isLightMode
 
                               ? "bg-white border border-slate-200 text-slate-900 placeholder-slate-400"
 
                               : "bg-slate-900 border border-white/10 text-white placeholder-slate-500"
 
-                          }`}
+                            }`}
 
                         />
 
@@ -2787,15 +2758,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           key={svc.id}
 
-                          className={`p-4 rounded-xl transition-all flex flex-col gap-2.5 ${
-
-                            isLightMode
+                          className={`p-4 rounded-xl transition-all flex flex-col gap-2.5 ${isLightMode
 
                               ? "bg-white border border-slate-200/90 hover:border-teal-500/40 shadow-xs"
 
                               : "bg-slate-900/70 border border-white/10 hover:border-white/20"
 
-                          }`}
+                            }`}
 
                         >
 
@@ -2815,11 +2784,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                   <span
 
-                                    className={`text-[10px] font-mono ${
+                                    className={`text-[10px] font-mono ${isLightMode ? "text-slate-500" : "text-slate-400"
 
-                                      isLightMode ? "text-slate-500" : "text-slate-400"
-
-                                    }`}
+                                      }`}
 
                                   >
 
@@ -2835,11 +2802,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                 <p
 
-                                  className={`text-xs leading-relaxed ${
+                                  className={`text-xs leading-relaxed ${isLightMode ? "text-slate-600" : "text-slate-300"
 
-                                    isLightMode ? "text-slate-600" : "text-slate-300"
-
-                                  }`}
+                                    }`}
 
                                 >
 
@@ -2855,15 +2820,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               <span
 
-                                className={`text-xs font-bold px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 ${
-
-                                  isLightMode
+                                className={`text-xs font-bold px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 ${isLightMode
 
                                     ? "bg-teal-50 text-teal-700 border border-teal-200"
 
                                     : "bg-teal-500/10 text-teal-400 border border-teal-500/20"
 
-                                }`}
+                                  }`}
 
                               >
 
@@ -2879,11 +2842,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           <div
 
-                            className={`flex items-center justify-between pt-1 border-t ${
+                            className={`flex items-center justify-between pt-1 border-t ${isLightMode ? "border-slate-100" : "border-white/5"
 
-                              isLightMode ? "border-slate-100" : "border-white/5"
-
-                            }`}
+                              }`}
 
                           >
 
@@ -2899,15 +2860,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               onClick={() => openServiceInquiry(svc.title)}
 
-                              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
-
-                                isLightMode
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${isLightMode
 
                                   ? "bg-slate-100 hover:bg-slate-200 text-teal-700 font-medium"
 
                                   : "bg-slate-800 hover:bg-slate-700 text-teal-300 hover:text-white"
 
-                              }`}
+                                }`}
 
                             >
 
@@ -2937,15 +2896,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         onClick={() => setServicesViewAll(!servicesViewAll)}
 
-                        className={`w-full py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer text-center ${
-
-                          isLightMode
+                        className={`w-full py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer text-center ${isLightMode
 
                             ? "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200"
 
                             : "bg-slate-900/50 hover:bg-slate-800/50 text-slate-400 hover:text-white border-white/5"
 
-                        }`}
+                          }`}
 
                       >
 
@@ -2975,11 +2932,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3015,9 +2970,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             onClick={() => setPortfolioCategory(cat)}
 
-                            className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors cursor-pointer ${
-
-                              portfolioCategory === cat
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors cursor-pointer ${portfolioCategory === cat
 
                                 ? isLightMode
 
@@ -3027,11 +2980,11 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                 : isLightMode
 
-                                ? "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
+                                  ? "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
 
-                                : "bg-slate-900 text-slate-400 hover:text-white border border-white/5"
+                                  : "bg-slate-900 text-slate-400 hover:text-white border border-white/5"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -3059,15 +3012,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           onClick={() => setActiveProjectModal(item)}
 
-                          className={`group rounded-xl overflow-hidden relative block transition-all cursor-pointer ${
-
-                            isLightMode
+                          className={`group rounded-xl overflow-hidden relative block transition-all cursor-pointer ${isLightMode
 
                               ? "bg-white border border-slate-200/90 shadow-xs hover:border-teal-500/40"
 
                               : "bg-slate-900 border border-white/10 hover:border-teal-500/40"
 
-                          }`}
+                            }`}
 
                         >
 
@@ -3124,9 +3075,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                                       e.stopPropagation();
                                       handleOpenExternal(e, validUrl);
                                     }}
-                                    className={`inline-flex items-center gap-1 text-[10px] font-bold transition-colors hover:underline ${
-                                      isLightMode ? "text-blue-600 hover:text-blue-700" : "text-teal-400 hover:text-teal-300"
-                                    }`}
+                                    className={`inline-flex items-center gap-1 text-[10px] font-bold transition-colors hover:underline ${isLightMode ? "text-blue-600 hover:text-blue-700" : "text-teal-400 hover:text-teal-300"
+                                      }`}
                                     title={`Open live project: ${validUrl}`}
                                   >
                                     <span>Live Link</span>
@@ -3159,15 +3109,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                         onClick={() => setPortfolioViewAll(!portfolioViewAll)}
 
-                        className={`w-full py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer text-center ${
-
-                          isLightMode
+                        className={`w-full py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer text-center ${isLightMode
 
                             ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
 
                             : "bg-slate-900/50 hover:bg-slate-800/50 text-slate-400 hover:text-white border-white/5"
 
-                        }`}
+                          }`}
 
                       >
 
@@ -3195,15 +3143,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                     key="intro_video"
 
-                    className={`p-4 rounded-2xl space-y-2.5 ${
-
-                      isLightMode
+                    className={`p-4 rounded-2xl space-y-2.5 ${isLightMode
 
                         ? "bg-white border border-slate-200/90 shadow-sm"
 
                         : "bg-slate-900/70 border border-white/10"
 
-                    }`}
+                      }`}
 
                   >
 
@@ -3213,11 +3159,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider ${
+                        className={`text-xs font-bold uppercase tracking-wider ${isLightMode ? "text-slate-800" : "text-slate-300"
 
-                          isLightMode ? "text-slate-800" : "text-slate-300"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3275,15 +3219,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                     key="testimonials"
 
-                    className={`p-5 rounded-2xl space-y-3.5 ${
-
-                      isLightMode
+                    className={`p-5 rounded-2xl space-y-3.5 ${isLightMode
 
                         ? "bg-white border border-slate-200/90 shadow-sm"
 
                         : "bg-gradient-to-br from-slate-900/90 to-slate-950 border border-white/10"
 
-                    }`}
+                      }`}
 
                   >
 
@@ -3291,11 +3233,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-800" : "text-slate-400"
 
-                          isLightMode ? "text-slate-800" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3329,11 +3269,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <p
 
-                        className={`text-xs italic leading-relaxed ${
+                        className={`text-xs italic leading-relaxed ${isLightMode ? "text-slate-800 font-medium" : "text-slate-100"
 
-                          isLightMode ? "text-slate-800 font-medium" : "text-slate-100"
-
-                        }`}
+                          }`}
 
                         style={{ color: isLightMode ? "#1e293b" : "#f1f5f9" }}
 
@@ -3347,15 +3285,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <div className="pt-1 flex items-center gap-2.5">
 
-                        <div className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center border ${
-
-                          isLightMode
+                        <div className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center border ${isLightMode
 
                             ? "bg-teal-50 text-teal-700 border-teal-200"
 
                             : "bg-teal-500/20 text-teal-400 border-teal-500/30"
 
-                        }`}>
+                          }`}>
 
                           {t.clientName.charAt(0)}
 
@@ -3393,11 +3329,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <div
 
-                        className={`flex items-center justify-between pt-2 border-t ${
+                        className={`flex items-center justify-between pt-2 border-t ${isLightMode ? "border-slate-200" : "border-white/5"
 
-                          isLightMode ? "border-slate-200" : "border-white/5"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3413,19 +3347,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               onClick={() => setActiveTestimonialIdx(idx)}
 
-                              className={`h-1.5 rounded-full transition-all cursor-pointer ${
-
-                                activeTestimonialIdx === idx
+                              className={`h-1.5 rounded-full transition-all cursor-pointer ${activeTestimonialIdx === idx
 
                                   ? "w-5 bg-teal-500"
 
                                   : isLightMode
 
-                                  ? "w-1.5 bg-slate-300"
+                                    ? "w-1.5 bg-slate-300"
 
-                                  : "w-1.5 bg-white/20"
+                                    : "w-1.5 bg-white/20"
 
-                              }`}
+                                }`}
 
                             />
 
@@ -3445,15 +3377,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             }
 
-                            className={`px-2 py-1 rounded text-[10px] cursor-pointer ${
-
-                              isLightMode
+                            className={`px-2 py-1 rounded text-[10px] cursor-pointer ${isLightMode
 
                                 ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
 
                                 : "bg-slate-800 text-slate-300 hover:text-white"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -3471,15 +3401,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             }
 
-                            className={`px-2 py-1 rounded text-[10px] cursor-pointer ${
-
-                              isLightMode
+                            className={`px-2 py-1 rounded text-[10px] cursor-pointer ${isLightMode
 
                                 ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
 
                                 : "bg-slate-800 text-slate-300 hover:text-white"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -3513,11 +3441,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3537,15 +3463,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                           key={c.id}
 
-                          className={`p-3 rounded-xl flex items-center justify-between gap-3 ${
-
-                            isLightMode
+                          className={`p-3 rounded-xl flex items-center justify-between gap-3 ${isLightMode
 
                               ? "bg-white border border-slate-200/90 shadow-xs"
 
                               : "bg-slate-900/80 border border-white/10"
 
-                          }`}
+                            }`}
 
                         >
 
@@ -3631,11 +3555,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3673,15 +3595,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             }}
 
-                            className={`p-3 rounded-xl flex items-center justify-between gap-3 group transition-colors cursor-pointer ${
-
-                              isLightMode
+                            className={`p-3 rounded-xl flex items-center justify-between gap-3 group transition-colors cursor-pointer ${isLightMode
 
                                 ? "bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
 
                                 : "bg-slate-900/80 hover:bg-slate-800/80 border border-white/10"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -3697,15 +3617,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                 <p
 
-                                  className={`text-xs font-bold truncate ${
-
-                                    isLightMode
+                                  className={`text-xs font-bold truncate ${isLightMode
 
                                       ? "text-slate-900 group-hover:text-teal-600"
 
                                       : "text-white group-hover:text-teal-300"
 
-                                  }`}
+                                    }`}
 
                                 >
 
@@ -3725,11 +3643,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             <span
 
-                              className={`p-1.5 rounded-lg shrink-0 ${
+                              className={`p-1.5 rounded-lg shrink-0 ${isLightMode ? "bg-slate-100 text-slate-700" : "bg-white/5 text-slate-300 group-hover:text-white"
 
-                                isLightMode ? "bg-slate-100 text-slate-700" : "bg-white/5 text-slate-300 group-hover:text-white"
-
-                              }`}
+                                }`}
 
                             >
 
@@ -3764,15 +3680,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                     key="location"
 
-                    className={`p-4 rounded-2xl space-y-3 ${
-
-                      isLightMode
+                    className={`p-4 rounded-2xl space-y-3 ${isLightMode
 
                         ? "bg-white border border-slate-200/90 shadow-sm"
 
                         : "bg-slate-900/70 border border-white/10"
 
-                    }`}
+                      }`}
 
                   >
 
@@ -3803,8 +3717,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                             ? resolveValidUrl(locationBlock.mapUrl)
 
                             : locationBlock.address
-                            ? `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`
-                            : null;
+                              ? `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`
+                              : null;
 
                           if (!dirUrl) return null;
 
@@ -3865,21 +3779,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <div
 
-                        className={`border-t pt-2.5 space-y-1 ${
+                        className={`border-t pt-2.5 space-y-1 ${isLightMode ? "border-slate-200" : "border-white/10"
 
-                          isLightMode ? "border-slate-200" : "border-white/10"
-
-                        }`}
+                          }`}
 
                       >
 
                         <div
 
-                          className={`flex items-center gap-1 text-[11px] mb-1 ${
+                          className={`flex items-center gap-1 text-[11px] mb-1 ${isLightMode ? "text-slate-500" : "text-slate-400"
 
-                            isLightMode ? "text-slate-500" : "text-slate-400"
-
-                          }`}
+                            }`}
 
                         >
 
@@ -3895,11 +3805,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             key={i}
 
-                            className={`flex justify-between text-xs ${
+                            className={`flex justify-between text-xs ${isLightMode ? "text-slate-700" : "text-slate-300"
 
-                              isLightMode ? "text-slate-700" : "text-slate-300"
-
-                            }`}
+                              }`}
 
                           >
 
@@ -3939,11 +3847,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                       <h3
 
-                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                        className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${isLightMode ? "text-slate-600" : "text-slate-400"
 
-                          isLightMode ? "text-slate-600" : "text-slate-400"
-
-                        }`}
+                          }`}
 
                       >
 
@@ -3967,15 +3873,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                             key={f.id || idx}
 
-                            className={`rounded-xl overflow-hidden transition-colors ${
-
-                              isLightMode
+                            className={`rounded-xl overflow-hidden transition-colors ${isLightMode
 
                                 ? "bg-white border border-slate-200/90 shadow-xs"
 
                                 : "bg-slate-900/80 border border-white/10"
 
-                            }`}
+                              }`}
 
                           >
 
@@ -3985,15 +3889,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
 
-                              className={`w-full p-3 text-left flex items-center justify-between gap-2 text-xs font-semibold cursor-pointer ${
-
-                                isLightMode
+                              className={`w-full p-3 text-left flex items-center justify-between gap-2 text-xs font-semibold cursor-pointer ${isLightMode
 
                                   ? "text-slate-800 hover:text-slate-950 font-medium"
 
                                   : "text-slate-200 hover:text-white"
 
-                              }`}
+                                }`}
 
                             >
 
@@ -4007,11 +3909,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                                 <ChevronDown
 
-                                  className={`w-3.5 h-3.5 shrink-0 ${
+                                  className={`w-3.5 h-3.5 shrink-0 ${isLightMode ? "text-slate-400" : "text-slate-500"
 
-                                    isLightMode ? "text-slate-400" : "text-slate-500"
-
-                                  }`}
+                                    }`}
 
                                 />
 
@@ -4023,15 +3923,13 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                               <div
 
-                                className={`px-3 pb-3 text-xs leading-relaxed border-t pt-2 ${
-
-                                  isLightMode
+                                className={`px-3 pb-3 text-xs leading-relaxed border-t pt-2 ${isLightMode
 
                                     ? "text-slate-700 border-slate-100 bg-slate-50/50"
 
                                     : "text-slate-300 border-white/5"
 
-                                }`}
+                                  }`}
 
                               >
 
@@ -4077,11 +3975,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
         <div
 
-          className={`mt-auto py-6 border-t flex flex-col items-center justify-center text-center px-4 space-y-2 ${
+          className={`mt-auto py-6 border-t flex flex-col items-center justify-center text-center px-4 space-y-2 ${isLightMode ? "border-slate-200 text-slate-600" : "border-white/10 text-slate-500"
 
-            isLightMode ? "border-slate-200 text-slate-600" : "border-white/10 text-slate-500"
-
-          }`}
+            }`}
 
         >
 
@@ -4095,11 +3991,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
                   href="/"
 
-                  className={`font-bold transition-colors ${
+                  className={`font-bold transition-colors ${isLightMode ? "text-slate-800 hover:text-teal-600" : "text-slate-300 hover:text-teal-400"
 
-                    isLightMode ? "text-slate-800 hover:text-teal-600" : "text-slate-300 hover:text-teal-400"
-
-                  }`}
+                    }`}
 
                 >
 
@@ -4125,11 +4019,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               onClick={handleShareProfile}
 
-              className={`flex items-center gap-1 cursor-pointer ${
+              className={`flex items-center gap-1 cursor-pointer ${isLightMode ? "hover:text-slate-900" : "hover:text-slate-300"
 
-                isLightMode ? "hover:text-slate-900" : "hover:text-slate-300"
-
-              }`}
+                }`}
 
             >
 
@@ -4147,11 +4039,9 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               onClick={() => setReportModalOpen(true)}
 
-              className={`flex items-center gap-1 cursor-pointer ${
+              className={`flex items-center gap-1 cursor-pointer ${isLightMode ? "hover:text-slate-900" : "hover:text-slate-300"
 
-                isLightMode ? "hover:text-slate-900" : "hover:text-slate-300"
-
-              }`}
+                }`}
 
             >
 
@@ -4179,9 +4069,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
       <div
 
-        className={`${
-
-          sourceType === "preview"
+        className={`${sourceType === "preview"
 
             ? isLightMode
 
@@ -4191,18 +4079,17 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
             : "fixed bottom-0 left-0 right-0 z-40 p-3 sm:pb-4 flex justify-center pointer-events-none"
 
-        }`}
+          }`}
 
       >
 
         <div
-          className={`${
-            sourceType === "preview"
+          className={`${sourceType === "preview"
               ? "w-full grid grid-cols-3 gap-1.5"
               : isLightMode
-              ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-              : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-          }`}
+                ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
+                : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
+            }`}
         >
           {/* Action 1: Save Contact (Direct vCard) */}
           <button
@@ -4227,11 +4114,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               handleTrackAction("sticky_inquiry_click");
               setLeadModalOpen(true);
             }}
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
-              isLightMode
+            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
                 ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
-            }`}
+              }`}
             title="Open contact exchange form"
           >
             <Mail className="w-3.5 h-3.5 shrink-0 text-teal-600" />
@@ -4242,11 +4128,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           <button
             type="button"
             onClick={handleInstallClick}
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${
-              isLightMode
+            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
                 ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
                 : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
-            }`}
+              }`}
             title="Install Web App on Home Screen"
           >
             <Smartphone className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
@@ -4424,11 +4309,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-2.5 max-h-[94%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-3xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative text-left border overflow-hidden ${
-                isLightMode
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-2.5 max-h-[94%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-3xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative text-left border overflow-hidden ${isLightMode
                   ? "bg-white border-slate-200 text-slate-900"
                   : "bg-slate-900 border-white/15 text-white"
-              }`}
+                }`}
             >
               {/* Header */}
               <div className="flex items-center justify-between">
@@ -4441,13 +4325,12 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     setInstallModalOpen(false);
                     try {
                       sessionStorage.setItem("dismissed_install_" + profile.id, "true");
-                    } catch {}
+                    } catch { }
                   }}
-                  className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                    isLightMode
+                  className={`p-1.5 rounded-xl transition-colors cursor-pointer ${isLightMode
                       ? "hover:bg-slate-100 text-slate-400 hover:text-slate-700"
                       : "hover:bg-slate-800 text-slate-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -4455,11 +4338,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
               {/* App Summary Card Box */}
               <div
-                className={`p-3 rounded-2xl flex items-center gap-3 border overflow-hidden ${
-                  isLightMode
+                className={`p-3 rounded-2xl flex items-center gap-3 border overflow-hidden ${isLightMode
                     ? "bg-slate-100/90 border-slate-200/80"
                     : "bg-slate-800/80 border-white/10"
-                }`}
+                  }`}
               >
                 <div className={`w-14 h-14 min-w-[56px] min-h-[56px] max-w-[56px] max-h-[56px] rounded-2xl overflow-hidden bg-slate-900 shadow-sm border shrink-0 flex items-center justify-center ${isLightMode ? "border-slate-200/80" : "border-white/10"}`}>
                   <img
@@ -4482,19 +4364,79 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                 Home screen par <strong>{personName || companyName}</strong> ka personal app icon install karein. Aapki photo aur name ke sath direct icon ban jayega!
               </p>
 
-              {/* Real App Icon Instructions */}
+              {/* Device Selector Tabs */}
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setInstallDeviceTab("android")}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    installDeviceTab === "android"
+                      ? (isLightMode ? "bg-white text-emerald-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-emerald-400 shadow-sm border border-white/10")
+                      : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
+                  }`}
+                >
+                  <span>📱</span>
+                  <span>Android</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallDeviceTab("ios")}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    installDeviceTab === "ios"
+                      ? (isLightMode ? "bg-white text-blue-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-blue-400 shadow-sm border border-white/10")
+                      : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
+                  }`}
+                >
+                  <span>🍏</span>
+                  <span>iPhone</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInstallDeviceTab("desktop")}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                    installDeviceTab === "desktop"
+                      ? (isLightMode ? "bg-white text-indigo-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-indigo-400 shadow-sm border border-white/10")
+                      : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
+                  }`}
+                >
+                  <span>💻</span>
+                  <span>PC / Mac</span>
+                </button>
+              </div>
+
+              {/* In-App Browser Warning (WhatsApp / Instagram) */}
+              {isInAppBrowser && (
+                <div className={`p-3 rounded-xl border flex items-start gap-2.5 ${isLightMode ? "bg-amber-50 border-amber-200 text-amber-950" : "bg-amber-950/40 border-amber-800/60 text-amber-200"}`}>
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+                  <div className="text-[11px] leading-relaxed flex-1">
+                    <p className="font-bold text-xs text-amber-600 dark:text-amber-400">In-App Browser Detected (WhatsApp / Instagram)</p>
+                    <p className="mt-0.5">WhatsApp / Instagram me direct app install block hota hai. Real home screen icon install karne ke liye Chrome ya Safari me open karein.</p>
+                    {installDeviceTab === "android" && (
+                      <a
+                        href={`intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`}
+                        className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                      >
+                        <span>Open in Google Chrome</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step-by-Step Instructions */}
               <div className={`p-3.5 rounded-2xl text-xs space-y-2.5 animate-in fade-in duration-200 ${isLightMode ? "bg-blue-50/90 border border-blue-200/80 text-blue-950" : "bg-blue-950/50 border border-blue-900/60 text-blue-100"}`}>
                 <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-blue-900" : "text-blue-300"}`}>
-                  {isDesktopDevice ? (
-                    <span>🖥️ Windows Desktop par Tapbez Icon lane ke 2 Tarike:</span>
-                  ) : isIosDevice ? (
-                    <span>🍏 iPhone Screen par App Icon:</span>
+                  {installDeviceTab === "desktop" ? (
+                    <span>🖥️ Windows / Mac Desktop par App Icon:</span>
+                  ) : installDeviceTab === "ios" ? (
+                    <span>🍏 iPhone (Safari) Screen par App Icon:</span>
                   ) : (
-                    <span>📱 Mobile Screen par App Icon:</span>
+                    <span>📱 Android Phone par App Icon:</span>
                   )}
                 </p>
 
-                {isDesktopDevice ? (
+                {installDeviceTab === "desktop" ? (
                   <div className="space-y-2 text-[11px] leading-relaxed">
                     <div className={`p-2.5 rounded-xl border ${isLightMode ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-200"}`}>
                       <p className={`font-bold flex items-center gap-1.5 text-xs ${isLightMode ? "text-emerald-800" : "text-emerald-300"}`}>
@@ -4516,31 +4458,53 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                       </p>
                     </div>
                   </div>
-                ) : isIosDevice ? (
-                  <div className="space-y-1.5 text-[11px] leading-relaxed">
-                    <p className="flex items-start gap-1.5">
-                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>1.</span>
-                      <span>Safari ke bottom bar me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>Share icon (📤)</strong> par tap karein.</span>
-                    </p>
-                    <p className="flex items-start gap-1.5">
-                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>2.</span>
-                      <span>Scroll down karke <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Add to Home Screen ➕&apos;</strong> select karein.</span>
-                    </p>
+                ) : installDeviceTab === "ios" ? (
+                  <div className="space-y-2 text-[11px] leading-relaxed">
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-blue-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <div>
+                        <p className="font-bold text-xs">Safari ke bottom bar me <strong>Share icon (📤)</strong> tap karein.</p>
+                        <p className="text-slate-500 text-[10px]">Safari browser ke sabse niche center me share icon hota hai.</p>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-blue-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <div>
+                        <p className="font-bold text-xs">Scroll down karke <strong>&apos;Add to Home Screen ➕&apos;</strong> chunein.</p>
+                        <p className="text-slate-500 text-[10px]">Options list me niche swipe karein.</p>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-blue-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <div>
+                        <p className="font-bold text-xs">Top-right me <strong>&apos;Add&apos;</strong> tap karein.</p>
+                        <p className="text-slate-500 text-[10px]">Aapke iPhone screen par real App Icon ban jayega!</p>
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-1.5 text-[11px] leading-relaxed">
-                    <p className="flex items-start gap-1.5">
-                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>1.</span>
-                      <span>Chrome browser ke top right me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>3 dots (⋮)</strong> par tap karein.</span>
-                    </p>
-                    <p className="flex items-start gap-1.5">
-                      <span className={`font-bold ${isLightMode ? "text-blue-600" : "text-blue-400"}`}>2.</span>
-                      <span>Menu me <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Install app&apos;</strong> ya <strong className={`${isLightMode ? "text-blue-700" : "text-blue-300"}`}>&apos;Add to Home screen 📲&apos;</strong> select karein.</span>
-                    </p>
-                    <p className="flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold pt-0.5">
-                      <span>✓</span>
-                      <span>Aapke phone ki screen par Real App Icon add ho jayega!</span>
-                    </p>
+                  <div className="space-y-2 text-[11px] leading-relaxed">
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-emerald-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                      <div>
+                        <p className="font-bold text-xs">Chrome ke top-right me <strong>3 dots (⋮)</strong> tap karein.</p>
+                        <p className="text-slate-500 text-[10px]">Browser ke top right corner me menu icon hota hai.</p>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-emerald-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                      <div>
+                        <p className="font-bold text-xs">Menu me <strong>&apos;Install app&apos;</strong> ya <strong>&apos;Add to Home screen 📲&apos;</strong> chunein.</p>
+                        <p className="text-slate-500 text-[10px]">Direct app install ka option dikhega.</p>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-xl border flex items-start gap-2 ${isLightMode ? "bg-white/80 border-emerald-200/60" : "bg-slate-900/60 border-white/10"}`}>
+                      <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                      <div>
+                        <p className="font-bold text-xs"><strong>&apos;Install&apos;</strong> confirm karein.</p>
+                        <p className="text-slate-500 text-[10px]">Aapke phone launcher me seedha App Icon aa jayega!</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -4548,7 +4512,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               {/* Install Action Buttons */}
               <div className="space-y-2.5 pt-1">
                 <div className="grid grid-cols-2 gap-2">
-                  {isDesktopDevice ? (
+                  {installDeviceTab === "desktop" ? (
                     <>
                       <button
                         type="button"
@@ -4560,39 +4524,54 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          const pubUrl = typeof window !== "undefined"
-                            ? (sourceType === "preview" ? `${window.location.origin}/p/${profile.slug}` : window.location.href)
-                            : `https://tapbez.in/p/${profile.slug}`;
-                          window.open(pubUrl, "_blank");
-                        }}
+                        onClick={handleDownloadShortcutFile}
                         className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
                       >
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                        <span>Open Live Webpage</span>
+                        <Download className="w-3.5 h-3.5 shrink-0" />
+                        <span>Save Shortcut (.url)</span>
                       </button>
                     </>
+                  ) : installDeviceTab === "ios" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        showToast("Safari me niche Share icon (📤) tap karke 'Add to Home Screen ➕' chunein!");
+                      }}
+                      className="col-span-2 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Share2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>Share 📤 &rarr; Add to Home Screen ➕</span>
+                    </button>
                   ) : (
                     <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const pubUrl = typeof window !== "undefined" ? window.location.href : `/p/${profile.slug}`;
-                          window.open(pubUrl, "_blank");
-                        }}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                        <span>Open Webpage</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleExecuteInstall}
-                        className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <Smartphone className="w-3.5 h-3.5 shrink-0" />
-                        <span>Install App</span>
-                      </button>
+                      {deferredPrompt ? (
+                        <button
+                          type="button"
+                          onClick={handleExecuteInstall}
+                          className="col-span-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 animate-pulse"
+                        >
+                          <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                          <span>Install App Now (1-Tap)</span>
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={handleExecuteInstall}
+                            className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                            <span>Install App</span>
+                          </button>
+                          <a
+                            href={`intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`}
+                            className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
+                          >
+                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                            <span>Open in Chrome</span>
+                          </a>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

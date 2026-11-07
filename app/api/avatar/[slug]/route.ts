@@ -20,6 +20,7 @@ export async function GET(
 ) {
   try {
     const rawSlug = (await params).slug || "";
+    const isPngRequest = /\.png$/i.test(rawSlug) || req.nextUrl.pathname.endsWith(".png");
     const slug = rawSlug.replace(/\.(jpg|jpeg|png|webp|svg|ico)$/i, "").trim().toLowerCase();
 
     if (!slug) {
@@ -71,7 +72,7 @@ export async function GET(
     if (photoUrl.startsWith("data:")) {
       const match = photoUrl.match(/^data:([^;]+);base64,(.+)$/);
       if (match) {
-        const mimeType = match[1] || "image/jpeg";
+        const mimeType = isPngRequest ? "image/png" : (match[1] || "image/jpeg");
         const base64Data = match[2];
         const buffer = Buffer.from(base64Data, "base64");
 
@@ -94,7 +95,10 @@ export async function GET(
           headers: { "User-Agent": "Mozilla/5.0" },
         });
         if (extRes.ok) {
-          const contentType = extRes.headers.get("content-type") || "image/jpeg";
+          let contentType = extRes.headers.get("content-type") || "image/jpeg";
+          if (isPngRequest && (contentType.includes("jpeg") || contentType.includes("jpg"))) {
+            contentType = "image/png";
+          }
           const buf = await extRes.arrayBuffer();
           return new Response(buf, {
             status: 200,

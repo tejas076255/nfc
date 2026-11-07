@@ -1,8 +1,13 @@
 import React from "react";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { TapbezLovableLanding } from "@/components/landing/TapbezLovableLanding";
+
+export const metadata: Metadata = {
+  manifest: "/manifest.json",
+};
 
 export default async function HomePage({
   searchParams,

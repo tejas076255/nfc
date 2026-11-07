@@ -28,7 +28,6 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "tapbez | Smart Contactless NFC Business Cards & Executive Identity",
-  manifest: "/manifest.json",
   description:
     "Universal contactless NFC business cards and digital identity platform for leaders. Instant 0.4s vCard transmission, real-time tap telemetry, dynamic multi-profile routing, and remote freeze lock.",
   icons: {
