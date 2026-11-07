@@ -87,7 +87,8 @@ export function CardOrderCheckout({
   const [printedName, setPrintedName] = useState(userName || "Siddharth Mehta");
   const [printedTitle, setPrintedTitle] = useState("Senior Partner");
   const [companyName, setCompanyName] = useState("Vertex Legal Advisory");
-  const [colorPalette, setColorPalette] = useState("noir_gold");
+  const [colorPalette, setColorPalette] = useState("royal_sapphire");
+  const [metalFinish, setMetalFinish] = useState<"champagne_gold" | "obsidian_black" | "rose_gold" | "titanium_silver">("champagne_gold");
   const [qrPosition, setQrPosition] = useState<"back_center" | "back_bottom_right">("back_bottom_right");
   const [proofApproved, setProofApproved] = useState(false);
 
@@ -158,11 +159,11 @@ export function CardOrderCheckout({
       {/* LEFT: 3D CARD CUSTOMIZER PREVIEW */}
       <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-6 transition-colors sticky top-8">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-500">
             Interactive Proof Visualizer
           </span>
-          <h2 className="text-lg font-bold text-white">Live Physical Card Preview</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-500 dark:text-slate-400">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Live Physical Card Preview</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Click the card to inspect the printed QR code and NFC details on the reverse side.
           </p>
         </div>
@@ -174,42 +175,105 @@ export function CardOrderCheckout({
             company={companyName}
             variant={variant}
             colorPalette={colorPalette}
+            metalFinish={metalFinish}
             qrPosition={qrPosition}
             isInteractive={true}
           />
         </div>
 
-        {/* Palette Selector */}
-        <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
-          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-            Card Theme & Foil Palette
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { id: "noir_gold", label: "Noir & Gold", color: "#f59e0b" },
-              { id: "emerald_gold", label: "Emerald Luxury", color: "#10b981" },
-              { id: "royal_sapphire", label: "Royal Sapphire", color: "#3b82f6" },
-              { id: "rose_noir", label: "Rose Gold Noir", color: "#f43f5e" },
-            ].map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setColorPalette(p.id)}
-                className={`p-2.5 rounded-xl border text-left text-xs font-medium flex items-center justify-between transition-all ${
-                  colorPalette === p.id
-                    ? "border-blue-500 bg-blue-600/10 text-white"
-                    : "border-white/10 bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-white"
-                }`}
-              >
-                <span>{p.label}</span>
-                <div
-                  className="w-3 h-3 rounded-full border border-white/20"
-                  style={{ backgroundColor: p.color }}
-                />
-              </button>
-            ))}
+        {/* Dynamic Card Finish / Palette Selector */}
+        {variant === "standard_pvc" ? (
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Card Finish & Material
+              </label>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Standard Edition</span>
+            </div>
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 rounded-lg bg-white border border-slate-300 shadow-xs flex items-center justify-center font-bold text-[9px] text-slate-700">
+                  PVC
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">Pure Gloss White PVC</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Minimalist aesthetic with high-contrast text</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                Included
+              </span>
+            </div>
           </div>
-        </div>
+        ) : variant === "custom_metal" ? (
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Aerospace Metal Finish
+              </label>
+              <span className="text-[10px] font-bold text-amber-500 uppercase">Laser Engraved</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: "champagne_gold", label: "Champagne Gold", color: "#d4af37" },
+                { id: "obsidian_black", label: "Obsidian Black", color: "#18181b" },
+                { id: "rose_gold", label: "Rose Gold Metal", color: "#c27ba0" },
+                { id: "titanium_silver", label: "Titanium Silver", color: "#94a3b8" },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMetalFinish(m.id as any)}
+                  className={`p-2.5 rounded-xl border text-left text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                    metalFinish === m.id
+                      ? "border-amber-500 bg-amber-500/10 text-slate-900 dark:text-white font-bold ring-1 ring-amber-500"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  <span>{m.label}</span>
+                  <div
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs"
+                    style={{ backgroundColor: m.color }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-white/10">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Card Brand Accent Palette
+              </label>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase">Custom Theme</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: "royal_sapphire", label: "Royal Sapphire", color: "#2563eb" },
+                { id: "emerald_gold", label: "Emerald Luxury", color: "#059669" },
+                { id: "noir_gold", label: "Noir & Gold", color: "#f59e0b" },
+                { id: "rose_noir", label: "Rose Gold Noir", color: "#e11d48" },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setColorPalette(p.id)}
+                  className={`p-2.5 rounded-xl border text-left text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                    colorPalette === p.id
+                      ? "border-[#00b39d] bg-[#00b39d]/10 text-slate-900 dark:text-white font-bold ring-1 ring-[#00b39d]"
+                      : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  <span>{p.label}</span>
+                  <div
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs"
+                    style={{ backgroundColor: p.color }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Proof Approval Mandatory Check */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 space-y-2">
