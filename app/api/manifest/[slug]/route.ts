@@ -54,7 +54,7 @@ export async function GET(
       short_name: shortName,
       description: description,
       start_url: `/p/${slug}?source=pwa`,
-      id: `/p/${slug}`,
+      id: `/p/${slug}?source=pwa`,
       scope: `/`,
       display: "standalone",
       orientation: "portrait",
@@ -84,18 +84,6 @@ export async function GET(
           sizes: "512x512",
           type: "image/png",
           purpose: "maskable",
-        },
-        {
-          src: avatarPngUrl,
-          sizes: "192x192",
-          type: "image/png",
-          purpose: "any",
-        },
-        {
-          src: avatarPngUrl,
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "any",
         },
         {
           src: avatarJpgUrl,

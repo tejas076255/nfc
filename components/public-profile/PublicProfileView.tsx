@@ -1179,16 +1179,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       return;
     }
 
-    // 3. Android fallback: try launching Chrome intent or guide user
-    if (typeof window !== "undefined" && /Android/i.test(navigator.userAgent)) {
+    // 3. Android fallback:
+    if (isInAppBrowser) {
       try {
         window.location.href = `intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`;
       } catch {}
-      showToast("Chrome menu (⋮) me 'Install app' ya 'Add to Home screen 📲' select karein!");
+      showToast("Google Chrome me open ho raha hai...");
       return;
     }
 
-    showToast("Chrome menu (⋮) me 'Install app' ya 'Add to Home screen 📲' select karein!");
+    showToast("👆 Screen ke top right corner me (⋮ 3 dots) par tap karein aur 'Install app' chunein!");
   };
 
   const handleDownloadShortcutFile = () => {
@@ -4532,44 +4532,75 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                       </button>
                     </>
                   ) : installDeviceTab === "ios" ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        showToast("Safari me niche Share icon (📤) tap karke 'Add to Home Screen ➕' chunein!");
-                      }}
-                      className="col-span-2 py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                    >
-                      <Share2 className="w-3.5 h-3.5 shrink-0" />
-                      <span>Share 📤 &rarr; Add to Home Screen ➕</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          showToast("Safari bottom bar me Share icon (📤) tap karke 'Add to Home Screen ➕' select karein!");
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <Share2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Share 📤 &rarr; Add</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleDownloadVCard();
+                          setInstallModalOpen(false);
+                        }}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
+                      >
+                        <FileDown className="w-3.5 h-3.5 shrink-0 text-blue-600" />
+                        <span>Save Contact (.vcf)</span>
+                      </button>
+                    </>
                   ) : (
                     <>
                       {deferredPrompt ? (
                         <button
                           type="button"
                           onClick={handleExecuteInstall}
-                          className="col-span-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 animate-pulse"
+                          className="col-span-2 py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 animate-pulse"
                         >
-                          <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                          <Smartphone className="w-4 h-4 shrink-0" />
                           <span>Install App Now (1-Tap)</span>
                         </button>
                       ) : (
                         <>
-                          <button
-                            type="button"
-                            onClick={handleExecuteInstall}
-                            className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                          >
-                            <Smartphone className="w-3.5 h-3.5 shrink-0" />
-                            <span>Install App</span>
-                          </button>
-                          <a
-                            href={`intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`}
-                            className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
-                          >
-                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                            <span>Open in Chrome</span>
-                          </a>
+                          {isInAppBrowser ? (
+                            <a
+                              href={`intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`}
+                              className="col-span-2 py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              <ExternalLink className="w-4 h-4 shrink-0" />
+                              <span>Open in Google Chrome to Install</span>
+                            </a>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  showToast("👆 Screen ke top right corner me (⋮ 3 dots) par tap karein aur 'Install app' chunein!");
+                                }}
+                                className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                              >
+                                <Smartphone className="w-3.5 h-3.5 shrink-0" />
+                                <span>Menu (⋮) &rarr; Install</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleDownloadVCard();
+                                  setInstallModalOpen(false);
+                                }}
+                                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
+                              >
+                                <FileDown className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                                <span>Save Contact (.vcf)</span>
+                              </button>
+                            </>
+                          )}
                         </>
                       )}
                     </>

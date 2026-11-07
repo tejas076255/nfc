@@ -95,10 +95,7 @@ export async function GET(
           headers: { "User-Agent": "Mozilla/5.0" },
         });
         if (extRes.ok) {
-          let contentType = extRes.headers.get("content-type") || "image/jpeg";
-          if (isPngRequest && (contentType.includes("jpeg") || contentType.includes("jpg"))) {
-            contentType = "image/png";
-          }
+          const contentType = extRes.headers.get("content-type") || "image/jpeg";
           const buf = await extRes.arrayBuffer();
           return new Response(buf, {
             status: 200,
