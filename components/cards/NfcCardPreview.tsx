@@ -177,25 +177,25 @@ export function NfcCardPreview({
                 />
               )}
 
-              {/* Top Row: Tapbez Brand & Badge */}
-              <div className="flex justify-between items-start z-10">
+              {/* Top Row: Official Website Logo & Badge */}
+              <div className="flex justify-between items-center z-10">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
-                    <Wifi className="w-4 h-4 rotate-90" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-black tracking-wider uppercase text-slate-900 block leading-none">
-                      tapbez
-                    </span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                      NFC SMART
-                    </span>
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/landing/tapbez-logo-header.png"
+                    alt="Tapbez Logo"
+                    className="h-7 sm:h-8 w-auto max-w-[130px] object-contain"
+                  />
                 </div>
 
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80 shadow-xs">
-                  Standard PVC
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/80 shadow-xs">
+                    Standard PVC
+                  </span>
+                  <div className="w-7 h-7 rounded-lg bg-slate-100/90 border border-slate-200 flex items-center justify-center text-slate-700">
+                    <Wifi className="w-3.5 h-3.5 rotate-90" />
+                  </div>
+                </div>
               </div>
 
               {/* Bottom Row: Name, Title & Company */}
@@ -465,6 +465,14 @@ export function NfcCardPreview({
 
             <div className="pt-10 flex justify-between items-center z-10">
               <div className="space-y-1">
+                <div className="flex items-center gap-1.5 mb-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/landing/tapbez-logo-header.png"
+                    alt="Tapbez"
+                    className={`h-4 w-auto object-contain ${isMetal ? "opacity-70 contrast-125" : "opacity-90"}`}
+                  />
+                </div>
                 <p
                   className={`text-[10px] uppercase font-mono tracking-widest ${
                     isMetal ? "text-amber-950/70 font-bold" : "text-slate-400 font-semibold"
