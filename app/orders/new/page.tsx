@@ -27,7 +27,7 @@ export default async function NewOrderPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#080a10] text-slate-100 p-6 sm:p-12 selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#080a10] text-slate-100 p-3.5 xs:p-4 sm:p-6 md:p-10 lg:p-12 selection:bg-blue-600 selection:text-white">
       <div className="max-w-7xl mx-auto space-y-6">
         <Link
           href="/dashboard"

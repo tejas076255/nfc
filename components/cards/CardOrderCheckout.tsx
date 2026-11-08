@@ -155,9 +155,9 @@ export function CardOrderCheckout({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
       {/* LEFT: 3D CARD CUSTOMIZER PREVIEW */}
-      <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-6 transition-colors sticky top-8">
+      <div className="lg:col-span-5 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-5 sm:space-y-6 transition-colors lg:sticky lg:top-8">
         <div className="space-y-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-blue-500">
             Interactive Proof Visualizer
@@ -224,15 +224,15 @@ export function CardOrderCheckout({
                   key={m.id}
                   type="button"
                   onClick={() => setMetalFinish(m.id as any)}
-                  className={`p-2.5 rounded-xl border text-left text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                  className={`p-2 xs:p-2.5 rounded-xl border text-left text-[11px] xs:text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
                     metalFinish === m.id
                       ? "border-amber-500 bg-amber-500/10 text-slate-900 dark:text-white font-bold ring-1 ring-amber-500"
                       : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
-                  <span>{m.label}</span>
+                  <span className="truncate mr-1">{m.label}</span>
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs"
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs shrink-0"
                     style={{ backgroundColor: m.color }}
                   />
                 </button>
@@ -258,15 +258,15 @@ export function CardOrderCheckout({
                   key={p.id}
                   type="button"
                   onClick={() => setColorPalette(p.id)}
-                  className={`p-2.5 rounded-xl border text-left text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
+                  className={`p-2 xs:p-2.5 rounded-xl border text-left text-[11px] xs:text-xs font-medium flex items-center justify-between transition-all cursor-pointer ${
                     colorPalette === p.id
                       ? "border-[#00b39d] bg-[#00b39d]/10 text-slate-900 dark:text-white font-bold ring-1 ring-[#00b39d]"
                       : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
-                  <span>{p.label}</span>
+                  <span className="truncate mr-1">{p.label}</span>
                   <div
-                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs"
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-xs shrink-0"
                     style={{ backgroundColor: p.color }}
                   />
                 </button>
@@ -293,7 +293,7 @@ export function CardOrderCheckout({
       </div>
 
       {/* RIGHT: CUSTOMIZATION FORM & CHECKOUT */}
-      <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-6 transition-colors">
+      <div className="lg:col-span-7 p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-xs space-y-5 sm:space-y-6 transition-colors">
         <form onSubmit={handleCheckout} className="space-y-6">
           {error && (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">

@@ -4155,15 +4155,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           className={`${sourceType === "preview"
             ? "w-full grid grid-cols-3 gap-1.5"
             : isLightMode
-              ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
-              : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-2 sm:p-2.5 grid grid-cols-3 gap-2"
+              ? "pointer-events-auto w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-1.5 sm:p-2.5 grid grid-cols-3 gap-1.5 sm:gap-2"
+              : "pointer-events-auto w-full max-w-md bg-slate-900/95 backdrop-blur-2xl border border-white/15 rounded-2xl shadow-2xl p-1.5 sm:p-2.5 grid grid-cols-3 gap-1.5 sm:gap-2"
             }`}
         >
           {/* Action 1: Save Contact (Direct vCard) */}
           <button
             type="button"
             onClick={handleDownloadVCard}
-            className="py-2.5 px-2 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer truncate"
+            className="py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl text-white text-[10.5px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer truncate"
             style={{
               background: `linear-gradient(135deg, ${theme.accentColor || "#d97706"} 0%, ${theme.accentColor || "#d97706"}dd 100%)`,
               backgroundColor: theme.accentColor || "#d97706",
@@ -4182,7 +4182,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               handleTrackAction("sticky_inquiry_click");
               setLeadModalOpen(true);
             }}
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
+            className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl text-[10.5px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
               ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
               : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
               }`}
@@ -4196,7 +4196,7 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
           <button
             type="button"
             onClick={handleInstallClick}
-            className={`py-2.5 px-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
+            className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl text-[10.5px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 transition-all cursor-pointer truncate ${isLightMode
               ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
               : "bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-white/10"
               }`}
@@ -4372,12 +4372,12 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       {/* ============================================================== */}
       <AnimatePresence>
         {installModalOpen && sourceType !== "preview" && (
-          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-4"} flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200`}>
+          <div className={`${sourceType === "preview" ? "absolute inset-0 z-50 p-2.5" : "fixed inset-0 z-[9999] p-3 sm:p-4"} flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200`}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3.5 rounded-2xl space-y-2.5 max-h-[94%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-6 rounded-3xl space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative text-left border overflow-hidden ${isLightMode
+              className={`w-full ${sourceType === "preview" ? "max-w-[285px] p-3 rounded-2xl space-y-2.5 max-h-[94%] overflow-y-auto no-scrollbar text-xs" : "max-w-sm p-3.5 xs:p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-3 sm:space-y-4 max-h-[90vh] overflow-y-auto"} shadow-2xl relative text-left border overflow-hidden ${isLightMode
                 ? "bg-white border-slate-200 text-slate-900"
                 : "bg-slate-900 border-white/15 text-white"
                 }`}
@@ -4433,39 +4433,39 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
               </p>
 
               {/* Device Selector Tabs */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10">
+              <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setInstallDeviceTab("android")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "android"
+                  className={`py-1.5 px-1 xs:px-2 rounded-lg text-[11px] xs:text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "android"
                       ? (isLightMode ? "bg-white text-emerald-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-emerald-400 shadow-sm border border-white/10")
                       : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
                     }`}
                 >
-                  <span>📱</span>
-                  <span>Android</span>
+                  <span className="shrink-0">📱</span>
+                  <span className="truncate">Android</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setInstallDeviceTab("ios")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "ios"
+                  className={`py-1.5 px-1 xs:px-2 rounded-lg text-[11px] xs:text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "ios"
                       ? (isLightMode ? "bg-white text-blue-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-blue-400 shadow-sm border border-white/10")
                       : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
                     }`}
                 >
-                  <span>🍏</span>
-                  <span>iPhone</span>
+                  <span className="shrink-0">🍏</span>
+                  <span className="truncate">iPhone</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setInstallDeviceTab("desktop")}
-                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "desktop"
+                  className={`py-1.5 px-1 xs:px-2 rounded-lg text-[11px] xs:text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${installDeviceTab === "desktop"
                       ? (isLightMode ? "bg-white text-indigo-700 shadow-sm border border-slate-200/80" : "bg-slate-700 text-indigo-400 shadow-sm border border-white/10")
                       : (isLightMode ? "text-slate-500 hover:text-slate-800" : "text-slate-400 hover:text-white")
                     }`}
                 >
-                  <span>💻</span>
-                  <span>PC / Mac</span>
+                  <span className="shrink-0">💻</span>
+                  <span className="truncate">PC / Mac</span>
                 </button>
               </div>
 

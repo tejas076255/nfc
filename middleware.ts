@@ -24,3 +24,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp4|css|js)).*)",
   ],
 };
+
