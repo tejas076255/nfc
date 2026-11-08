@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -407,6 +408,47 @@ const FAQS = [
   },
 ];
 
+// ----------------- ANIMATION VARIANTS -----------------
+
+const sectionVariants: Variants = {
+  hidden: { opacity: 0, y: 45 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.65,
+      ease: "easeOut",
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
+const cardItemVariants: Variants = {
+  hidden: { opacity: 0, y: 30, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 // ----------------- MAIN VIEW COMPONENT -----------------
 
 export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
@@ -480,7 +522,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] text-[#0b182d] selection:bg-[#00b39d]/20 selection:text-[#0b182d] font-sans antialiased" id="home">
+    <div className="min-h-screen bg-[#faf9f6] text-[#0b182d] selection:bg-[#00b39d]/20 selection:text-[#0b182d] font-sans antialiased overflow-x-hidden scroll-smooth" id="home">
       {/* 1. TOP ANNOUNCEMENT BANNER */}
       <div className="bg-[#0b182d] text-white">
         <div className="mx-auto max-w-7xl px-4 py-2 text-center text-xs font-medium tracking-wide sm:text-sm flex items-center justify-center gap-2">
@@ -606,38 +648,44 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
       </header>
 
       {/* 3. HERO SECTION */}
-      <section className="relative overflow-hidden pt-10 pb-16 lg:pt-16 lg:pb-24">
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.2 }}
+        variants={sectionVariants}
+        className="relative min-h-[calc(100dvh-4.5rem)] w-full flex flex-col justify-center overflow-hidden py-12 lg:py-0 snap-start"
+      >
         {/* Subtle background glow */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-[#00b39d]/10 blur-3xl"
         />
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-14">
-          <div>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#00b39d]/30 bg-[#00b39d]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#009c88]">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-14 w-full">
+          <motion.div variants={itemVariants}>
+            <motion.p variants={itemVariants} className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#00b39d]/30 bg-[#00b39d]/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#009c88]">
               <Sparkles className="h-3.5 w-3.5 text-[#00b39d]" />
               The Future of Professional Networking
-            </p>
+            </motion.p>
 
-            <h1 className="font-display text-4xl font-extrabold leading-[1.12] tracking-tight text-[#0b182d] sm:text-5xl lg:text-6xl">
+            <motion.h1 variants={itemVariants} className="font-display text-4xl font-extrabold leading-[1.12] tracking-tight text-[#0b182d] sm:text-5xl lg:text-6xl">
               Your Next Connection Starts With a Tap.
-            </h1>
+            </motion.h1>
 
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+            <motion.p variants={itemVariants} className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
               Share your contact details, portfolio, services and professional identity instantly with
               one smart NFC business card.
-            </p>
+            </motion.p>
 
-            <p className="mt-4 text-xl font-bold text-[#0b182d] flex items-center gap-2">
+            <motion.p variants={itemVariants} className="mt-4 text-xl font-bold text-[#0b182d] flex items-center gap-2">
               <span className="text-slate-500 font-medium text-base">Starting at</span>
               <span className="text-[#00b39d] text-2xl font-extrabold">₹999</span>
               <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
                 Zero Monthly Fees
               </span>
-            </p>
+            </motion.p>
 
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <motion.div variants={itemVariants} className="mt-7 flex flex-col gap-3 sm:flex-row">
               <a
                 href="#cards"
                 className="inline-flex h-12 items-center justify-center rounded-xl bg-[#00b39d] px-7 text-base font-bold text-white shadow-lg shadow-[#00b39d]/25 transition hover:bg-[#009c88] hover:-translate-y-0.5"
@@ -653,17 +701,17 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                 <Radio className="mr-2 h-4 w-4 text-[#00b39d]" />
                 Watch How It Works
               </a>
-            </div>
+            </motion.div>
 
-            <p className="mt-5 flex items-center gap-2 text-sm text-slate-500">
+            <motion.p variants={itemVariants} className="mt-5 flex items-center gap-2 text-sm text-slate-500">
               <CheckCircle2 className="h-4 w-4 text-[#00b39d] shrink-0" />
               No app required for the person receiving your details. Works with iPhone & Android.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Hero Composition Image with Floating Ping Badge */}
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-2xl shadow-slate-900/10">
+          <motion.div variants={cardItemVariants} className="relative">
+            <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-2xl shadow-slate-900/10 transition-transform duration-500 hover:scale-[1.01]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/landing/hero-composition.jpg"
@@ -675,106 +723,128 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
             </div>
 
             {/* Live Pop-in Pill */}
-            <div className="absolute -left-3 top-8 flex items-center gap-2.5 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-bold text-slate-800 shadow-xl backdrop-blur sm:left-4 sm:text-sm">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
+              className="absolute -left-3 top-8 flex items-center gap-2.5 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-bold text-slate-800 shadow-xl backdrop-blur sm:left-4 sm:text-sm"
+            >
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#00b39d] opacity-75"></span>
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#00b39d]"></span>
               </span>
               <span>Profile shared — contact saved</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 4. NFC CARDS COLLECTION */}
-      <section id="cards" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">
-            Card Hardware Collection
-          </p>
-          <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
-            Choose the Card That Matches Your Style
-          </h2>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
-            From everyday networking to premium first impressions.
-          </p>
-        </div>
+      <motion.section
+        id="cards"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 px-4 py-16 sm:px-6 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">
+              Card Hardware Collection
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
+              Choose the Card That Matches Your Style
+            </h2>
+            <p className="mt-3 text-base text-slate-600 sm:text-lg">
+              From everyday networking to premium first impressions.
+            </p>
+          </motion.div>
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {PRODUCTS.map((product) => (
-            <article
-              key={product.id}
-              className={`group relative flex flex-col overflow-hidden rounded-3xl border bg-white transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${
-                product.recommended
-                  ? "border-[#00b39d] ring-2 ring-[#00b39d]/20 shadow-xl"
-                  : "border-slate-200 shadow-sm"
-              }`}
-            >
-              {product.badge && (
-                <span className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-[#00b39d] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-md">
-                  {product.badge}
-                </span>
-              )}
-
-              <div className="relative overflow-hidden bg-slate-100 aspect-[4/3]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={product.image}
-                  alt={product.imageAlt}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-
-              <div className="flex flex-1 flex-col p-6 sm:p-7">
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-display text-xl font-bold text-[#0b182d]">{product.name}</h3>
-                  <span className="font-display text-2xl font-black text-[#00b39d]">
-                    {product.priceLabel}
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {PRODUCTS.map((product) => (
+              <motion.article
+                key={product.id}
+                variants={cardItemVariants}
+                whileHover={{ y: -8, transition: { duration: 0.25 } }}
+                className={`group relative flex flex-col overflow-hidden rounded-3xl border bg-white transition-all duration-300 hover:shadow-2xl ${
+                  product.recommended
+                    ? "border-[#00b39d] ring-2 ring-[#00b39d]/20 shadow-xl"
+                    : "border-slate-200 shadow-sm"
+                }`}
+              >
+                {product.badge && (
+                  <span className="absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-[#00b39d] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-md">
+                    {product.badge}
                   </span>
+                )}
+
+                <div className="relative overflow-hidden bg-slate-100 aspect-[4/3]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.image}
+                    alt={product.imageAlt}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
 
-                <p className="mt-2 text-sm text-slate-500">{product.description}</p>
+                <div className="flex flex-1 flex-col p-6 sm:p-7">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="font-display text-xl font-bold text-[#0b182d]">{product.name}</h3>
+                    <span className="font-display text-2xl font-black text-[#00b39d]">
+                      {product.priceLabel}
+                    </span>
+                  </div>
 
-                <div className="my-6 border-t border-slate-100" />
+                  <p className="mt-2 text-sm text-slate-500">{product.description}</p>
 
-                <ul className="mb-8 flex flex-col gap-3 text-sm text-slate-600 flex-1">
-                  {product.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2.5">
-                      <Check className="h-4 w-4 shrink-0 text-[#00b39d]" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <div className="my-6 border-t border-slate-100" />
 
-                <Link
-                  href={`/orders/new?variant=${product.orderVariant}`}
-                  className={`inline-flex h-12 w-full items-center justify-center rounded-xl text-base font-bold transition ${
-                    product.recommended
-                      ? "bg-[#00b39d] text-white shadow-md hover:bg-[#009c88]"
-                      : "bg-[#0b182d] text-white hover:bg-slate-800"
-                  }`}
-                >
-                  {product.cta}
-                </Link>
-              </div>
-            </article>
-          ))}
+                  <ul className="mb-8 flex flex-col gap-3 text-sm text-slate-600 flex-1">
+                    {product.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2.5">
+                        <Check className="h-4 w-4 shrink-0 text-[#00b39d]" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href={`/orders/new?variant=${product.orderVariant}`}
+                    className={`inline-flex h-12 w-full items-center justify-center rounded-xl text-base font-bold transition ${
+                      product.recommended
+                        ? "bg-[#00b39d] text-white shadow-md hover:bg-[#009c88]"
+                        : "bg-[#0b182d] text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    {product.cta}
+                  </Link>
+                </div>
+              </motion.article>
+            ))}
+          </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 5. HOW IT WORKS */}
-      <section id="how-it-works" className="scroll-mt-20 bg-white py-16 border-y border-slate-200/80 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        id="how-it-works"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 bg-white py-16 border-y border-slate-200/80 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Zero Friction</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
               Three Simple Steps. Unlimited Connections.
             </h2>
-          </div>
+          </motion.div>
 
           <div className="mt-12 grid items-center gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-14">
             {/* Visual Demo */}
-            <div className="relative">
+            <motion.div variants={cardItemVariants} className="relative">
               <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -794,16 +864,18 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
               <div className="absolute bottom-6 left-6 rounded-full bg-[#0b182d]/90 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur">
                 Tap → profile opens instantly
               </div>
-            </div>
+            </motion.div>
 
             {/* Step list */}
             <div className="flex flex-col gap-5">
               {HOW_IT_WORKS.map((step) => {
                 const IconComponent = step.icon;
                 return (
-                  <div
+                  <motion.div
                     key={step.number}
-                    className="flex gap-5 rounded-2xl border border-slate-200 bg-[#faf9f6] p-5 shadow-sm transition hover:shadow-md sm:p-6"
+                    variants={itemVariants}
+                    whileHover={{ x: 6, transition: { duration: 0.2 } }}
+                    className="flex gap-5 rounded-2xl border border-slate-200 bg-[#faf9f6] p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6"
                   >
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#00b39d]/10">
                       <IconComponent className="h-6 w-6 text-[#00b39d]" />
@@ -819,18 +891,25 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                         {step.description}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 6. DIGITAL PROFILE SHOWCASE */}
-      <section id="digital-profile" className="scroll-mt-20 py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        id="digital-profile"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 py-16 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">
               Live Profile Preview
             </p>
@@ -840,11 +919,11 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
             <p className="mt-3 text-base text-slate-600 sm:text-lg">
               See how your profile looks for different professionals — switch personas below.
             </p>
-          </div>
+          </motion.div>
 
           <div className="mt-12 grid items-start gap-10 lg:mt-16 lg:grid-cols-[1fr_360px] lg:gap-16">
             {/* Left Controls & Feature list */}
-            <div>
+            <motion.div variants={itemVariants}>
               {/* Persona Tab Switcher */}
               <div className="flex flex-wrap gap-2 rounded-2xl bg-slate-200/60 p-1.5">
                 {PERSONAS.map((p, idx) => (
@@ -899,10 +978,15 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   Try Free Profile
                 </Link>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Right Phone Mockup (Interactive Persona) */}
-            <div className="mx-auto w-full max-w-[340px]">
+            {/* Right Phone Mockup (Interactive Persona with gentle float) */}
+            <motion.div
+              variants={cardItemVariants}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+              className="mx-auto w-full max-w-[340px]"
+            >
               <div className="rounded-[3rem] border-4 border-slate-800 bg-[#0b182d] p-3 shadow-2xl">
                 {/* Dynamic Island */}
                 <div className="relative h-[620px] overflow-y-auto rounded-[2.3rem] bg-[#0b182d] text-white [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -913,110 +997,126 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   {/* Header Gradient */}
                   <div className="h-28 bg-gradient-to-br from-[#00b39d] via-teal-700/60 to-slate-900" />
 
-                  <div className="px-5 pb-6">
-                    {/* Avatar & Company Pill */}
-                    <div className="-mt-12 flex items-end gap-3">
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-[#0b182d] bg-[#00b39d] font-display text-2xl font-black text-white shadow-xl">
-                        {activePersona.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
-                      <div className="pb-1">
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-sm border border-white/25 backdrop-blur-md">
-                          <span className="h-2 w-2 rounded-full bg-[#00b39d]" />
-                          {activePersona.company}
-                        </span>
-                      </div>
-                    </div>
-
-                    <h3 className="mt-3 font-display text-xl font-black text-white tracking-tight">
-                      {activePersona.name}
-                    </h3>
-                    <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                      {activePersona.designation}
-                    </p>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-100 font-medium">
-                      {activePersona.intro}
-                    </p>
-
-                    {/* Quick Action Buttons */}
-                    <div className="mt-4 grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
-                      >
-                        <Phone className="h-4 w-4 text-emerald-300" />
-                        Call
-                      </button>
-                      <button
-                        type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
-                      >
-                        <MessageSquare className="h-4 w-4 text-emerald-300" />
-                        WhatsApp
-                      </button>
-                      <button
-                        type="button"
-                        className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
-                      >
-                        <Mail className="h-4 w-4 text-emerald-300" />
-                        Email
-                      </button>
-                    </div>
-
-                    {/* Save Contact CTA */}
-                    <button
-                      type="button"
-                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00b39d] hover:bg-[#009c88] py-2.5 text-xs font-black text-white shadow-lg shadow-[#00b39d]/40 transition"
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activePersona.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="px-5 pb-6"
                     >
-                      <UserCheck className="h-4 w-4" />
-                      Save Contact (vCard)
-                    </button>
-
-                    {/* Services Tags */}
-                    <div className="mt-5">
-                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
-                        Specialties & Services
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {activePersona.services.map((srv) => (
-                          <span
-                            key={srv}
-                            className="rounded-lg bg-white/20 px-3 py-1 text-xs font-semibold text-white border border-white/25 shadow-sm backdrop-blur-sm"
-                          >
-                            {srv}
+                      {/* Avatar & Company Pill */}
+                      <div className="-mt-12 flex items-end gap-3">
+                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-[#0b182d] bg-[#00b39d] font-display text-2xl font-black text-white shadow-xl">
+                          {activePersona.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </div>
+                        <div className="pb-1">
+                          <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/20 px-3 py-1 text-xs font-bold text-white shadow-sm border border-white/25 backdrop-blur-md">
+                            <span className="h-2 w-2 rounded-full bg-[#00b39d]" />
+                            {activePersona.company}
                           </span>
-                        ))}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Links list */}
-                    <div className="mt-4 flex flex-col gap-2 text-xs">
-                      <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
-                        <Globe className="h-4 w-4 text-emerald-300 shrink-0" />
-                        <span className="font-semibold text-white">{activePersona.company.toLowerCase().replace(/\s/g, "")}.com</span>
+                      <h3 className="mt-3 font-display text-xl font-black text-white tracking-tight">
+                        {activePersona.name}
+                      </h3>
+                      <p className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                        {activePersona.designation}
+                      </p>
+                      <p className="mt-2 text-xs leading-relaxed text-slate-100 font-medium">
+                        {activePersona.intro}
+                      </p>
+
+                      {/* Quick Action Buttons */}
+                      <div className="mt-4 grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
+                        >
+                          <Phone className="h-4 w-4 text-emerald-300" />
+                          Call
+                        </button>
+                        <button
+                          type="button"
+                          className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
+                        >
+                          <MessageSquare className="h-4 w-4 text-emerald-300" />
+                          WhatsApp
+                        </button>
+                        <button
+                          type="button"
+                          className="flex flex-col items-center gap-1 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 py-2.5 text-xs font-bold text-white transition shadow-sm backdrop-blur-sm"
+                        >
+                          <Mail className="h-4 w-4 text-emerald-300" />
+                          Email
+                        </button>
                       </div>
-                      <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
-                        <MapPin className="h-4 w-4 text-emerald-300 shrink-0" />
-                        <span className="font-semibold text-white">Mumbai, Maharashtra · India</span>
+
+                      {/* Save Contact CTA */}
+                      <button
+                        type="button"
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#00b39d] hover:bg-[#009c88] py-2.5 text-xs font-black text-white shadow-lg shadow-[#00b39d]/40 transition"
+                      >
+                        <UserCheck className="h-4 w-4" />
+                        Save Contact (vCard)
+                      </button>
+
+                      {/* Services Tags */}
+                      <div className="mt-5">
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-300">
+                          Specialties & Services
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {activePersona.services.map((srv) => (
+                            <span
+                              key={srv}
+                              className="rounded-lg bg-white/20 px-3 py-1 text-xs font-semibold text-white border border-white/25 shadow-sm backdrop-blur-sm"
+                            >
+                              {srv}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
+
+                      {/* Links list */}
+                      <div className="mt-4 flex flex-col gap-2 text-xs">
+                        <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
+                          <Globe className="h-4 w-4 text-emerald-300 shrink-0" />
+                          <span className="font-semibold text-white">{activePersona.company.toLowerCase().replace(/\s/g, "")}.com</span>
+                        </div>
+                        <div className="flex items-center gap-2.5 rounded-xl bg-white/15 border border-white/20 p-2.5 text-white font-medium shadow-sm backdrop-blur-sm">
+                          <MapPin className="h-4 w-4 text-emerald-300 shrink-0" />
+                          <span className="font-semibold text-white">Mumbai, Maharashtra · India</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </div>
               <p className="mt-3 text-center text-xs text-slate-500 font-medium">
                 Live interactive smartphone preview
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 7. LIVE CARD CUSTOMIZER */}
-      <section id="customize" className="scroll-mt-20 bg-white py-16 border-y border-slate-200/80 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        id="customize"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 bg-white py-16 border-y border-slate-200/80 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Real-Time Studio</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
               Make It Yours.
@@ -1024,11 +1124,11 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
             <p className="mt-3 text-base text-slate-600 sm:text-lg">
               Preview your card live — try a name, designation and logo below.
             </p>
-          </div>
+          </motion.div>
 
           <div className="mt-12 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
             {/* Customizer Controls */}
-            <div className="rounded-3xl border border-slate-200 bg-[#faf9f6] p-6 shadow-sm sm:p-8">
+            <motion.div variants={itemVariants} className="rounded-3xl border border-slate-200 bg-[#faf9f6] p-6 shadow-sm sm:p-8">
               <div className="flex flex-col gap-5">
                 {/* Style Selector */}
                 <div>
@@ -1124,11 +1224,12 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   Instant visualizer preview — your finalized high-res artwork is confirmed during card checkout.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Live Interactive Physical Card Display */}
-            <div className="flex flex-col items-center justify-center gap-6">
-              <div
+            <motion.div variants={cardItemVariants} className="flex flex-col items-center justify-center gap-6">
+              <motion.div
+                whileHover={{ scale: 1.03, transition: { duration: 0.25 } }}
                 className={`relative flex aspect-[1.586/1] w-full max-w-[390px] flex-col justify-between overflow-hidden rounded-[1.6rem] p-6 transition-all duration-300 ${activeCardStyle.cardClass}`}
               >
                 {/* Top Row: Logo & Contactless Wave */}
@@ -1167,7 +1268,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                     SMART NFC
                   </span>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Secondary Studio Picture */}
               <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-md max-w-[380px]">
@@ -1178,22 +1279,29 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   className="w-full object-cover"
                 />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 8. COMPARISON MATRIX */}
-      <section id="compare" className="scroll-mt-20 py-16 lg:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        id="compare"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 py-16 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Feature Matrix</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
               Find Your Perfect NFC Card.
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="mt-12 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <motion.div variants={cardItemVariants} className="mt-12 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
             <table className="w-full min-w-[640px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-200">
@@ -1248,27 +1356,35 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 9. MAKE EVERY INTRODUCTION COUNT */}
-      <section className="bg-white py-16 border-y border-slate-200/80 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center bg-white py-16 border-y border-slate-200/80 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Why Tapbez</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
               Make Every Introduction Count.
             </h2>
-          </div>
+          </motion.div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {INTRODUCTION_FEATURES.map((feat) => {
               const IconComp = feat.icon;
               return (
-                <div
+                <motion.div
                   key={feat.title}
-                  className="rounded-2xl border border-slate-200 bg-[#faf9f6] p-6 transition hover:shadow-lg hover:-translate-y-1"
+                  variants={cardItemVariants}
+                  whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                  className="rounded-2xl border border-slate-200 bg-[#faf9f6] p-6 transition-shadow hover:shadow-lg"
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#00b39d]/10">
                     <IconComp className="h-6 w-6 text-[#00b39d]" />
@@ -1279,28 +1395,36 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
                     {feat.description}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 10. ONE SMART CARD. EVERY PROFESSION. */}
-      <section className="py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center py-16 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Industries & Roles</p>
             <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
               One Smart Card. Every Profession.
             </h2>
-          </div>
+          </motion.div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {PROFESSIONS.map((prof, idx) => (
-              <div
+            {PROFESSIONS.map((prof) => (
+              <motion.div
                 key={prof.title}
-                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-xl hover:-translate-y-1"
+                variants={cardItemVariants}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-xl"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00b39d]/10 font-display text-base font-black text-[#00b39d]">
                   {prof.title.slice(0, 1)}
@@ -1309,17 +1433,24 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-600 flex-1">
                   {prof.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 11. FOR TEAMS / CORPORATE BULK ORDERS */}
-      <section id="for-teams" className="scroll-mt-20 bg-[#0b182d] text-white py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <motion.section
+        id="for-teams"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 bg-[#0b182d] text-white py-16 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 w-full">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <div>
+            <motion.div variants={itemVariants}>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-400">
                 Enterprise & Organizations
               </p>
@@ -1373,10 +1504,10 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   Request a Corporate Quote
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Corporate Cards Hero Image */}
-            <div className="relative">
+            <motion.div variants={cardItemVariants} className="relative">
               <div className="overflow-hidden rounded-3xl border border-slate-700/80 shadow-2xl">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -1387,7 +1518,7 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
                   className="w-full object-cover"
                 />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
@@ -1533,57 +1664,75 @@ export function TapbezLovableLanding({ sessionUser }: TapbezLandingProps) {
             </div>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* 12. FREQUENTLY ASKED QUESTIONS */}
-      <section id="faqs" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-16 sm:px-6 lg:py-24">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Got Questions?</p>
-          <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
-            Frequently Asked Questions
-          </h2>
-          <p className="mt-3 text-base text-slate-600 sm:text-lg">
-            Everything you need to know about Tapbez smart cards.
-          </p>
-        </div>
+      <motion.section
+        id="faqs"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: false, amount: 0.15 }}
+        variants={sectionVariants}
+        className="relative min-h-[100dvh] w-full flex flex-col justify-center scroll-mt-16 mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:py-0 snap-start overflow-hidden"
+      >
+        <div className="w-full">
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#00b39d]">Got Questions?</p>
+            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-[#0b182d] sm:text-4xl">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-3 text-base text-slate-600 sm:text-lg">
+              Everything you need to know about Tapbez smart cards.
+            </p>
+          </motion.div>
 
-        <div className="mt-12 flex flex-col gap-4">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openFaqIdx === idx;
-            return (
-              <div
-                key={faq.question}
-                className={`overflow-hidden rounded-[1.4rem] sm:rounded-[1.5rem] border bg-white transition-all duration-200 ${
-                  isOpen
-                    ? "border-[#00b39d]/60 shadow-[0_4px_20px_rgba(0,179,157,0.08)] ring-1 ring-[#00b39d]/20"
-                    : "border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.025)] hover:border-slate-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                  className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left sm:px-8 sm:py-5.5"
+          <div className="mt-12 flex flex-col gap-4">
+            {FAQS.map((faq, idx) => {
+              const isOpen = openFaqIdx === idx;
+              return (
+                <motion.div
+                  key={faq.question}
+                  variants={itemVariants}
+                  className={`overflow-hidden rounded-[1.4rem] sm:rounded-[1.5rem] border bg-white transition-all duration-200 ${
+                    isOpen
+                      ? "border-[#00b39d]/60 shadow-[0_4px_20px_rgba(0,179,157,0.08)] ring-1 ring-[#00b39d]/20"
+                      : "border-slate-200/90 shadow-[0_2px_8px_rgba(0,0,0,0.025)] hover:border-slate-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
+                  }`}
                 >
-                  <span className="font-display text-[15px] sm:text-base font-bold text-[#0b182d] tracking-tight">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    className={`h-4.5 w-4.5 shrink-0 text-slate-400 stroke-[2.2] transition-transform duration-200 ${
-                      isOpen ? "rotate-180 text-[#00b39d]" : ""
-                    }`}
-                  />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left sm:px-8 sm:py-5.5"
+                  >
+                    <span className="font-display text-[15px] sm:text-base font-bold text-[#0b182d] tracking-tight">
+                      {faq.question}
+                    </span>
+                    <ChevronDown
+                      className={`h-4.5 w-4.5 shrink-0 text-slate-400 stroke-[2.2] transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-[#00b39d]" : ""
+                      }`}
+                    />
+                  </button>
 
-                {isOpen && (
-                  <div className="px-6 pb-6 pt-1 text-sm sm:text-[15px] leading-relaxed text-slate-600 border-t border-slate-100 sm:px-8">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="px-6 pb-6 pt-1 text-sm sm:text-[15px] leading-relaxed text-slate-600 border-t border-slate-100 sm:px-8"
+                      >
+                        {faq.answer}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* 13. FOOTER */}
       <footer className="bg-[#0b182d] text-white">
