@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -54,33 +55,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let pathname = "";
+  try {
+    const headersList = await headers();
+    pathname = headersList.get("x-pathname") || "";
+  } catch {}
+
+  const match = pathname.match(/^\/p\/([^/?#]+)/);
+  const profileSlug = match ? match[1].toLowerCase() : null;
+  const manifestHref = profileSlug ? `/api/manifest/${profileSlug}` : "/manifest.json";
+
   return (
     <html lang="en" className="light scroll-smooth" suppressHydrationWarning>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="manifest" href="/manifest.json" id="app-manifest" />
+        <link rel="manifest" href={manifestHref} />
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              // Dynamically point manifest to user profile if on /p/[slug]
-              (function() {
-                try {
-                  var p = window.location.pathname;
-                  var match = p.match(/^\\/p\\/([^/?#]+)/);
-                  if (match && match[1]) {
-                    var tag = document.getElementById('app-manifest');
-                    if (tag) tag.href = '/api/manifest/' + match[1];
-                  }
-                } catch(e) {}
-              })();
-
               // Standalone app launcher redirect: Always open the user profile instead of marketing website
               (function() {
                 try {

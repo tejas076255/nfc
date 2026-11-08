@@ -636,11 +636,15 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
     const updatePrompt = (e?: any) => {
       if (e?.preventDefault) e.preventDefault();
-      const p = e || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+      const p = (e && typeof e.prompt === "function")
+        ? e
+        : ((typeof window !== "undefined" && typeof (window as any).__pwaInstallPrompt?.prompt === "function")
+            ? (window as any).__pwaInstallPrompt
+            : null);
       if (p) setDeferredPrompt(p);
     };
 
-    if (typeof window !== "undefined" && (window as any).__pwaInstallPrompt) {
+    if (typeof window !== "undefined" && typeof (window as any).__pwaInstallPrompt?.prompt === "function") {
       setDeferredPrompt((window as any).__pwaInstallPrompt);
     }
 
@@ -1111,21 +1115,59 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       return;
     }
 
-    // If native PWA install prompt is ready, trigger it directly!
-    const promptObj = deferredPrompt || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+    // 1. If native PWA install prompt is ready, trigger it directly!
+    const promptObj = (deferredPrompt && typeof deferredPrompt.prompt === "function")
+      ? deferredPrompt
+      : ((typeof window !== "undefined" && typeof (window as any).__pwaInstallPrompt?.prompt === "function")
+          ? (window as any).__pwaInstallPrompt
+          : null);
+
     if (promptObj) {
       try {
         await promptObj.prompt();
         const choice = await promptObj.userChoice;
+        setDeferredPrompt(null);
+        if (typeof window !== "undefined") {
+          (window as any).__pwaInstallPrompt = null;
+        }
         if (choice && choice.outcome === "accepted") {
-          setDeferredPrompt(null);
-          if (typeof window !== "undefined") {
-            (window as any).__pwaInstallPrompt = null;
-          }
-          showToast("✨ App icon added successfully to your device!");
+          showToast(`✨ '${personName || companyName || "Digital Profile"}' app icon screen par install ho gaya!`);
+          return;
+        } else {
+          showToast("App install cancel kiya gaya.");
           return;
         }
-      } catch (err) { }
+      } catch (err) {
+        setDeferredPrompt(null);
+        if (typeof window !== "undefined") {
+          (window as any).__pwaInstallPrompt = null;
+        }
+      }
+    }
+
+    // 2. In-App browser on Android (WhatsApp / Instagram / LinkedIn / Facebook)
+    if (isInAppBrowser && !isIosDevice) {
+      try {
+        window.location.href = `intent://tapbez.in/p/${profile.slug}?source=pwa#Intent;scheme=https;package=com.android.chrome;end`;
+        showToast("Google Chrome me open ho raha hai...");
+        return;
+      } catch { }
+    }
+
+    // 3. iPhone / iOS: If Web Share API is available, open the native Share sheet directly!
+    if (isIosDevice || installDeviceTab === "ios") {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title: personName || companyName || "Digital Profile",
+            url: window.location.href,
+          });
+          showToast("👆 Share sheet me 'Add to Home Screen ➕' select karein!");
+          return;
+        } catch (e) {
+          // If user dismissed share sheet, open modal for visual guidance
+        }
+      }
     }
 
     setInstallModalOpen(true);
@@ -1147,24 +1189,37 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     }
 
     // 1. Try native PWA prompt if available (Android or Chrome Desktop)
-    const promptObj = deferredPrompt || (typeof window !== "undefined" ? (window as any).__pwaInstallPrompt : null);
+    const promptObj = (deferredPrompt && typeof deferredPrompt.prompt === "function")
+      ? deferredPrompt
+      : ((typeof window !== "undefined" && typeof (window as any).__pwaInstallPrompt?.prompt === "function")
+          ? (window as any).__pwaInstallPrompt
+          : null);
+
     if (promptObj) {
       try {
         await promptObj.prompt();
         const choice = await promptObj.userChoice;
+        setDeferredPrompt(null);
+        if (typeof window !== "undefined") {
+          (window as any).__pwaInstallPrompt = null;
+        }
+        setInstallModalOpen(false);
         if (choice && choice.outcome === "accepted") {
-          setDeferredPrompt(null);
-          if (typeof window !== "undefined") {
-            (window as any).__pwaInstallPrompt = null;
-          }
-          setInstallModalOpen(false);
           try {
             sessionStorage.setItem("dismissed_install_" + profile.id, "true");
           } catch { }
           showToast(`✨ '${cleanTitle}' app icon aapki screen par install ho gaya!`);
           return;
+        } else {
+          showToast("App install cancel kiya gaya.");
+          return;
         }
-      } catch (err) { }
+      } catch (err) {
+        setDeferredPrompt(null);
+        if (typeof window !== "undefined") {
+          (window as any).__pwaInstallPrompt = null;
+        }
+      }
     }
 
     // 2. Desktop: Open standalone App Popup Window directly!
@@ -1175,6 +1230,16 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
     }
 
     if (installDeviceTab === "ios" || isIosDevice) {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title: cleanTitle,
+            url: pubUrl,
+          });
+          showToast("👆 Safari Share sheet me 'Add to Home Screen ➕' tap karein!");
+          return;
+        } catch { }
+      }
       showToast("Safari bottom bar me Share 📤 -> 'Add to Home Screen ➕' tap karein!");
       return;
     }
@@ -1188,7 +1253,10 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
       return;
     }
 
-    showToast("👆 Screen ke top right corner me (⋮ 3 dots) par tap karein aur 'Install app' chunein!");
+    // Direct download vCard as universal fallback so user always gets value
+    handleDownloadVCard();
+    setInstallModalOpen(false);
+    showToast("📥 Contact download ho gaya! Screen ke top-right (⋮) menu se 'Install app' chunein.");
   };
 
   const handleDownloadShortcutFile = () => {
@@ -4532,13 +4600,23 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                     <>
                       <button
                         type="button"
-                        onClick={() => {
-                          showToast("Safari bottom bar me Share icon (📤) tap karke 'Add to Home Screen ➕' select karein!");
+                        onClick={async () => {
+                          if (typeof navigator !== "undefined" && navigator.share) {
+                            try {
+                              await navigator.share({
+                                title: personName || companyName || "Digital Profile",
+                                url: window.location.href,
+                              });
+                              showToast("👆 Safari Share sheet me 'Add to Home Screen ➕' select karein!");
+                            } catch {}
+                          } else {
+                            showToast("Safari bottom bar me Share icon (📤) tap karke 'Add to Home Screen ➕' select karein!");
+                          }
                         }}
                         className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <Share2 className="w-3.5 h-3.5 shrink-0" />
-                        <span>Share 📤 &rarr; Add</span>
+                        <span>Open Safari Share Sheet</span>
                       </button>
                       <button
                         type="button"
@@ -4578,23 +4656,50 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
                               <button
                                 type="button"
                                 onClick={() => {
-                                  showToast("👆 Screen ke top right corner me (⋮ 3 dots) par tap karein aur 'Install app' chunein!");
+                                  handleDownloadVCard();
+                                  setInstallModalOpen(false);
                                 }}
-                                className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                className="col-span-2 py-3 px-3 rounded-xl text-white text-xs font-bold shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
+                                style={{
+                                  background: `linear-gradient(135deg, ${theme.accentColor || "#059669"} 0%, ${theme.accentColor || "#059669"}dd 100%)`,
+                                  backgroundColor: theme.accentColor || "#059669",
+                                  boxShadow: `0 4px 14px 0 ${theme.accentColor || "#059669"}40`,
+                                }}
                               >
-                                <Smartphone className="w-3.5 h-3.5 shrink-0" />
-                                <span>Menu (⋮) &rarr; Install</span>
+                                <FileDown className="w-4 h-4 shrink-0" />
+                                <span>Save Contact to Phone (.vcf)</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (typeof navigator !== "undefined" && navigator.share) {
+                                    try {
+                                      await navigator.share({
+                                        title: personName || companyName || "Digital Profile",
+                                        url: window.location.href,
+                                      });
+                                    } catch {}
+                                  } else {
+                                    if (typeof navigator !== "undefined" && navigator.clipboard) {
+                                      navigator.clipboard.writeText(getPublicUrl());
+                                    }
+                                    showToast("Profile link copied!");
+                                  }
+                                }}
+                                className={`py-2 px-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
+                              >
+                                <Share2 className="w-3.5 h-3.5 shrink-0" />
+                                <span>Share Card</span>
                               </button>
                               <button
                                 type="button"
                                 onClick={() => {
-                                  handleDownloadVCard();
-                                  setInstallModalOpen(false);
+                                  showToast("👆 Screen ke top right corner me (⋮ 3 dots) par tap karein aur 'Install app' chunein!");
                                 }}
-                                className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
+                                className={`py-2 px-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${isLightMode ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200" : "bg-slate-800 hover:bg-slate-700 text-white border-white/10"}`}
                               >
-                                <FileDown className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
-                                <span>Save Contact (.vcf)</span>
+                                <HelpCircle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                                <span>Step Guide</span>
                               </button>
                             </>
                           )}
