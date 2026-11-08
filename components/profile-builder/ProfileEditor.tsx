@@ -1088,7 +1088,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 1: PROFILE HEADER & IDENTITY
   const renderHeaderSection = (isFullWidth = false) => (
-    <div id="profile-header" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
+    <div id="profile-header" className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1125,7 +1125,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "avatarUrl")} />
             </label>
           </div>
-          <div className="h-36 sm:h-40 w-full rounded-xl bg-slate-200 overflow-hidden relative border border-slate-300/80">
+          <div className="h-28 sm:h-40 w-full rounded-xl bg-slate-200 overflow-hidden relative border border-slate-300/80">
             {headerBlock.avatarUrl || headerBlock.coverUrl ? (
               <img
                 src={headerBlock.avatarUrl || headerBlock.coverUrl}
@@ -1154,7 +1154,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "companyLogoUrl")} />
             </label>
           </div>
-          <div className="h-36 sm:h-40 w-full rounded-xl bg-white border border-slate-300/80 flex items-center justify-center p-3 relative">
+          <div className="h-28 sm:h-40 w-full rounded-xl bg-white border border-slate-300/80 flex items-center justify-center p-3 relative">
             {headerBlock.logoUrl ? (
               <img
                 src={headerBlock.logoUrl}
@@ -1258,8 +1258,8 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 2: CONTACTS & QUICK ACTIONS
   const renderQuickActionsSection = () => (
-    <div id="contacts" className="space-y-6">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
+    <div id="contacts" className="space-y-4 sm:space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1420,7 +1420,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 3: SOCIAL MEDIA LINKS
   const renderSocialsSection = () => (
-    <div id="socials" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
+    <div id="socials" className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1545,9 +1545,9 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 4: ABOUT ME & HIGHLIGHTS
   const renderAboutAndStatsSection = () => (
-    <div id="about" className="space-y-6">
+    <div id="about" className="space-y-4 sm:space-y-6">
       {/* Card 4A: About Me */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm p-6 sm:p-7 space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-sm p-4 sm:p-7 space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1705,7 +1705,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 5: SERVICES & PRODUCTS
   const renderServicesSection = () => (
-    <div id="services" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
+    <div id="services" className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -1931,7 +1931,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 6: FEATURED WORK & PORTFOLIO
   const renderPortfolioSection = () => (
-    <div id="portfolio" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-6 transition-colors">
+    <div id="portfolio" className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-6 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2175,9 +2175,9 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 7: TESTIMONIALS & LOCATION MAP
   const renderTestimonialsAndMapSection = () => (
-    <div id="testimonials" className="space-y-6">
+    <div id="testimonials" className="space-y-4 sm:space-y-6">
       {/* Testimonials */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2363,7 +2363,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       </div>
 
       {/* Frequently Asked Questions (FAQ) Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2450,7 +2450,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       </div>
 
       {/* Google Map Location & Address Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-5 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-red-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2545,9 +2545,9 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
 
   // SECTION 8: APPEARANCE, THEME, DOWNLOADS & SEO
   const renderAppearanceAndSeoSection = () => (
-    <div id="appearance" className="space-y-6">
+    <div id="appearance" className="space-y-4 sm:space-y-6">
       {/* 24 Industry Design Templates */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-5 transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2852,7 +2852,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       </div>
 
       {/* SEO & Search Engine Preview */}
-      <div id="seo" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-5 transition-colors">
+      <div id="seo" className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 sm:space-y-5 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -2986,7 +2986,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       </div>
 
       {/* Downloads / Resources */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-6 sm:p-7 space-y-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-200/90 dark:border-white/10 shadow-xs p-4 sm:p-7 space-y-4 transition-colors">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="w-8 h-8 rounded-xl bg-teal-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
@@ -3178,19 +3178,19 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       {/* ============================================================== */}
       {/* 1. TOP HEADER BAR (COMPACT & FIXED)                            */}
       {/* ============================================================== */}
-      <header className="shrink-0 bg-white dark:bg-[#0a0f1d] border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs z-30 transition-colors">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate max-w-[180px] sm:max-w-[260px]">
+      <header className="shrink-0 bg-white dark:bg-[#0a0f1d] border-b border-slate-200/90 dark:border-white/10 px-3.5 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2.5 shadow-xs z-30 transition-colors">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate max-w-[130px] sm:max-w-[200px] md:max-w-[260px]">
                 <span>{profile.name}</span>
               </h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 shrink-0">
-                {profile.isEmployee ? "Employee Card (EC)" : "Profile 1 (Primary)"}
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30 shrink-0">
+                {profile.isEmployee ? "Employee Card" : "Primary Card"}
               </span>
               <Link
                 href="/dashboard/profiles"
-                className="text-[11px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+                className="text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/10 px-1.5 sm:px-2 py-0.5 rounded-lg flex items-center gap-0.5 sm:gap-1 transition-colors shrink-0"
                 title="View and switch between all digital profiles"
               >
                 <span>All Profiles</span>
@@ -3202,7 +3202,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
             </p>
           </div>
 
-          {/* Public Profile Link Pill */}
+          {/* Public Profile Link Pill (Desktop only) */}
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-xs font-mono text-slate-700 dark:text-slate-300 max-w-[200px] sm:max-w-[240px]">
             <span className="truncate">{getPublicUrl()}</span>
             <button
@@ -3217,46 +3217,46 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Light / Dark Mode Toggle */}
           <ThemeToggle size="sm" />
 
-          {/* Dedicated Add Employee Profile Button */}
+          {/* Dedicated Add Employee Profile Button (Desktop only) */}
           <button
             type="button"
             onClick={() => setShowEmployeeModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/40 border border-teal-200 dark:border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="hidden md:flex px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/40 border border-teal-200 dark:border-teal-500/30 text-teal-700 dark:text-teal-300 text-xs font-bold items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             title="Add an employee profile inheriting company branding"
           >
             <Users className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
             <span className="hidden sm:inline">+ Employee Card</span>
           </button>
 
-          {/* New Profile Button */}
+          {/* New Profile Button (Desktop only) */}
           <Link
             href="/dashboard/profiles/new"
-            className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="hidden md:flex px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-bold items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             title="Create another digital profile under your plan"
           >
             <Plus className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span className="hidden sm:inline">New Profile</span>
           </Link>
 
-          {/* View Live Profile Button */}
+          {/* View Live Profile Button (Desktop only) */}
           <Link
             href={`/p/${profile.slug}`}
             target="_blank"
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="hidden sm:flex px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             <span className="hidden sm:inline">View Live</span>
           </Link>
 
-          {/* QR Code Quick Modal Button */}
+          {/* QR Code Quick Modal Button (Desktop only) */}
           <button
             type="button"
             onClick={() => setShowQrModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+            className="hidden sm:flex px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
             title="Scan QR to open profile"
           >
             <QrCode className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -3268,10 +3268,10 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
             type="button"
             onClick={handleSaveDraft}
             disabled={isSaving}
-            className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-            <span>{isSaving ? "Saving..." : "Save Draft"}</span>
+            <span className="hidden xs:inline">{isSaving ? "Saving..." : "Save Draft"}</span>
           </button>
 
           {/* Publish Button */}
@@ -3279,10 +3279,10 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
             type="button"
             onClick={handlePublish}
             disabled={isPublishing}
-            className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50 cursor-pointer"
+            className="px-3 sm:px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
           >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{isPublishing ? "Publishing..." : "Publish"}</span>
+            <Globe className="w-3.5 h-3.5 shrink-0" />
+            <span>{isPublishing ? "..." : "Publish"}</span>
           </button>
         </div>
       </header>
@@ -3309,9 +3309,9 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
       )}
 
       {/* PERSISTENT STEPPER NAVIGATION BAR (ONBOARDING MODE) */}
-      <div className="shrink-0 bg-white/95 dark:bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 z-20 shadow-xs transition-colors">
-        {/* Left: Steps 1 to 8 without horizontal scrolling */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="shrink-0 bg-white/95 dark:bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-3 sm:px-6 py-2 flex flex-col xl:flex-row xl:items-center justify-between gap-2 z-20 shadow-xs transition-colors">
+        {/* Left: Steps 1 to 8 - Smooth single row on mobile with horizontal scroll, and wrapped on desktop */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-nowrap md:flex-wrap">
           {STEPS.map((s) => {
             const isActive = currentStep === s.id;
             const isCompleted = completionStats.stepChecks[s.id];
@@ -3320,7 +3320,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
                 key={s.id}
                 type="button"
                 onClick={() => goToStep(s.id)}
-                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                   isActive && isCompleted
                     ? "bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30"
                     : isActive
@@ -3331,7 +3331,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
                 }`}
                 title={s.label}
               >
-                <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black bg-black/10 dark:bg-white/10">
+                <span className="text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-black bg-black/10 dark:bg-white/10 shrink-0">
                   {isCompleted ? "✓" : s.id}
                 </span>
                 <span>{s.short}</span>
@@ -3341,11 +3341,11 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
         </div>
 
         {/* Right: Reorder & Progress Score */}
-        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-between sm:justify-end">
+        <div className="flex items-center gap-2 shrink-0 justify-between xl:justify-end w-full xl:w-auto">
           <button
             type="button"
             onClick={() => setShowReorderModal(true)}
-            className="px-2.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer shadow-2xs"
+            className="px-2.5 py-1 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 cursor-pointer shadow-2xs"
             title="Reorder profile sections (Drag & Drop or Move Up/Down)"
           >
             <ArrowUpDown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -3353,10 +3353,10 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
           </button>
 
           {/* Step Completion Score */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">
             <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>{completionStats.percent}% Setup Complete</span>
-            <div className="w-12 bg-emerald-200/60 dark:bg-emerald-800/40 h-1.5 rounded-full overflow-hidden shrink-0">
+            <div className="w-10 sm:w-12 bg-emerald-200/60 dark:bg-emerald-800/40 h-1.5 rounded-full overflow-hidden shrink-0">
               <div
                 className="bg-emerald-600 dark:bg-emerald-400 h-full rounded-full transition-all duration-300"
                 style={{ width: `${completionStats.percent}%` }}
@@ -3403,7 +3403,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
           {/* ============================================================ */}
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-50 dark:bg-[#07090e] transition-colors">
             {/* Active Step Form: Scrollable inside only */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 lg:p-6 scrollbar-thin">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 scrollbar-thin">
               <div className="max-w-2xl mx-auto space-y-4">
                 {currentStep === 1 && renderHeaderSection(true)}
                 {currentStep === 2 && renderQuickActionsSection()}
@@ -3417,27 +3417,28 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
             </div>
 
             {/* PINNED BOTTOM STEPPER CONTROLS BAR: ALWAYS IN SIGHT! */}
-            <div className="shrink-0 bg-white dark:bg-[#0a0f1d] border-t border-slate-200/90 dark:border-white/10 px-4 sm:px-6 py-2.5 flex items-center justify-between shadow-lg z-20 transition-colors">
+            <div className="shrink-0 bg-white dark:bg-[#0a0f1d] border-t border-slate-200/90 dark:border-white/10 px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between shadow-lg z-20 transition-colors">
               <button
                 type="button"
                 disabled={currentStep === 1}
                 onClick={() => goToStep(Math.max(1, currentStep - 1))}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed font-bold text-xs flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
               </button>
 
-              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 hidden sm:block">
-                Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}
+              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="sm:hidden text-xs">Step {currentStep} / {STEPS.length}</span>
+                <span className="hidden sm:inline">Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].label}</span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
                   onClick={handleSaveDraft}
                   disabled={isSaving}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  className="hidden sm:flex px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs font-bold items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Save className="w-3.5 h-3.5 text-slate-600" />
                   <span>{isSaving ? "Saving..." : "Save Draft"}</span>
@@ -3450,9 +3451,9 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
                       handleSaveDraft();
                       goToStep(Math.min(STEPS.length, currentStep + 1));
                     }}
-                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all"
+                    className="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-blue-600/25 cursor-pointer transition-all active:scale-95"
                   >
-                    <span>Save & Next Step</span>
+                    <span>Next</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 ) : (
@@ -3460,7 +3461,7 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
                     type="button"
                     onClick={handlePublish}
                     disabled={isPublishing}
-                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-500/25 cursor-pointer transition-all"
+                    className="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-500 hover:to-teal-400 text-white text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-md shadow-teal-500/25 cursor-pointer transition-all active:scale-95"
                   >
                     <Globe className="w-4 h-4" />
                     <span>{isPublishing ? "Publishing..." : "Finish & Publish"}</span>

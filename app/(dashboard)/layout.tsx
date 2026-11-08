@@ -79,7 +79,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* MAIN CONTENT AREA */}
 
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-slate-50 dark:bg-[#07090e] transition-colors duration-150">
+      <main className="flex-1 flex flex-col min-w-0 w-full max-w-full h-full overflow-y-auto overflow-x-hidden bg-slate-50 dark:bg-[#07090e] transition-colors duration-150">
 
         {isAdmin && (
 

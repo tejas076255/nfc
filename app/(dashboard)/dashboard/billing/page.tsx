@@ -38,7 +38,7 @@ export default async function DashboardBillingPage({ searchParams }: DashboardBi
   const activeProfilesCount = profiles.filter((p) => p.status === "published").length;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto w-full">
+    <div className="p-3.5 sm:p-6 lg:p-10 max-w-7xl mx-auto w-full overflow-x-hidden">
       <BillingClientView
         currentPlan={currentPlan as any}
         subscription={subscription}

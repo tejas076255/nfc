@@ -444,13 +444,12 @@ export function NfcCardPreview({
           {/* BACK FACE (Flipped) */}
           {/* ============================================================ */}
           <div
-            className={`absolute inset-0 w-full h-full rounded-2xl p-3.5 xs:p-4 sm:p-5 md:p-6 flex flex-col justify-between backface-hidden rotate-y-180 shadow-2xl overflow-hidden border ${
-              isStandard
+            className={`absolute inset-0 w-full h-full rounded-2xl p-3.5 xs:p-4 sm:p-5 md:p-6 flex flex-col justify-between backface-hidden rotate-y-180 shadow-2xl overflow-hidden border ${isStandard
                 ? "bg-slate-50 border-slate-200 text-slate-800"
                 : isCustomPvc
-                ? "bg-white border-slate-200 text-slate-800"
-                : "border-amber-900/40 text-amber-950"
-            }`}
+                  ? "bg-white border-slate-200 text-slate-800"
+                  : "border-amber-900/40 text-amber-950"
+              }`}
             style={{
               background: isMetal ? metal.background : undefined,
               borderColor: isMetal ? metal.border : undefined,
@@ -458,9 +457,8 @@ export function NfcCardPreview({
           >
             {/* Magnetic Stripe / Signature Panel Visual Accent */}
             <div
-              className={`absolute top-4 sm:top-6 left-0 right-0 h-7 sm:h-9 border-y ${
-                isMetal ? "bg-black/60 border-black/40" : "bg-slate-900 border-slate-950"
-              }`}
+              className={`absolute top-4 sm:top-6 left-0 right-0 h-7 sm:h-9 border-y ${isMetal ? "bg-black/60 border-black/40" : "bg-slate-900 border-slate-950"
+                }`}
             />
 
             <div className="pt-8 sm:pt-10 flex justify-between items-center z-10 gap-2">
@@ -474,23 +472,20 @@ export function NfcCardPreview({
                   />
                 </div>
                 <p
-                  className={`text-[9px] sm:text-[10px] uppercase font-mono tracking-widest truncate ${
-                    isMetal ? "text-amber-950/70 font-bold" : "text-slate-400 font-semibold"
-                  }`}
+                  className={`text-[9px] sm:text-[10px] uppercase font-mono tracking-widest truncate ${isMetal ? "text-amber-950/70 font-bold" : "text-slate-400 font-semibold"
+                    }`}
                 >
                   Cryptographic Tap URL
                 </p>
                 <p
-                  className={`text-[11px] sm:text-xs font-mono font-bold truncate ${
-                    isMetal ? "text-amber-950" : "text-slate-900"
-                  }`}
+                  className={`text-[11px] sm:text-xs font-mono font-bold truncate ${isMetal ? "text-amber-950" : "text-slate-900"
+                    }`}
                 >
                   tapbez.in/t/token...
                 </p>
                 <p
-                  className={`text-[9px] sm:text-[10px] line-clamp-1 ${
-                    isMetal ? "text-amber-900/80" : "text-slate-500"
-                  }`}
+                  className={`text-[9px] sm:text-[10px] line-clamp-1 ${isMetal ? "text-amber-900/80" : "text-slate-500"
+                    }`}
                 >
                   Scan QR with camera or tap with NFC phone
                 </p>
@@ -504,9 +499,8 @@ export function NfcCardPreview({
 
             {/* Bottom Note */}
             <div
-              className={`flex justify-between items-end text-[9px] sm:text-[10px] font-mono z-10 ${
-                isMetal ? "text-amber-950/60 font-semibold" : "text-slate-400"
-              }`}
+              className={`flex justify-between items-end text-[9px] sm:text-[10px] font-mono z-10 ${isMetal ? "text-amber-950/60 font-semibold" : "text-slate-400"
+                }`}
             >
               <span>NDEF Type 2 NFC Tag</span>
               <span>ISO 7810 ID-1 Standard</span>

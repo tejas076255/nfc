@@ -263,28 +263,28 @@ export function BillingClientView({
         </div>
 
         {/* Tab Pills */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 self-start sm:self-auto shrink-0">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 w-full sm:w-auto max-w-full overflow-x-auto no-scrollbar shrink-0 sm:shrink">
           <button
             onClick={() => handleTabChange("billing")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap ${
               activeTab === "billing"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
-            <ShoppingBag className="w-3.5 h-3.5" />
+            <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
             <span>Billing & Plans</span>
           </button>
 
           <button
             onClick={() => handleTabChange("team")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative shrink-0 whitespace-nowrap ${
               activeTab === "team"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
+            <Users className="w-3.5 h-3.5 shrink-0" />
             <span>Team (Pro)</span>
             <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-purple-500/30 text-purple-300 border border-purple-500/40">
               Pro
@@ -293,13 +293,13 @@ export function BillingClientView({
 
           <button
             onClick={() => handleTabChange("integrations")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all relative shrink-0 whitespace-nowrap ${
               activeTab === "integrations"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5"
             }`}
           >
-            <Plug className="w-3.5 h-3.5" />
+            <Plug className="w-3.5 h-3.5 shrink-0" />
             <span>Integrations</span>
             <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-teal-500/30 text-teal-300 border border-teal-500/40">
               CRM
@@ -347,7 +347,7 @@ export function BillingClientView({
       {activeTab === "billing" && (
         <div className="space-y-10 animate-in fade-in duration-200">
           {/* CURRENT SUBSCRIPTION CARD */}
-          <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/40 dark:via-slate-900/60 dark:to-purple-950/30 border border-blue-200 dark:border-blue-500/30 shadow-xs shadow-2xl relative overflow-hidden">
+          <div className="p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/40 dark:via-slate-900/60 dark:to-purple-950/30 border border-blue-200 dark:border-blue-500/30 shadow-xs shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -408,36 +408,36 @@ export function BillingClientView({
                 </div>
 
                 {/* Profile Slots Action Buttons */}
-                <div className="flex flex-wrap items-center gap-2.5 pt-2">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 pt-2">
                   <Link
                     href="/dashboard/profiles/new"
-                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/25 flex items-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-teal-600/25 flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-center"
                   >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>+ Add New Profile ({Math.max(0, (currentPlan.profileLimit >= 999 ? 999 : currentPlan.profileLimit) - activeProfilesCount)} slots remaining)</span>
+                    <Plus className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">+ Add New Profile ({Math.max(0, (currentPlan.profileLimit >= 999 ? 999 : currentPlan.profileLimit) - activeProfilesCount)} slots remaining)</span>
                   </Link>
 
                   <button
                     type="button"
                     onClick={() => setShowBuySlotsModal(true)}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition-all shadow-md shadow-amber-500/20 flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-center"
                   >
-                    <CreditCard className="w-3.5 h-3.5" />
+                    <CreditCard className="w-3.5 h-3.5 shrink-0" />
                     <span>+ Purchase Extra Card Slots</span>
                   </button>
 
                   <Link
                     href="/dashboard/profiles"
-                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-slate-200 border border-slate-200 dark:border-white/10 text-xs font-semibold transition-all flex items-center justify-center sm:justify-start gap-1.5 cursor-pointer text-center"
                   >
-                    <Smartphone className="w-3.5 h-3.5 text-teal-400" />
+                    <Smartphone className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                     <span>Manage All Profiles ({activeProfilesCount})</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                   </Link>
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 space-y-4 shrink-0 lg:min-w-[240px]">
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-white/10 space-y-4 w-full lg:w-auto shrink-0 lg:min-w-[240px]">
                 <div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Billed Annually</div>
                   <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
