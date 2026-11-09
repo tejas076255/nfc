@@ -68,19 +68,7 @@ import {
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { compressImageFile } from "@/lib/utils/image";
 import { UpgradePlanModal } from "@/components/modals/UpgradePlanModal";
-
-function extractMapEmbedSrc(embedInput?: string): string | null {
-  if (!embedInput) return null;
-  const trimmed = embedInput.trim();
-  if (trimmed.includes("<iframe")) {
-    const match = trimmed.match(/src=["']([^"']+)["']/i);
-    if (match && match[1]) return match[1];
-  }
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  return null;
-}
+import { extractMapEmbedSrc, getGoogleMapsDirectionsUrl } from "@/lib/maps";
 
 interface ProfileEditorProps {
   initialProfile: any;
@@ -2512,18 +2500,27 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition-colors resize-y"
             />
             <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              💡 <strong>How to get Embed code:</strong> In Google Maps on PC/browser, search your place, click <strong>Share</strong> &rarr; select <strong>Embed a map</strong> &rarr; click <strong>Copy HTML</strong> and paste it directly above.
+              💡 <strong>Automatic Google Map:</strong> Enter your office address above and your interactive Google Map will appear automatically! Or optionally paste a custom Google Maps iframe embed code.
             </p>
           </div>
 
           {/* 3. Live Embedded Map Preview */}
           {(() => {
-            const previewEmbedSrc = extractMapEmbedSrc(locationBlock.embedCode || locationBlock.mapUrl);
+            const previewEmbedSrc = extractMapEmbedSrc(
+              locationBlock.embedCode || locationBlock.mapUrl,
+              locationBlock.address || contactBlock?.location
+            );
             if (!previewEmbedSrc) return null;
             return (
               <div className="space-y-1.5 pt-2">
-                <span className="block text-xs font-bold text-slate-700 dark:text-slate-300">Live Map Preview</span>
-                <div className="w-full h-48 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-inner bg-slate-100 dark:bg-slate-800">
+                <div className="flex items-center justify-between">
+                  <span className="block text-xs font-bold text-slate-700 dark:text-slate-300">Live Google Map Preview</span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    Connected to Google Maps API
+                  </span>
+                </div>
+                <div className="w-full h-52 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-inner bg-slate-100 dark:bg-slate-800">
                   <iframe
                     src={previewEmbedSrc}
                     width="100%"

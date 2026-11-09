@@ -292,20 +292,8 @@ function TelegramIcon({ className = "w-5 h-5" }: { className?: string }) {
 
 
 
-// Ensures links have proper protocol (https://), handles handles/numbers, and falls back to label if url was pasted into label
-
-export function extractMapEmbedSrc(embedInput?: string): string | null {
-  if (!embedInput) return null;
-  const trimmed = embedInput.trim();
-  if (trimmed.includes("<iframe")) {
-    const match = trimmed.match(/src=["']([^"']+)["']/i);
-    if (match && match[1]) return match[1];
-  }
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  return null;
-}
+import { extractMapEmbedSrc, getGoogleMapsDirectionsUrl } from "@/lib/maps";
+export { extractMapEmbedSrc, getGoogleMapsDirectionsUrl };
 
 export function resolveValidUrl(url?: string, label?: string, platform?: string): string {
 
@@ -2143,16 +2131,8 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
             }
 
             if (locationBlock.mapUrl || locationBlock.address || contactBlock.location) {
-
-              const mapUrl = locationBlock.mapUrl
-
-                ? resolveValidUrl(locationBlock.mapUrl)
-
-                : `https://maps.google.com/?q=${encodeURIComponent(
-
-                  locationBlock.address || contactBlock.location || ""
-
-                )}`;
+              const physicalLoc = locationBlock.address || contactBlock.location || "";
+              const mapUrl = getGoogleMapsDirectionsUrl(physicalLoc, locationBlock.mapUrl) || (locationBlock.mapUrl ? resolveValidUrl(locationBlock.mapUrl) : `https://maps.google.com/?q=${encodeURIComponent(physicalLoc)}`);
 
               actions.push({
 
@@ -3738,92 +3718,52 @@ export function PublicProfileView({ profile, sourceType = "direct", sourceToken,
 
 
               case "location": {
-
-                if (!locationBlock.address && !locationBlock.embedCode && !locationBlock.mapUrl) return null;
-                const mapEmbedSrc = extractMapEmbedSrc(locationBlock.embedCode || locationBlock.mapEmbedUrl || locationBlock.mapUrl);
+                const physicalLocation = locationBlock.address || contactBlock.location;
+                if (!physicalLocation && !locationBlock.embedCode && !locationBlock.mapUrl) return null;
+                const mapEmbedSrc = extractMapEmbedSrc(
+                  locationBlock.embedCode || locationBlock.mapEmbedUrl || locationBlock.mapUrl,
+                  physicalLocation
+                );
 
                 return (
-
                   <div
-
                     key="location"
-
                     className={`p-4 rounded-2xl space-y-3 ${isLightMode
-
                       ? "bg-white border border-slate-200/90 shadow-sm"
-
                       : "bg-slate-900/70 border border-white/10"
-
                       }`}
-
                   >
-
                     <div className="flex items-start gap-2.5">
-
                       <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-
                       <div className="space-y-1 min-w-0 flex-1">
-
                         <p className={`text-xs font-bold ${isLightMode ? "text-slate-900" : "text-white"}`}>
-
                           Business Location
-
                         </p>
-
-                        {locationBlock.address && (
+                        {physicalLocation && (
                           <p className={`text-xs leading-relaxed ${isLightMode ? "text-slate-700" : "text-slate-300"}`}>
-
-                            {locationBlock.address}
-
+                            {physicalLocation}
                           </p>
                         )}
-
                         {(() => {
-
-                          const dirUrl = locationBlock.mapUrl
-
-                            ? resolveValidUrl(locationBlock.mapUrl)
-
-                            : locationBlock.address
-                              ? `https://maps.google.com/?q=${encodeURIComponent(locationBlock.address)}`
-                              : null;
-
+                          const dirUrl = getGoogleMapsDirectionsUrl(physicalLocation, locationBlock.mapUrl) || (locationBlock.mapUrl ? resolveValidUrl(locationBlock.mapUrl) : physicalLocation ? `https://maps.google.com/?q=${encodeURIComponent(physicalLocation)}` : null);
                           if (!dirUrl) return null;
-
                           return (
-
                             <a
-
                               href={dirUrl || "#"}
-
                               target="_blank"
-
                               rel="noopener noreferrer"
-
                               onClick={(e) => {
-
                                 handleTrackAction("map_click");
-
                                 handleOpenExternal(e, dirUrl);
-
                               }}
-
                               className="text-[11px] text-teal-600 hover:underline flex items-center gap-1 cursor-pointer pt-0.5"
-
                             >
-
                               <span>Get Driving Directions</span>
-
                               <ArrowRight className="w-3 h-3" />
-
                             </a>
-
                           );
-
                         })()}
-
                       </div>
-
                     </div>
 
                     {mapEmbedSrc && (
