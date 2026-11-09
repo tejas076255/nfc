@@ -4,6 +4,7 @@ import { getDb, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { createSession } from "@/lib/auth/session";
 import { hashPassword } from "@/lib/auth/password";
+import { verifySignedOAuthState, getCanonicalGoogleRedirectUri } from "@/lib/auth/google";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -12,35 +13,44 @@ export async function GET(request: Request) {
   const error = url.searchParams.get("error");
 
   const host = request.headers.get("host");
-  const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
-  const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in");
-  const redirectUri = `${origin.replace(/\/$/, "")}/api/auth/callback/google`;
+  const redirectUri = getCanonicalGoogleRedirectUri(request.url, host);
 
   if (error || !code) {
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error || "Google sign-in was cancelled")}`, request.url));
+    const errorMsg = error || "Google sign-in was cancelled";
+    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(errorMsg)}`, request.url));
   }
 
-  const cookieStore = await cookies();
-  const savedState = cookieStore.get("google_oauth_state")?.value;
-  const returnTo = cookieStore.get("google_oauth_return_to")?.value || "/dashboard";
+  // Dual-layer state verification: Primary via signed HMAC state, Secondary via state cookie
+  const signedStateResult = verifySignedOAuthState(state);
+  let cookieState: string | undefined;
 
-  // Clean up state cookies
-  cookieStore.delete("google_oauth_state");
-  cookieStore.delete("google_oauth_return_to");
-
-  if (!state || !savedState || state !== savedState) {
-    return NextResponse.redirect(new URL("/login?error=Invalid+OAuth+state", request.url));
+  try {
+    const cookieStore = await cookies();
+    cookieState = cookieStore.get("google_oauth_state")?.value;
+    cookieStore.delete("google_oauth_state");
+    cookieStore.delete("google_oauth_return_to");
+  } catch (err) {
+    console.warn("Could not read or delete state cookie:", err);
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const isStateValid = signedStateResult.valid || (cookieState && state === cookieState);
+  if (!isStateValid) {
+    console.warn("OAuth state validation failed. State:", state, "Signed valid:", signedStateResult.valid, "Cookie state:", cookieState);
+    return NextResponse.redirect(new URL("/login?error=OAuth+session+expired.+Please+try+signing+in+again.", request.url));
+  }
+
+  const returnTo = signedStateResult.returnTo || "/dashboard";
+
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    return NextResponse.redirect(new URL("/login?error=Google+OAuth+credentials+not+configured", request.url));
+    console.error("Google OAuth client credentials missing in server environment");
+    return NextResponse.redirect(new URL("/login?error=Google+OAuth+credentials+not+configured+on+server", request.url));
   }
 
   try {
-    // Exchange code for token
+    // 1. Exchange code for OAuth access token
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -56,12 +66,12 @@ export async function GET(request: Request) {
     if (!tokenResponse.ok) {
       const errText = await tokenResponse.text();
       console.error("Google token exchange error:", errText);
-      return NextResponse.redirect(new URL("/login?error=Failed+to+exchange+Google+token", request.url));
+      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent("Google token exchange failed: " + errText)}`, request.url));
     }
 
     const tokenData = (await tokenResponse.json()) as { access_token: string; id_token?: string };
 
-    // Fetch user profile from Google
+    // 2. Fetch user profile from Google UserInfo
     const userinfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
@@ -79,7 +89,7 @@ export async function GET(request: Request) {
     };
 
     if (!googleUser.email) {
-      return NextResponse.redirect(new URL("/login?error=No+email+provided+by+Google", request.url));
+      return NextResponse.redirect(new URL("/login?error=No+email+provided+by+Google+account", request.url));
     }
 
     const email = googleUser.email.toLowerCase().trim();
@@ -120,13 +130,60 @@ export async function GET(request: Request) {
       });
     }
 
-    // Create session
+    // 3. CRITICAL: Guarantee user has a workspace and workspace membership
+    const [existingMembership] = await db
+      .select()
+      .from(schema.workspaceMemberships)
+      .where(eq(schema.workspaceMemberships.userId, userId))
+      .limit(1);
+
+    if (!existingMembership) {
+      const workspaceId = crypto.randomUUID();
+      const baseSlug = name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const workspaceSlug = `${baseSlug || "workspace"}-${randomSuffix}`;
+
+      await db.insert(schema.workspaces).values({
+        id: workspaceId,
+        name: `${name}'s Workspace`,
+        slug: workspaceSlug,
+        type: "personal",
+        ownerId: userId,
+        status: "active",
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      await db.insert(schema.workspaceMemberships).values({
+        id: crypto.randomUUID(),
+        workspaceId,
+        userId,
+        role: "owner",
+        status: "active",
+        createdAt: now,
+      });
+
+      const oneYearLater = now + 365 * 24 * 60 * 60;
+      await db.insert(schema.subscriptions).values({
+        id: crypto.randomUUID(),
+        workspaceId,
+        planId: "plan_free",
+        status: "active",
+        currentPeriodStart: now,
+        currentPeriodEnd: oneYearLater,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // 4. Create session and set session cookie
     await createSession(userId);
 
-    return NextResponse.redirect(new URL(returnTo, request.url));
+    // 5. Clean redirect to target destination
+    const destination = returnTo && returnTo.startsWith("/") ? returnTo : "/dashboard";
+    return NextResponse.redirect(new URL(destination, request.url));
   } catch (err: any) {
-    console.error("Google OAuth error:", err);
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(err.message || "Authentication failed")}`, request.url));
+    console.error("Google OAuth callback error:", err);
+    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(err?.message || "Authentication failed")}`, request.url));
   }
 }
-

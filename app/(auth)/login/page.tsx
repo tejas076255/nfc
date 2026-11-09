@@ -13,6 +13,8 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") || "/dashboard";
+  const urlError = searchParams.get("error");
+  const displayError = state?.error || urlError;
 
   return (
     <div className="w-full max-w-md space-y-6">
@@ -43,10 +45,10 @@ function LoginForm() {
 
       {/* Form Card */}
       <div className="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-white/10 shadow-2xl space-y-5 bg-white dark:bg-[#0b101c]">
-        {state?.error && (
+        {displayError && (
           <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{state.error}</span>
+            <span>{displayError}</span>
           </div>
         )}
 

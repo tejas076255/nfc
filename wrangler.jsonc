@@ -4,11 +4,19 @@
   "account_id": "0ff0c6c2f6108c0e9bc82c0baa186d05",
   "main": ".open-next/worker.js",
   "compatibility_date": "2024-12-30",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "routes": [
-    { "pattern": "tapbez.in", "custom_domain": true },
-    { "pattern": "www.tapbez.in", "custom_domain": true }
+    {
+      "pattern": "tapbez.in",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.tapbez.in",
+      "custom_domain": true
+    }
   ],
   "assets": {
     "directory": ".open-next/assets",

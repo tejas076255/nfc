@@ -1,36 +1,35 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createSignedOAuthState, getCanonicalGoogleRedirectUri } from "@/lib/auth/google";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const returnTo = searchParams.get("returnTo") || "/dashboard";
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   if (!clientId) {
     return NextResponse.json({ error: "Google Client ID is not configured in environment" }, { status: 500 });
   }
 
   const host = request.headers.get("host");
-  const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
-  const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in");
-  const redirectUri = `${origin.replace(/\/$/, "")}/api/auth/callback/google`;
+  const redirectUri = getCanonicalGoogleRedirectUri(request.url, host);
 
-  const state = crypto.randomUUID();
-  const cookieStore = await cookies();
-  cookieStore.set("google_oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 10,
-  });
-  cookieStore.set("google_oauth_return_to", returnTo, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 10,
-  });
+  // Cryptographically signed state token carrying returnTo and timestamp
+  const state = createSignedOAuthState(returnTo);
+
+  // Also set cookie as secondary defense
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set("google_oauth_state", state, {
+      httpOnly: true,
+      secure: request.url.startsWith("https"),
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 20,
+    });
+  } catch (err) {
+    console.warn("Could not set oauth state cookie:", err);
+  }
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", clientId);
@@ -43,4 +42,3 @@ export async function GET(request: Request) {
 
   return NextResponse.redirect(authUrl.toString());
 }
-
