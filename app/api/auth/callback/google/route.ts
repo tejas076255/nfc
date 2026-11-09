@@ -11,8 +11,10 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "production" ? "https://tapbez.in" : "http://localhost:3000");
-  const redirectUri = `${appUrl.replace(/\/$/, "")}/api/auth/callback/google`;
+  const host = request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in");
+  const redirectUri = `${origin.replace(/\/$/, "")}/api/auth/callback/google`;
 
   if (error || !code) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error || "Google sign-in was cancelled")}`, request.url));
@@ -127,3 +129,4 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(err.message || "Authentication failed")}`, request.url));
   }
 }
+

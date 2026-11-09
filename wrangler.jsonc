@@ -34,6 +34,7 @@
     "APP_URL": "https://tapbez.in",
     "NEXT_PUBLIC_APP_URL": "https://tapbez.in",
     "JWT_SECRET": "nfc-saas-production-jwt-secret-key-32charsmin",
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "GOOGLE_CLIENT_ID": "613774279366-hhsisa6hrgfrgim6md5l49pkstdlhtof.apps.googleusercontent.com"
   }
 }

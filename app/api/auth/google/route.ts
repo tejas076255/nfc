@@ -10,8 +10,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Google Client ID is not configured in environment" }, { status: 500 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.NODE_ENV === "production" ? "https://tapbez.in" : "http://localhost:3000");
-  const redirectUri = `${appUrl.replace(/\/$/, "")}/api/auth/callback/google`;
+  const host = request.headers.get("host");
+  const proto = request.headers.get("x-forwarded-proto") || (host?.includes("localhost") ? "http" : "https");
+  const origin = host ? `${proto}://${host}` : (process.env.NEXT_PUBLIC_APP_URL || "https://tapbez.in");
+  const redirectUri = `${origin.replace(/\/$/, "")}/api/auth/callback/google`;
 
   const state = crypto.randomUUID();
   const cookieStore = await cookies();
@@ -41,3 +43,4 @@ export async function GET(request: Request) {
 
   return NextResponse.redirect(authUrl.toString());
 }
+
