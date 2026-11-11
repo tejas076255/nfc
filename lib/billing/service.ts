@@ -368,6 +368,10 @@ export async function getWorkspaceOrders(workspaceId: string) {
 }
 
 export async function getWorkspaceSubscription(workspaceId: string) {
+  const cacheKey = `workspace:sub:${workspaceId}`;
+  const cached = fastCache.get<any>(cacheKey);
+  if (cached) return cached;
+
   const db = await getDb();
   const [sub] = await db
     .select()
@@ -383,10 +387,12 @@ export async function getWorkspaceSubscription(workspaceId: string) {
       .where(eq(schema.plans.code, "free"))
       .limit(1);
 
-    return {
+    const result = {
       subscription: null,
       plan: freePlan || LANDING_PLANS[0],
     };
+    fastCache.set(cacheKey, result, 60);
+    return result;
   }
 
   const [plan] = await db
@@ -404,21 +410,28 @@ export async function getWorkspaceSubscription(workspaceId: string) {
       (lp.code === "custom_metal" && plan?.code === "business_pro")
   );
 
-  return {
+  const result = {
     subscription: sub,
     plan: matchedLandingPlan
       ? { ...matchedLandingPlan, id: plan?.id || matchedLandingPlan.id }
       : plan || LANDING_PLANS[0],
   };
+  fastCache.set(cacheKey, result, 60);
+  return result;
 }
 
 export async function getAllPlans() {
+  const cacheKey = "all_plans_cache";
+  const cached = fastCache.get<any>(cacheKey);
+  if (cached) return cached;
+
   const db = await getDb();
   const dbPlans = await db.select().from(schema.plans);
   if (!dbPlans || dbPlans.length === 0) {
+    fastCache.set(cacheKey, LANDING_PLANS, 3600);
     return LANDING_PLANS;
   }
-  return LANDING_PLANS.map((lp) => {
+  const result = LANDING_PLANS.map((lp) => {
     const matched = dbPlans.find(
       (p) =>
         p.code === lp.code ||
@@ -431,6 +444,8 @@ export async function getAllPlans() {
       id: matched?.id || lp.id,
     };
   });
+  fastCache.set(cacheKey, result, 3600);
+  return result;
 }
 
 export async function getAllOrders() {

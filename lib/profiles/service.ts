@@ -63,6 +63,15 @@ export async function getWorkspaceProfiles(workspaceId: string) {
     .orderBy(schema.profiles.createdAt);
 }
 
+export async function getWorkspacePublishedProfilesCount(workspaceId: string): Promise<number> {
+  const db = await getDb();
+  const rows = await db
+    .select({ id: schema.profiles.id })
+    .from(schema.profiles)
+    .where(and(eq(schema.profiles.workspaceId, workspaceId), eq(schema.profiles.status, "published")));
+  return rows.length;
+}
+
 export async function getProfileById(profileId: string, workspaceId: string) {
   const db = await getDb();
   const [profile] = await db

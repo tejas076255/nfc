@@ -79,6 +79,7 @@ interface ProfileEditorProps {
 export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }: ProfileEditorProps) {
   const [profile, setProfile] = useState<any>(initialProfile);
   const [mobileTab, setMobileTab] = useState<"editor" | "preview">("editor");
+  const [showMobileMiniPreview, setShowMobileMiniPreview] = useState(true);
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -3402,6 +3403,103 @@ export function ProfileEditor({ initialProfile, workspaceId, isPremium = false }
             {/* Active Step Form: Scrollable inside only */}
             <div className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 scrollbar-thin">
               <div className="max-w-2xl mx-auto space-y-4">
+                {/* MOBILE DUAL-VIEW: REAL-TIME LIVE MINI-CARD PREVIEW (PURE LIGHT THEME) */}
+                <div className="md:hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-white/10 shadow-xs p-3.5 space-y-3 transition-all">
+                  {/* Card Header with Live Badge & Controls */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Live Preview</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowMobileMiniPreview((prev) => !prev)}
+                        className="px-2 py-1 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1 cursor-pointer transition-colors"
+                        title={showMobileMiniPreview ? "Collapse preview" : "Expand preview"}
+                      >
+                        {showMobileMiniPreview ? (
+                          <>
+                            <span>Hide</span>
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </>
+                        ) : (
+                          <>
+                            <span>Show Card</span>
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setMobileTab("preview")}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/30 text-[11px] font-bold transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                        title="View Full Phone Simulator with All Sections"
+                      >
+                        <Smartphone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                        <span>Full Phone</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {showMobileMiniPreview && (
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-white/5 p-3.5 flex flex-col items-center text-center relative overflow-hidden animate-in fade-in duration-200">
+                      {/* Avatar Portrait */}
+                      <div className="relative mb-2">
+                        {headerBlock.avatarUrl || headerBlock.coverUrl ? (
+                          <img
+                            src={headerBlock.avatarUrl || headerBlock.coverUrl}
+                            alt="Profile Portrait"
+                            className="w-16 h-16 rounded-full object-cover border-2 border-white dark:border-slate-700 shadow-md mx-auto"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-lg border-2 border-white dark:border-slate-700 shadow-md mx-auto">
+                            {(headerBlock.name || profile.name || "U").charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        {headerBlock.logoUrl && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-xs flex items-center justify-center overflow-hidden p-0.5">
+                            <img src={headerBlock.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Name & Title */}
+                      <h4 className="text-sm font-extrabold text-slate-900 dark:text-white truncate max-w-full">
+                        {headerBlock.name !== undefined ? headerBlock.name || "Your Name" : profile.name || "Your Name"}
+                      </h4>
+                      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate max-w-full mt-0.5">
+                        {(headerBlock.title !== undefined ? headerBlock.title : profile.title) || "Designation"}
+                        {headerBlock.company ? ` · ${headerBlock.company}` : ""}
+                      </p>
+
+                      {headerBlock.tagline && (
+                        <p className="text-[10px] text-slate-400 italic truncate max-w-full mt-0.5">
+                          &ldquo;{headerBlock.tagline}&rdquo;
+                        </p>
+                      )}
+
+                      {/* Quick Action Preview Buttons */}
+                      <div className="flex items-center justify-center gap-2 mt-3 w-full max-w-[260px]">
+                        <div className="flex-1 py-1.5 px-3 rounded-full bg-blue-600 text-white text-[11px] font-bold text-center shadow-xs flex items-center justify-center gap-1 select-none">
+                          <Download className="w-3 h-3 shrink-0" />
+                          <span className="truncate">Save Contact</span>
+                        </div>
+                        <div className="flex-1 py-1.5 px-3 rounded-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-white/10 text-slate-800 dark:text-white text-[11px] font-bold text-center shadow-2xs flex items-center justify-center gap-1 select-none">
+                          <Globe className="w-3 h-3 shrink-0 text-slate-500 dark:text-slate-400" />
+                          <span className="truncate">Inquiry</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 text-[9px] text-slate-400 font-medium flex items-center gap-1">
+                        <span>✨ Updates live as you type below</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {currentStep === 1 && renderHeaderSection(true)}
                 {currentStep === 2 && renderQuickActionsSection()}
                 {currentStep === 3 && renderSocialsSection()}

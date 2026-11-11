@@ -6,7 +6,7 @@ import {
   getAllPlans,
   getWorkspaceInvoices,
 } from "@/lib/billing/service";
-import { getWorkspaceProfiles } from "@/lib/profiles/service";
+import { getWorkspacePublishedProfilesCount } from "@/lib/profiles/service";
 import { BillingClientView } from "@/components/billing/BillingClientView";
 
 export const metadata = {
@@ -27,15 +27,13 @@ export default async function DashboardBillingPage({ searchParams }: DashboardBi
   const resolvedParams = await searchParams;
   const initialTab = resolvedParams?.tab || "billing";
 
-  const [{ plan: currentPlan, subscription }, allPlans, invoices, profiles] =
+  const [{ plan: currentPlan, subscription }, allPlans, invoices, activeProfilesCount] =
     await Promise.all([
       getWorkspaceSubscription(session.workspace.id),
       getAllPlans(),
       getWorkspaceInvoices(session.workspace.id),
-      getWorkspaceProfiles(session.workspace.id),
+      getWorkspacePublishedProfilesCount(session.workspace.id),
     ]);
-
-  const activeProfilesCount = profiles.filter((p) => p.status === "published").length;
 
   return (
     <div className="p-3.5 sm:p-6 lg:p-10 max-w-7xl mx-auto w-full overflow-x-hidden">
